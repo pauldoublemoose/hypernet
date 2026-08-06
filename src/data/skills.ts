@@ -1,0 +1,62 @@
+// Starting skill taxonomy for the HYPERNET co-creator database.
+// Community-added categories/subcategories (skill_options table) are merged
+// with this list at load time.
+export const SKILL_TAXONOMY: Record<string, string[]> = {
+  'BUILD & CONSTRUCTION': [
+    'CARPENTRY',
+    'METALWORK / WELDING',
+    'SCENIC & SET BUILDING',
+    'STRUCTURAL DESIGN',
+    'CAD / DRAFTING',
+  ],
+  'ART & CRAFT': [
+    'PAINTING / MURALS',
+    'SCULPTURE',
+    'TEXTILES & COSTUME',
+    'PROPS',
+    'GRAPHIC DESIGN & SIGNAGE',
+  ],
+  LIGHT: ['LIGHTING DESIGN', 'LED / PIXEL ART', 'PROJECTION MAPPING', 'LASERS'],
+  SOUND: ['DJING', 'LIVE MUSIC', 'SOUND ENGINEERING / PA', 'SOUND ART'],
+  PERFORMANCE: [
+    'DANCE',
+    'IMMERSIVE THEATRE & ACTING',
+    'FIRE PERFORMANCE',
+    'CIRCUS / AERIAL',
+    'MC & HOSTING',
+  ],
+  'TECH & INTERACTIVE': [
+    'PROGRAMMING',
+    'ELECTRONICS / MICROCONTROLLERS',
+    'NETWORKING',
+    'INTERACTIVE INSTALLATIONS',
+  ],
+  'POWER & INFRASTRUCTURE': [
+    'ELECTRICS & POWER GRID',
+    'GENERATORS',
+    'WATER & PLUMBING',
+    'SITE LOGISTICS',
+  ],
+  'CAMP OPERATIONS': [
+    'KITCHEN & COOKING',
+    'TRANSPORT & DRIVING',
+    'INVENTORY',
+    'BUDGETING & FINANCE',
+  ],
+  'EVENT PRODUCTION': [
+    'PROJECT MANAGEMENT',
+    'SAFETY & PERMITS',
+    'VOLUNTEER COORDINATION',
+    'SCHEDULING',
+  ],
+  'CARE & COMMUNITY': [
+    'WELFARE',
+    'MEDICAL / FIRST AID',
+    'CONSENT & AWARENESS',
+    'CONFLICT RESOLUTION',
+    'FLUFFING',
+  ],
+  'SOCIAL & VIBES': ['GREETING', 'BAR & MIXOLOGY', 'GAMES & PLAY', 'PARTY INSTIGATION'],
+  'MEDIA & COMMS': ['PHOTOGRAPHY', 'VIDEO', 'WRITING & LORE', 'SOCIAL MEDIA'],
+  KNOWLEDGE: ['WORKSHOPS & TEACHING', 'FUNDING & GRANTS', 'LEGAL & ADMIN'],
+}

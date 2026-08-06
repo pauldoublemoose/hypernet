@@ -1,0 +1,107 @@
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { Answers } from '../types'
+
+const url = import.meta.env.VITE_SUPABASE_URL
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase: SupabaseClient | null =
+  url && anonKey ? createClient(url, anonKey) : null
+
+export interface RemoteSkillOption {
+  category: string
+  subcategory: string | null
+}
+
+export interface RemoteLocationOption {
+  country: string
+  city: string | null
+}
+
+export async function fetchSkillOptions(): Promise<RemoteSkillOption[]> {
+  if (!supabase) return []
+  try {
+    const { data, error } = await supabase
+      .from('skill_options')
+      .select('category, subcategory')
+    if (error || !data) return []
+    return data
+  } catch {
+    return []
+  }
+}
+
+export async function fetchLocationOptions(): Promise<RemoteLocationOption[]> {
+  if (!supabase) return []
+  try {
+    const { data, error } = await supabase
+      .from('location_options')
+      .select('country, city')
+    if (error || !data) return []
+    return data
+  } catch {
+    return []
+  }
+}
+
+function cacheLocally(row: Record<string, unknown>) {
+  try {
+    const key = 'hypernet_pending_signups'
+    const existing = JSON.parse(localStorage.getItem(key) ?? '[]') as unknown[]
+    existing.push(row)
+    localStorage.setItem(key, JSON.stringify(existing))
+  } catch {
+    // storage unavailable; nothing more we can do in the pre-alpha
+  }
+}
+
+export async function submitSignup(a: Answers): Promise<{ offline: boolean }> {
+  const id = crypto.randomUUID()
+  const row = {
+    id,
+    status: a.status,
+    full_name: a.fullName ?? null,
+    email: a.email ?? null,
+    phone: a.phone ?? null,
+    discord: a.discord ?? null,
+    facebook: a.facebook ?? null,
+    contact_prefs: { reachable: a.contactChannels },
+    attended_events: a.attendedEvents,
+    contribution_history: a.contributionHistory ?? null,
+    hyperstition_years: a.years,
+    skills: a.skills,
+    locations: a.locations,
+    other_info: a.otherInfo ?? null,
+  }
+
+  if (!supabase) {
+    cacheLocally(row)
+    return { offline: true }
+  }
+
+  try {
+    const { error } = await supabase.from('signups').insert(row)
+    if (error) throw error
+    if (a.customOptions.length > 0) {
+      await supabase.from('skill_options').insert(
+        a.customOptions.map((c) => ({
+          category: c.category,
+          subcategory: c.subcategory ?? null,
+          added_by_signup: id,
+        })),
+      )
+    }
+    if (a.customLocations.length > 0) {
+      await supabase.from('location_options').insert(
+        a.customLocations.map((c) => ({
+          country: c.country,
+          city: c.city ?? null,
+          added_by_signup: id,
+        })),
+      )
+    }
+    return { offline: false }
+  } catch {
+    cacheLocally(row)
+    return { offline: true }
+  }
+}

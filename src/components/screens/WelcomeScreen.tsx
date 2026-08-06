@@ -1,0 +1,75 @@
+import { useLayoutEffect, useState } from 'react'
+import { WELCOME_INTRO, WELCOME_JOIN } from '../../data/copy'
+import { useKeys, useTypewriter } from '../../hooks'
+import type { InputMode } from '../TerminalFrame'
+
+const FULL = `${WELCOME_INTRO}\n\n${WELCOME_JOIN}`
+
+export function WelcomeScreen({
+  onSignup,
+  onAbout,
+  setMode,
+}: {
+  onSignup: () => void
+  onAbout: () => void
+  setMode: (m: InputMode) => void
+}) {
+  const { shown, done, finish } = useTypewriter(FULL)
+  // SIGN UP is the primary action, highlighted by default
+  const [hl, setHl] = useState<0 | 1>(1)
+
+  useLayoutEffect(() => setMode('NAV'), [setMode])
+
+  const introShown = shown.slice(0, Math.min(shown.length, WELCOME_INTRO.length))
+  const introDone = shown.length >= WELCOME_INTRO.length
+  const joinShown = shown.length > WELCOME_INTRO.length + 2 ? shown.slice(WELCOME_INTRO.length + 2) : ''
+
+  useKeys((e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHl((h) => (h === 0 ? 1 : 0))
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      if (!done) finish()
+      else if (hl === 0) onAbout()
+      else onSignup()
+    }
+  })
+
+  return (
+    <div className="screen" onClick={() => !done && finish()}>
+      <div className="tw">
+        {introShown}
+        {!introDone && <span className="caret">▮</span>}
+      </div>
+      {introDone && (
+        <div className="btn-row">
+          <button
+            className={`btn ${done && hl === 0 ? 'hl' : ''}`}
+            onMouseEnter={() => setHl(0)}
+            onClick={onAbout}
+          >
+            [ TELL ME MORE ABOUT HYPERNET ]
+          </button>
+        </div>
+      )}
+      {introDone && (
+        <div className="tw">
+          {joinShown}
+          {!done && <span className="caret">▮</span>}
+        </div>
+      )}
+      {done && (
+        <div className="btn-row">
+          <button
+            className={`btn ${hl === 1 ? 'hl' : ''}`}
+            onMouseEnter={() => setHl(1)}
+            onClick={onSignup}
+          >
+            [ SIGN UP ]
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
