@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { useKeys } from '../../hooks'
 import { ADMIN_COLUMNS, cellValue, type SignupRow } from '../../lib/adminStore'
-import { fetchMySignup, getSession, signOut } from '../../lib/auth'
+import { claimSignups, fetchMySignup, getSession, signOut } from '../../lib/auth'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
@@ -42,6 +42,9 @@ export function AccountScreen({
         return
       }
       setEmail(session.user.email ?? '')
+      // Idempotent: also covers logins that arrived via the emailed link
+      // (which bypass the LoginScreen claim call).
+      await claimSignups()
       const mine = await fetchMySignup()
       if (!alive) return
       if (mine?.id) {

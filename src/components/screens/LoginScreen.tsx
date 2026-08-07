@@ -150,7 +150,7 @@ export function LoginScreen({
         {nudge ??
           (stage === 'email'
             ? 'A ONE-TIME ACCESS CODE WILL BE EMAILED TO YOU'
-            : 'CHECK YOUR INBOX (AND SPAM) — THE CODE EXPIRES IN AN HOUR')}
+            : 'CHECK YOUR INBOX (AND SPAM) — ENTER THE CODE, OR FOLLOW THE EMAILED LINK')}
       </div>
     </div>
   )
