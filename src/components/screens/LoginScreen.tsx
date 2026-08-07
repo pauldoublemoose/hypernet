@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useKeys } from '../../hooks'
-import { claimSignups, requestLoginCode, verifyLoginCode } from '../../lib/auth'
+import { claimSignups, getSession, requestLoginCode, verifyLoginCode } from '../../lib/auth'
 import { isValidEmail, normalizeEmail } from '../../lib/contact'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
@@ -28,6 +28,18 @@ export function LoginScreen({
   useLayoutEffect(() => {
     setEnterArmed(true)
   }, [setEnterArmed])
+
+  // Already logged in (e.g. via an emailed link in another tab)? Skip straight through.
+  useEffect(() => {
+    let alive = true
+    getSession().then((s) => {
+      if (alive && s) onSuccess()
+    })
+    return () => {
+      alive = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     const id = window.setTimeout(() => inputRef.current?.focus(), 0)
