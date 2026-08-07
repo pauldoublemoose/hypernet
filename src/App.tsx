@@ -378,6 +378,7 @@ export default function App() {
         <AdminGateScreen
           key="adminGate"
           onUnlock={() => go('admin')}
+          onLogin={() => go('login')}
           onBack={back}
           setMode={setMode}
         />

@@ -49,12 +49,43 @@ export async function signOut(): Promise<void> {
 /** The caller's newest claimed signup, or null. */
 export async function fetchMySignup(): Promise<(SignupRow & { id: string }) | null> {
   if (!supabase) return null
+  const session = await getSession()
+  const uid = session?.user.id
+  if (!uid) return null
+  // Explicit owner filter: admins can read every row, so RLS alone
+  // would let this return someone else's signup.
   const { data, error } = await supabase
     .from('signups')
     .select('*')
+    .eq('user_id', uid)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
   if (error || !data) return null
   return data
+}
+
+/** Whether the current session belongs to an admin. */
+export async function isAdmin(): Promise<boolean> {
+  if (!supabase) return false
+  const { data, error } = await supabase.rpc('is_admin')
+  return !error && data === true
+}
+
+/** Every signup in the database (RLS: admins only), newest first. */
+export async function fetchAllSignups(): Promise<(SignupRow & { id: string })[] | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('signups')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error || !data) return null
+  return data
+}
+
+/** Ghost/unghost a signup in the database (RLS: admins only). */
+export async function setSignupGhostedRemote(id: string, ghosted: boolean): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase.from('signups').update({ ghosted }).eq('id', id)
+  return !error
 }

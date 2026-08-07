@@ -1,90 +1,84 @@
-import { useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { useKeys } from '../../hooks'
+import { getSession, isAdmin } from '../../lib/auth'
 import { useUi } from '../../ui'
-import { ConfirmDialog } from '../ConfirmDialog'
 import type { InputMode } from '../TerminalFrame'
 
-const ADMIN_PASSWORD = 'moonshine'
+type Stage = 'checking' | 'anon' | 'denied'
 
+/** Gate to the admin ledger: requires a logged-in session with admin role. */
 export function AdminGateScreen({
   onUnlock,
+  onLogin,
   onBack,
   setMode,
 }: {
   onUnlock: () => void
+  onLogin: () => void
   onBack: () => void
   setMode: (m: InputMode) => void
 }) {
-  const [val, setVal] = useState('')
-  const [nudge, setNudge] = useState(false)
-  const [dialog, setDialog] = useState(false)
+  const [stage, setStage] = useState<Stage>('checking')
   const { setEnterArmed } = useUi()
 
   useLayoutEffect(() => {
-    setMode('TXT')
+    setMode('NAV')
     setEnterArmed(true)
   }, [setMode, setEnterArmed])
 
-  const tryUnlock = () => {
-    if (val.trim().toLowerCase() === ADMIN_PASSWORD) onUnlock()
-    else {
-      setNudge(true)
-      setVal('')
-    }
-  }
-
-  useKeys(
-    (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        tryUnlock()
-      } else if (e.key === 'Backspace' && (val === '' || !e.isTrusted)) {
-        e.preventDefault()
-        setDialog(true)
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const session = await getSession()
+      if (!alive) return
+      if (!session) {
+        setStage('anon')
+        return
       }
-    },
-    !dialog,
-  )
+      const admin = await isAdmin()
+      if (!alive) return
+      if (admin) onUnlock()
+      else setStage('denied')
+    })()
+    return () => {
+      alive = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useKeys((e) => {
+    if (e.key === 'Backspace' || e.key === 'Escape') {
+      e.preventDefault()
+      onBack()
+    } else if (e.key === 'Enter' && stage === 'anon') {
+      e.preventDefault()
+      onLogin()
+    }
+  })
 
   return (
     <div className="screen">
       <div className="title">A :: ACCESS</div>
-      <div className="q-text">AUTHORIZATION REQUIRED</div>
-      <div className="prompt-row">
-        <span className="prompt">&gt;</span>
-        <input
-          autoFocus
-          type="password"
-          autoComplete="current-password"
-          value={val}
-          spellCheck={false}
-          onChange={(e) => {
-            setNudge(false)
-            setVal(e.target.value)
-          }}
-        />
+      <div className="term-log">
+        {stage === 'checking' && <div>&gt; VERIFYING CLEARANCE…</div>}
+        {stage === 'anon' && <div>&gt; ADMIN ACCESS REQUIRES LOGIN.</div>}
+        {stage === 'denied' && <div>&gt; ACCESS DENIED — THIS ACCOUNT HAS NO CLEARANCE.</div>}
       </div>
-      <div className="btn-row">
-        <button className="btn" onClick={tryUnlock}>
-          [ UNLOCK ]
-        </button>
-        <button className="btn dim" onClick={onBack}>
-          [ BACK ]
-        </button>
-      </div>
-      <div className="screen-hint">
-        {nudge ? 'ACCESS DENIED' : 'ENTER PASSPHRASE'}
-      </div>
-      {dialog && (
-        <ConfirmDialog
-          question="LEAVE ADMIN ACCESS?"
-          onYes={() => {
-            setDialog(false)
-            onBack()
-          }}
-          onNo={() => setDialog(false)}
-        />
+      {stage !== 'checking' && (
+        <div className="btn-row">
+          {stage === 'anon' && (
+            <button className="btn hl" onClick={onLogin}>
+              [ LOGIN ]
+            </button>
+          )}
+          <button className="btn dim" onClick={onBack}>
+            [ BACK ]
+          </button>
+        </div>
       )}
+      <div className="screen-hint">
+        {stage === 'anon' ? 'LOGIN, THEN TAP THE DOT AGAIN' : null}
+      </div>
     </div>
   )
 }
