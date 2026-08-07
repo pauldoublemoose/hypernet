@@ -1,11 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { STAY_TUNED_TEXT, THANKS_TEXT } from '../../data/copy'
+import { buildGraphData } from '../../lib/network/buildGraph'
 import { submitSignup } from '../../lib/supabase'
 import type { Answers } from '../../types'
+import { useUi } from '../../ui'
+import { NetworkGraph } from '../NetworkGraph'
 import type { InputMode } from '../TerminalFrame'
 import { Typed } from '../Typed'
 
-type Stage = 'tx' | 'added' | 'thanks' | 'stay'
+type Stage = 'tx' | 'added' | 'thanks' | 'stay' | 'fade' | 'graph'
 
 export function ThanksScreen({
   answers,
@@ -17,8 +20,14 @@ export function ThanksScreen({
   const [stage, setStage] = useState<Stage>('tx')
   const [offline, setOffline] = useState(false)
   const started = useRef(false)
+  const { setEnterArmed } = useUi()
 
-  useLayoutEffect(() => setMode('NAV'), [setMode])
+  const graph = useMemo(() => buildGraphData(answers), [answers])
+
+  useLayoutEffect(() => {
+    setMode('NAV')
+    setEnterArmed(true)
+  }, [setMode, setEnterArmed])
 
   useEffect(() => {
     if (started.current) return
@@ -30,8 +39,29 @@ export function ThanksScreen({
     })
   }, [answers])
 
+  useEffect(() => {
+    if (stage !== 'fade') return
+    const id = window.setTimeout(() => setStage('graph'), 900)
+    return () => window.clearTimeout(id)
+  }, [stage])
+
+  if (stage === 'graph') {
+    return (
+      <div className="screen net-screen">
+        <div className="title">6 :: NETWORK</div>
+        <div className="net-intro dim">YOUR NODE IS LIVE. WATCH IT JOIN THE PRE-ALPHA GRAPH.</div>
+        <NetworkGraph data={graph} newNodeId="you" />
+        <div className="btn-row">
+          <button className="btn dim" onClick={() => window.location.reload()}>
+            [ RESET TERMINAL ]
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="screen">
+    <div className={`screen thanks-screen ${stage === 'fade' ? 'fade-out' : ''}`}>
       <div className="title">6 :: TRANSMISSION</div>
       <div className="term-log">
         <div>&gt; TRANSMITTING NODE...</div>
@@ -42,20 +72,23 @@ export function ThanksScreen({
         )}
         {stage !== 'tx' && <div>&gt; NODE REGISTERED.</div>}
       </div>
-      {(stage === 'thanks' || stage === 'stay') && (
+      {(stage === 'thanks' || stage === 'stay' || stage === 'fade') && (
         <Typed
           className="thanks-text"
           text={THANKS_TEXT}
-          onDone={() => window.setTimeout(() => setStage('stay'), 1200)}
+          onDone={() => {
+            if (stage === 'thanks') window.setTimeout(() => setStage('stay'), 800)
+          }}
         />
       )}
-      {stage === 'stay' && <Typed className="thanks-text dim" text={STAY_TUNED_TEXT} />}
-      {stage === 'stay' && (
-        <div className="btn-row">
-          <button className="btn dim" onClick={() => window.location.reload()}>
-            [ RESET TERMINAL ]
-          </button>
-        </div>
+      {(stage === 'stay' || stage === 'fade') && (
+        <Typed
+          className="thanks-text dim"
+          text={STAY_TUNED_TEXT}
+          onDone={() => {
+            if (stage === 'stay') window.setTimeout(() => setStage('fade'), 1400)
+          }}
+        />
       )}
     </div>
   )

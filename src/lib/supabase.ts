@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Answers } from '../types'
+import { archiveSignup } from './adminStore'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -72,6 +73,9 @@ export async function submitSignup(a: Answers): Promise<{ offline: boolean }> {
     locations: a.locations,
     other_info: a.otherInfo ?? null,
   }
+
+  // Always keep a local copy for the password-gated admin table.
+  archiveSignup(row)
 
   if (!supabase) {
     cacheLocally(row)

@@ -5,3 +5,6 @@ scripts/shots
 .env.local
 *.local
 .DS_Store
+.vercel
+.env*
+supabase/.temp

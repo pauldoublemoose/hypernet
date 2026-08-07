@@ -1,35 +1,26 @@
-import { useLayoutEffect, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { useKeys, useScrollHlIntoView } from '../../hooks'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
-export interface ChoiceOption {
-  id: string
-  label: string
-  desc?: string
-}
-
-export function ChoiceScreen({
-  title,
-  text,
-  options,
-  onSelect,
+export function ConfirmSubmitScreen({
+  onSubmit,
+  onDiscard,
   onBack,
   setMode,
-  children,
 }: {
-  title?: string
-  text?: string
-  options: ChoiceOption[]
-  onSelect: (id: string) => void
-  onBack?: () => void
+  onSubmit: () => void
+  onDiscard: () => void
+  onBack: () => void
   setMode: (m: InputMode) => void
-  children?: ReactNode
 }) {
-  // Soft lock: nothing highlighted until the user marks an option.
   const [hl, setHl] = useState<number | null>(null)
   const [nudge, setNudge] = useState(false)
   const { setEnterArmed } = useUi()
+  const options = [
+    { id: 'submit', label: '[ SUBMIT ]' },
+    { id: 'discard', label: '[ DISCARD ]' },
+  ]
 
   useLayoutEffect(() => {
     setMode('NAV')
@@ -46,15 +37,16 @@ export function ChoiceScreen({
       setNudge(true)
       return
     }
-    onSelect(options[hl].id)
+    if (options[hl].id === 'submit') onSubmit()
+    else onDiscard()
   }
 
   useKeys((e) => {
-    if (e.key === 'ArrowDown') {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
       e.preventDefault()
       setNudge(false)
       setHl((h) => (h === null ? 0 : (h + 1) % options.length))
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
       e.preventDefault()
       setNudge(false)
       setHl((h) => (h === null ? options.length - 1 : (h - 1 + options.length) % options.length))
@@ -63,7 +55,7 @@ export function ChoiceScreen({
       confirm()
     } else if (e.key === 'Backspace') {
       e.preventDefault()
-      onBack?.()
+      onBack()
     }
   })
 
@@ -71,24 +63,23 @@ export function ChoiceScreen({
 
   return (
     <div className="screen">
-      {title && <div className="title">{title}</div>}
-      {text && <div className="q-text">{text}</div>}
-      {children}
-      <div className="opts" role="listbox">
+      <div className="title">5C :: CONFIRM</div>
+      <div className="q-text">Do you wish to submit your answers to the database?</div>
+      <div className="opts">
         {options.map((o, i) => (
           <div
             key={o.id}
-            className={`opt ${hl === i ? 'hl' : ''}`}
+            className={`opt ${hl === i ? 'hl' : ''} ${o.id === 'submit' ? 'review-submit' : ''}`}
             onMouseEnter={() => {
-              // Touch devices often fire a synthetic mouseenter after taps;
-              // that would auto-arm ENTER. Only hover-mark with a real mouse.
               if (window.matchMedia('(pointer: fine)').matches) setHl(i)
             }}
             onClick={() => {
               setNudge(false)
               setHl(i)
-              // Desktop click confirms directly; touch marks, ENTER confirms.
-              if (window.matchMedia('(pointer: fine)').matches) onSelect(options[i].id)
+              if (window.matchMedia('(pointer: fine)').matches) {
+                if (o.id === 'submit') onSubmit()
+                else onDiscard()
+              }
             }}
             role="option"
             aria-selected={hl === i}
@@ -97,14 +88,11 @@ export function ChoiceScreen({
               {hl === i ? '> ' : '\u00a0\u00a0'}
               {o.label}
             </div>
-            {o.desc && <div className="opt-desc">{o.desc}</div>}
           </div>
         ))}
       </div>
       <div className="screen-hint">
-        {nudge
-          ? 'SELECT AN OPTION FIRST'
-          : 'MARK an option · ENTER to confirm'}
+        {nudge ? 'SELECT SUBMIT OR DISCARD' : 'MARK an option · ENTER to confirm'}
       </div>
     </div>
   )

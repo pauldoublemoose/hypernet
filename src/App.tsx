@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
 import { AboutScreen } from './components/screens/AboutScreen'
+import { AdminGateScreen } from './components/screens/AdminGateScreen'
+import { AdminTableScreen } from './components/screens/AdminTableScreen'
 import { ChoiceScreen } from './components/screens/ChoiceScreen'
+import { ConfirmSubmitScreen } from './components/screens/ConfirmSubmitScreen'
 import { InfoScreen } from './components/screens/InfoScreen'
 import { LocationScreen } from './components/screens/LocationScreen'
 import { MultiScreen } from './components/screens/MultiScreen'
+import { ReviewScreen, type ReviewTarget } from './components/screens/ReviewScreen'
 import { SkillsScreen } from './components/screens/SkillsScreen'
+import { PhoneScreen } from './components/screens/PhoneScreen'
 import { TextScreen } from './components/screens/TextScreen'
 import { ThanksScreen } from './components/screens/ThanksScreen'
 import { WelcomeScreen } from './components/screens/WelcomeScreen'
@@ -31,6 +36,9 @@ import {
   type ContactChannel,
   type Status,
 } from './types'
+import { buildGraphData } from './lib/network/buildGraph'
+import { NetworkGraph } from './components/NetworkGraph'
+import { useUi } from './ui'
 
 type ScreenId =
   | 'welcome'
@@ -50,7 +58,11 @@ type ScreenId =
   | 'years'
   | 'skills'
   | 'other'
+  | 'review'
+  | 'confirm'
   | 'thanks'
+  | 'adminGate'
+  | 'admin'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -70,10 +82,19 @@ const SECTION: Record<ScreenId, string> = {
   years: '3B :: HISTORY',
   skills: '4 :: SKILLSET',
   other: '5 :: MISC',
+  review: '5B :: REVIEW',
+  confirm: '5C :: CONFIRM',
   thanks: '6 :: COMPLETE',
+  adminGate: 'A :: ACCESS',
+  admin: 'A :: LEDGER',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
+
+const ATTENDED_OPTIONS = [
+  ...EVENTS,
+  { id: 'none', label: 'NONE — HAVE NOT ATTENDED ANY' },
+]
 
 /** Next contact-info question among the channels the user ticked. */
 function nextChannel(after: ContactChannel | null, a: Answers): ScreenId {
@@ -82,10 +103,6 @@ function nextChannel(after: ContactChannel | null, a: Answers): ScreenId {
     if (a.contactChannels.includes(CHANNEL_ORDER[i])) return CHANNEL_ORDER[i]
   }
   return 'location'
-}
-
-function afterLocation(a: Answers): ScreenId {
-  return a.status === 'subscriber' ? 'thanks' : 'attended'
 }
 
 function getNext(id: ScreenId, a: Answers): ScreenId {
@@ -110,9 +127,9 @@ function getNext(id: ScreenId, a: Answers): ScreenId {
     case 'facebook':
       return 'location'
     case 'location':
-      return afterLocation(a)
+      return st === 'subscriber' ? 'review' : 'attended'
     case 'attended':
-      if (st === 'cocreator') return 'capacity'
+      if (st === 'cocreator' || st === 'admin') return 'capacity'
       if (st === 'legacy') return 'years'
       return 'skills'
     case 'capacity':
@@ -122,6 +139,10 @@ function getNext(id: ScreenId, a: Answers): ScreenId {
     case 'skills':
       return 'other'
     case 'other':
+      return 'review'
+    case 'review':
+      return 'confirm'
+    case 'confirm':
       return 'thanks'
     default:
       return 'thanks'
@@ -140,10 +161,13 @@ const CONTACT_FIELDS: Record<
 }
 
 export default function App() {
+  const { theme, graphOpen, setGraphOpen } = useUi()
   const [answers, setAnswers] = useState<Answers>(initialAnswers)
+  const graphData = useMemo(() => buildGraphData(answers), [answers])
   const [screen, setScreen] = useState<ScreenId>('welcome')
   const [history, setHistory] = useState<ScreenId[]>([])
   const [mode, setMode] = useState<InputMode>('NAV')
+  const [editingFromReview, setEditingFromReview] = useState(false)
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
   const [remoteLocations, setRemoteLocations] = useState<RemoteLocationOption[]>([])
 
@@ -184,19 +208,46 @@ export default function App() {
   const back = () => {
     setHistory((h) => {
       if (h.length === 0) return h
-      setScreen(h[h.length - 1])
+      const prev = h[h.length - 1]
+      if (prev === 'review') setEditingFromReview(false)
+      setScreen(prev)
       return h.slice(0, -1)
     })
   }
 
-  /** Merge a patch into answers, then advance to the next screen in the flow. */
+  /** Merge a patch into answers, then advance (or return to review if editing). */
   const advance = (patch: Partial<Answers>) => {
     const merged = { ...answers, ...patch }
     setAnswers(merged)
+    if (editingFromReview) {
+      setEditingFromReview(false)
+      setScreen('review')
+      setHistory((h) => (h[h.length - 1] === 'review' ? h.slice(0, -1) : h))
+      return
+    }
     go(getNext(screen, merged))
   }
 
+  const jumpToEdit = (target: ReviewTarget) => {
+    if (target === '__submit__') return
+    setEditingFromReview(true)
+    go(target)
+  }
+
   const textField = (id: 'name' | ContactChannel) => {
+    if (id === 'phone') {
+      return (
+        <PhoneScreen
+          key="phone"
+          title="2 :: CONTACT DETAILS"
+          question="PHONE NUMBER (WHATSAPP):"
+          initial={answers.phone}
+          onSubmit={(v) => advance({ phone: v })}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+    }
     const f = CONTACT_FIELDS[id]
     return (
       <TextScreen
@@ -204,6 +255,7 @@ export default function App() {
         title="2 :: CONTACT DETAILS"
         question={f.question}
         hint="ENTER to confirm · SKIP to leave empty"
+        kind={id === 'email' ? 'email' : 'text'}
         initial={answers[f.key]}
         onSubmit={(v) => advance({ [f.key]: v || undefined })}
         onBack={back}
@@ -220,12 +272,35 @@ export default function App() {
           key="welcome"
           onSignup={() => go('preStatus')}
           onAbout={() => go('about')}
+          onAdmin={() => go('adminGate')}
           setMode={setMode}
         />
       )
       break
+    case 'adminGate':
+      content = (
+        <AdminGateScreen
+          key="adminGate"
+          onUnlock={() => go('admin')}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'admin':
+      content = (
+        <AdminTableScreen key="admin" onBack={() => setScreen('welcome')} setMode={setMode} />
+      )
+      break
     case 'about':
-      content = <AboutScreen key="about" onBack={back} setMode={setMode} />
+      content = (
+        <AboutScreen
+          key="about"
+          onBack={back}
+          onOpenGraph={() => setGraphOpen(true)}
+          setMode={setMode}
+        />
+      )
       break
     case 'preStatus':
       content = (
@@ -279,6 +354,7 @@ export default function App() {
           text="HOW CAN YOU BE REACHED? Tick every channel that works for you:"
           options={CONTACT_CHANNEL_OPTIONS}
           initial={answers.contactChannels}
+          confirmIfSingle
           onSubmit={(ids) => advance({ contactChannels: ids as ContactChannel[] })}
           onBack={back}
           setMode={setMode}
@@ -311,9 +387,12 @@ export default function App() {
           key="attended"
           title="3 :: HISTORY"
           text="Have you attended (as guest or otherwise) any of the HYPERSTITION projects?"
-          options={EVENTS}
+          options={ATTENDED_OPTIONS}
           initial={answers.attendedEvents}
-          onSubmit={(ids) => advance({ attendedEvents: ids })}
+          onSubmit={(ids) => {
+            const cleaned = ids.includes('none') ? ['none'] : ids.filter((id) => id !== 'none')
+            advance({ attendedEvents: cleaned })
+          }}
           onBack={back}
           setMode={setMode}
         />
@@ -383,15 +462,52 @@ export default function App() {
         />
       )
       break
+    case 'review':
+      content = (
+        <ReviewScreen
+          key="review"
+          answers={answers}
+          onEdit={jumpToEdit}
+          onSubmit={() => go('confirm')}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'confirm':
+      content = (
+        <ConfirmSubmitScreen
+          key="confirm"
+          onSubmit={() => go('thanks')}
+          onDiscard={() => {
+            setAnswers(initialAnswers)
+            setHistory([])
+            setEditingFromReview(false)
+            setScreen('welcome')
+          }}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+      break
     case 'thanks':
       content = <ThanksScreen key="thanks" answers={answers} setMode={setMode} />
       break
   }
 
   return (
-    <div className="app">
+    <div className="app" data-theme={theme}>
       <TerminalFrame section={SECTION[screen]} mode={mode}>
-        {content}
+        <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
+          {content}
+        </div>
+        {graphOpen && (
+          <div className="screen net-screen graph-overlay">
+            <div className="title">6 :: NETWORK</div>
+            <div className="net-intro dim">PRE-ALPHA GRAPH · TOGGLE [GRAPH] TO RETURN</div>
+            <NetworkGraph data={graphData} newNodeId="you" preview />
+          </div>
+        )}
       </TerminalFrame>
     </div>
   )

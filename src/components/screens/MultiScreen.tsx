@@ -1,5 +1,7 @@
 import { useLayoutEffect, useState } from 'react'
-import { useKeys } from '../../hooks'
+import { useKeys, useScrollHlIntoView } from '../../hooks'
+import { useUi } from '../../ui'
+import { ConfirmDialog } from '../ConfirmDialog'
 import type { InputMode } from '../TerminalFrame'
 
 export interface MultiOption {
@@ -15,6 +17,7 @@ export function MultiScreen({
   onSubmit,
   onBack,
   setMode,
+  confirmIfSingle,
 }: {
   title?: string
   text: string
@@ -23,40 +26,70 @@ export function MultiScreen({
   onSubmit: (ids: string[]) => void
   onBack: () => void
   setMode: (m: InputMode) => void
+  /** If true, submitting with exactly one tick asks for confirmation. */
+  confirmIfSingle?: boolean
 }) {
   const [sel, setSel] = useState<Set<string>>(() => new Set(initial))
   const [hl, setHl] = useState(0)
+  const [nudge, setNudge] = useState(false)
+  const [confirmSingle, setConfirmSingle] = useState(false)
+  const { setEnterArmed } = useUi()
 
-  useLayoutEffect(() => setMode('NAV'), [setMode])
+  useLayoutEffect(() => {
+    setMode('NAV')
+    setEnterArmed(true)
+  }, [setMode, setEnterArmed])
 
-  const toggle = (id: string) =>
+  const toggle = (id: string) => {
+    setNudge(false)
     setSel((s) => {
       const next = new Set(s)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
     })
+  }
 
-  const submit = () => onSubmit(options.filter((o) => sel.has(o.id)).map((o) => o.id))
+  const selectedIds = () => options.filter((o) => sel.has(o.id)).map((o) => o.id)
 
-  useKeys((e) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setHl((h) => (h + 1) % options.length)
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHl((h) => (h - 1 + options.length) % options.length)
-    } else if (e.key === ' ') {
-      e.preventDefault()
-      toggle(options[hl].id)
-    } else if (e.key === 'Enter') {
-      e.preventDefault()
-      submit()
-    } else if (e.key === 'Backspace') {
-      e.preventDefault()
-      onBack()
+  const finish = () => onSubmit(selectedIds())
+
+  const submit = () => {
+    const ids = selectedIds()
+    if (ids.length === 0) {
+      setNudge(true)
+      return
     }
-  })
+    if (confirmIfSingle && ids.length === 1) {
+      setConfirmSingle(true)
+      return
+    }
+    finish()
+  }
+
+  useKeys(
+    (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setHl((h) => (h + 1) % options.length)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setHl((h) => (h - 1 + options.length) % options.length)
+      } else if (e.key === ' ') {
+        e.preventDefault()
+        toggle(options[hl].id)
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        submit()
+      } else if (e.key === 'Backspace') {
+        e.preventDefault()
+        onBack()
+      }
+    },
+    !confirmSingle,
+  )
+
+  useScrollHlIntoView(hl)
 
   return (
     <div className="screen">
@@ -67,7 +100,9 @@ export function MultiScreen({
           <div
             key={o.id}
             className={`opt ${i === hl ? 'hl' : ''}`}
-            onMouseEnter={() => setHl(i)}
+            onMouseEnter={() => {
+              if (window.matchMedia('(pointer: fine)').matches) setHl(i)
+            }}
             onClick={() => toggle(o.id)}
           >
             <div className="opt-label">
@@ -82,7 +117,21 @@ export function MultiScreen({
           [ CONTINUE ]
         </button>
       </div>
-      <div className="screen-hint">SPACE / CLICK to tick · ENTER to continue</div>
+      <div className="screen-hint">
+        {nudge
+          ? 'SELECT AT LEAST ONE OPTION'
+          : 'SPACE / CLICK to tick · ENTER to continue'}
+      </div>
+      {confirmSingle && (
+        <ConfirmDialog
+          question="ONLY ONE CHANNEL SELECTED. CONTINUE WITHOUT ADDING MORE?"
+          onYes={() => {
+            setConfirmSingle(false)
+            finish()
+          }}
+          onNo={() => setConfirmSingle(false)}
+        />
+      )}
     </div>
   )
 }

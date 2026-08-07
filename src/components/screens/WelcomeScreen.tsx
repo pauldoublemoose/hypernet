@@ -1,6 +1,7 @@
 import { useLayoutEffect, useState } from 'react'
 import { WELCOME_INTRO, WELCOME_JOIN } from '../../data/copy'
 import { useKeys, useTypewriter } from '../../hooks'
+import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
 const FULL = `${WELCOME_INTRO}\n\n${WELCOME_JOIN}`
@@ -8,17 +9,22 @@ const FULL = `${WELCOME_INTRO}\n\n${WELCOME_JOIN}`
 export function WelcomeScreen({
   onSignup,
   onAbout,
+  onAdmin,
   setMode,
 }: {
   onSignup: () => void
   onAbout: () => void
+  onAdmin: () => void
   setMode: (m: InputMode) => void
 }) {
   const { shown, done, finish } = useTypewriter(FULL)
-  // SIGN UP is the primary action, highlighted by default
   const [hl, setHl] = useState<0 | 1>(1)
+  const { setEnterArmed } = useUi()
 
-  useLayoutEffect(() => setMode('NAV'), [setMode])
+  useLayoutEffect(() => {
+    setMode('NAV')
+    setEnterArmed(true)
+  }, [setMode, setEnterArmed])
 
   const introShown = shown.slice(0, Math.min(shown.length, WELCOME_INTRO.length))
   const introDone = shown.length >= WELCOME_INTRO.length
@@ -37,7 +43,19 @@ export function WelcomeScreen({
   })
 
   return (
-    <div className="screen" onClick={() => !done && finish()}>
+    <div className="screen welcome-screen" onClick={() => !done && finish()}>
+      <button
+        type="button"
+        className="admin-whisper"
+        onClick={(e) => {
+          e.stopPropagation()
+          onAdmin()
+        }}
+        title="…"
+        aria-label="Admin"
+      >
+        ·
+      </button>
       <div className="tw">
         {introShown}
         {!introDone && <span className="caret">▮</span>}

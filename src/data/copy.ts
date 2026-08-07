@@ -38,7 +38,7 @@ HYPERNET is one out of many co-evolving strains of participatory culture, and we
 
 THE NEXT VERSION will feature log-in credentials and basic personal profile functionality.
 
-THE MOONSHOT VISION is for HYPERNET to become a semi-closed networking platform, tailor-made for art, tech and experience creators in the participatory community.
+THE MOONSHOT VISION is for HYPERNET to become a semi-closed networking platform, tailor-made for art, tech and experience creators in the participatory community. (Anything you share here stays with HYPERNET admins / core organizers only — it will not be made public or shared with others in later versions without your consent.)
 
 REACH OUT if you want to join the software development team creating HYPERNET!`,
   },
@@ -67,7 +67,7 @@ export const STATUS_OPTIONS: { id: Status; label: string; desc: string }[] = [
   {
     id: 'legacy',
     label: 'LEGACY MEMBER',
-    desc: 'I am a former HYPERSTITION camp member.',
+    desc: 'I am a former HYPERSTITION camp member. (As a legacy member you will be invited in the same capacity as a known co-creator.)',
   },
 ]
 
@@ -85,7 +85,9 @@ If you don't want to provide complete information, remember that questions are s
   cocreator: `How great that you have collaborated with HYPERSTITION and want to do more — you are most welcome.
 
 Next you will be asked for basic contact info and for the skillset you can contribute.`,
-  legacy: `Welcome back, camp member. The regolith remembers.
+  legacy: `Welcome back, treasured HYPERSTITION alumni!
+
+(As a legacy member you will be invited in the same capacity as a known co-creator.)
 
 Next you will be asked for basic contact info and for the skillset you can contribute.`,
 }
@@ -106,4 +108,4 @@ export const CONTACT_CHANNEL_OPTIONS = [
 
 export const THANKS_TEXT = `Thank you very much! You have now added your node to the pre-alpha version of HYPERNET.`
 
-export const STAY_TUNED_TEXT = `Stay tuned for the next version of HYPERNET and its spawnings.`
+export const STAY_TUNED_TEXT = `Stay tuned for the next version of HYPERNET and its expressions.`

@@ -37,10 +37,18 @@ export function ConfirmDialog({
       <div className="dialog">
         <div className="dialog-q">{question}</div>
         <div className="dialog-btns">
-          <button className={`btn ${hl === 0 ? 'hl' : ''}`} onClick={onYes}>
+          <button
+            className={`btn ${hl === 0 ? 'hl' : ''}`}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onYes}
+          >
             [ YES ]
           </button>
-          <button className={`btn ${hl === 1 ? 'hl' : ''}`} onClick={onNo}>
+          <button
+            className={`btn ${hl === 1 ? 'hl' : ''}`}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onNo}
+          >
             [ NO ]
           </button>
         </div>

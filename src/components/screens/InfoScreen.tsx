@@ -1,5 +1,6 @@
 import { useLayoutEffect } from 'react'
 import { useKeys, useTypewriter } from '../../hooks'
+import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
 export function InfoScreen({
@@ -16,8 +17,12 @@ export function InfoScreen({
   setMode: (m: InputMode) => void
 }) {
   const { shown, done, finish } = useTypewriter(text)
+  const { setEnterArmed } = useUi()
 
-  useLayoutEffect(() => setMode('NAV'), [setMode])
+  useLayoutEffect(() => {
+    setMode('NAV')
+    setEnterArmed(true)
+  }, [setMode, setEnterArmed])
 
   useKeys((e) => {
     if (e.key === 'Enter' || e.key === ' ') {
