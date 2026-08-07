@@ -79,10 +79,8 @@ function cacheLocally(row: Record<string, unknown>) {
   }
 }
 
-export async function submitSignup(a: Answers): Promise<{ offline: boolean }> {
-  const id = crypto.randomUUID()
-  const row = {
-    id,
+function answersToRow(a: Answers) {
+  return {
     status: a.status,
     full_name: a.fullName ?? null,
     email: a.email ?? null,
@@ -97,6 +95,34 @@ export async function submitSignup(a: Answers): Promise<{ offline: boolean }> {
     locations: a.locations,
     other_info: a.otherInfo ?? null,
   }
+}
+
+/** Custom skills/locations become selectable options for later visitors. */
+async function insertCustomOptions(a: Answers, signupId: string) {
+  if (!supabase) return
+  if (a.customOptions.length > 0) {
+    await supabase.from('skill_options').insert(
+      a.customOptions.map((c) => ({
+        category: c.category,
+        subcategory: c.subcategory ?? null,
+        added_by_signup: signupId,
+      })),
+    )
+  }
+  if (a.customLocations.length > 0) {
+    await supabase.from('location_options').insert(
+      a.customLocations.map((c) => ({
+        country: c.country,
+        city: c.city ?? null,
+        added_by_signup: signupId,
+      })),
+    )
+  }
+}
+
+export async function submitSignup(a: Answers): Promise<{ offline: boolean }> {
+  const id = crypto.randomUUID()
+  const row = { id, ...answersToRow(a) }
 
   // Always keep a local copy for the password-gated admin table.
   archiveSignup(row)
@@ -109,27 +135,23 @@ export async function submitSignup(a: Answers): Promise<{ offline: boolean }> {
   try {
     const { error } = await supabase.from('signups').insert(row)
     if (error) throw error
-    if (a.customOptions.length > 0) {
-      await supabase.from('skill_options').insert(
-        a.customOptions.map((c) => ({
-          category: c.category,
-          subcategory: c.subcategory ?? null,
-          added_by_signup: id,
-        })),
-      )
-    }
-    if (a.customLocations.length > 0) {
-      await supabase.from('location_options').insert(
-        a.customLocations.map((c) => ({
-          country: c.country,
-          city: c.city ?? null,
-          added_by_signup: id,
-        })),
-      )
-    }
+    await insertCustomOptions(a, id)
     return { offline: false }
   } catch {
     cacheLocally(row)
     return { offline: true }
+  }
+}
+
+/** Update a claimed signup in place (RLS restricts this to the owner). */
+export async function updateSignup(id: string, a: Answers): Promise<{ ok: boolean }> {
+  if (!supabase) return { ok: false }
+  try {
+    const { error } = await supabase.from('signups').update(answersToRow(a)).eq('id', id)
+    if (error) throw error
+    await insertCustomOptions(a, id)
+    return { ok: true }
+  } catch {
+    return { ok: false }
   }
 }

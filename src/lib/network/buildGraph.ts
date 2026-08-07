@@ -90,7 +90,7 @@ export function buildEdges(nodes: GraphNode[]): GraphEdge[] {
   return edges
 }
 
-function signupToAnswers(row: SignupRow): Answers {
+export function signupToAnswers(row: SignupRow): Answers {
   return {
     status: (row.status as Status | undefined) ?? undefined,
     fullName: row.full_name ?? undefined,

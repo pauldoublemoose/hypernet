@@ -10,15 +10,17 @@ export function WelcomeScreen({
   onSignup,
   onAbout,
   onAdmin,
+  onLogin,
   setMode,
 }: {
   onSignup: () => void
   onAbout: () => void
   onAdmin: () => void
+  onLogin: () => void
   setMode: (m: InputMode) => void
 }) {
   const { shown, done, finish } = useTypewriter(FULL)
-  const [hl, setHl] = useState<0 | 1>(1)
+  const [hl, setHl] = useState<0 | 1 | 2>(1)
   const { setEnterArmed } = useUi()
 
   useLayoutEffect(() => {
@@ -31,14 +33,18 @@ export function WelcomeScreen({
   const joinShown = shown.length > WELCOME_INTRO.length + 2 ? shown.slice(WELCOME_INTRO.length + 2) : ''
 
   useKeys((e) => {
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setHl((h) => (h === 0 ? 1 : 0))
+      setHl((h) => ((h + 2) % 3) as 0 | 1 | 2)
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHl((h) => ((h + 1) % 3) as 0 | 1 | 2)
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       if (!done) finish()
       else if (hl === 0) onAbout()
-      else onSignup()
+      else if (hl === 1) onSignup()
+      else onLogin()
     }
   })
 
@@ -85,6 +91,13 @@ export function WelcomeScreen({
             onClick={onSignup}
           >
             [ SIGN UP ]
+          </button>
+          <button
+            className={`btn dim ${hl === 2 ? 'hl' : ''}`}
+            onMouseEnter={() => setHl(2)}
+            onClick={onLogin}
+          >
+            [ ACCESS YOUR NODE ]
           </button>
         </div>
       )}

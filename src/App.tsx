@@ -38,7 +38,11 @@ import {
 } from './types'
 import { useGraphData } from './lib/network/useGraphData'
 import { NetworkGraph } from './components/NetworkGraph'
+import { AccountScreen } from './components/screens/AccountScreen'
+import { LoginScreen } from './components/screens/LoginScreen'
 import { clearDraft, loadDraft, saveDraft } from './lib/draft'
+import { signupToAnswers } from './lib/network/buildGraph'
+import { updateSignup } from './lib/supabase'
 import { useUi } from './ui'
 
 type ScreenId =
@@ -64,6 +68,8 @@ type ScreenId =
   | 'thanks'
   | 'adminGate'
   | 'admin'
+  | 'login'
+  | 'account'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -88,6 +94,8 @@ const SECTION: Record<ScreenId, string> = {
   thanks: '6 :: COMPLETE',
   adminGate: 'A :: ACCESS',
   admin: 'A :: LEDGER',
+  login: 'L :: ACCESS',
+  account: 'L :: YOUR NODE',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -151,7 +159,13 @@ function getNext(id: ScreenId, a: Answers): ScreenId {
 }
 
 /** Screens that are never part of an in-progress signup draft. */
-const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set(['thanks', 'adminGate', 'admin'])
+const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set([
+  'thanks',
+  'adminGate',
+  'admin',
+  'login',
+  'account',
+])
 
 /** Validated draft from a previous session, or null. */
 function restoredDraft() {
@@ -186,6 +200,8 @@ export default function App() {
   const [history, setHistory] = useState<ScreenId[]>(() => draft?.history ?? [])
   const [mode, setMode] = useState<InputMode>('NAV')
   const [editingFromReview, setEditingFromReview] = useState(false)
+  // When set, the review/confirm flow updates this claimed signup instead of inserting.
+  const [editingSignupId, setEditingSignupId] = useState<string | null>(null)
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
   const [remoteLocations, setRemoteLocations] = useState<RemoteLocationOption[]>([])
 
@@ -199,7 +215,12 @@ export default function App() {
   // churn (and could clobber a real draft before it is restored).
   const draftRef = useRef({ answers, screen, history })
   draftRef.current = { answers, screen, history }
-  const skipDraftSave = (s: string) => s === 'welcome' || NO_DRAFT_SCREENS.has(s)
+  const editingRef = useRef(editingSignupId)
+  editingRef.current = editingSignupId
+  // Account edits are not drafted: a restored draft could not carry the
+  // signup id safely, and would turn an edit into a duplicate insert.
+  const skipDraftSave = (s: string) =>
+    s === 'welcome' || NO_DRAFT_SCREENS.has(s) || editingRef.current !== null
   useEffect(() => {
     if (skipDraftSave(screen)) return
     const id = window.setTimeout(() => saveDraft(draftRef.current), 400)
@@ -313,6 +334,41 @@ export default function App() {
           onSignup={() => go('preStatus')}
           onAbout={() => go('about')}
           onAdmin={() => go('adminGate')}
+          onLogin={() => go('account')}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'login':
+      content = (
+        <LoginScreen
+          key="login"
+          onSuccess={() => {
+            setHistory(['welcome'])
+            setScreen('account')
+          }}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'account':
+      content = (
+        <AccountScreen
+          key="account"
+          onEdit={(row) => {
+            setAnswers(signupToAnswers(row))
+            setEditingSignupId(row.id)
+            go('review')
+          }}
+          onSignup={() => go('preStatus')}
+          onLogin={() => go('login')}
+          onExit={() => {
+            setEditingSignupId(null)
+            setAnswers(initialAnswers)
+            setHistory([])
+            setScreen('welcome')
+          }}
           setMode={setMode}
         />
       )
@@ -513,13 +569,31 @@ export default function App() {
       content = (
         <ConfirmSubmitScreen
           key="confirm"
-          onSubmit={() => go('thanks')}
+          onSubmit={() => {
+            if (!editingSignupId) {
+              go('thanks')
+              return
+            }
+            const id = editingSignupId
+            updateSignup(id, answers).then(() => {
+              setEditingSignupId(null)
+              setEditingFromReview(false)
+              setAnswers(initialAnswers)
+              setHistory(['welcome'])
+              setScreen('account')
+            })
+          }}
           onDiscard={() => {
             clearDraft()
             setAnswers(initialAnswers)
             setHistory([])
             setEditingFromReview(false)
-            setScreen('welcome')
+            if (editingSignupId) {
+              setEditingSignupId(null)
+              setScreen('account')
+            } else {
+              setScreen('welcome')
+            }
           }}
           onBack={back}
           setMode={setMode}
