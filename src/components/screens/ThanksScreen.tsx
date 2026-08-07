@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { STAY_TUNED_TEXT, THANKS_TEXT } from '../../data/copy'
 import { clearDraft } from '../../lib/draft'
 import { useGraphData } from '../../lib/network/useGraphData'
+import { track } from '../../lib/telemetry'
 import { submitSignup } from '../../lib/supabase'
 import type { Answers } from '../../types'
 import { useUi } from '../../ui'
@@ -36,6 +37,7 @@ export function ThanksScreen({
     submitSignup(answers).then((res) => {
       // Transmitted (or cached locally) — the draft has served its purpose.
       clearDraft()
+      track('signup_completed', 'thanks', { offline: res.offline })
       setOffline(res.offline)
       setStage('added')
       window.setTimeout(() => setStage('thanks'), 600)

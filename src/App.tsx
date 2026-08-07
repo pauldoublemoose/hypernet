@@ -43,6 +43,8 @@ import { LoginScreen } from './components/screens/LoginScreen'
 import { clearDraft, loadDraft, saveDraft } from './lib/draft'
 import { signupToAnswers } from './lib/network/buildGraph'
 import { updateSignup } from './lib/supabase'
+import { track, trackScreen, trackVisit } from './lib/telemetry'
+import { TelemetryScreen } from './components/screens/TelemetryScreen'
 import { useUi } from './ui'
 
 type ScreenId =
@@ -70,6 +72,7 @@ type ScreenId =
   | 'admin'
   | 'login'
   | 'account'
+  | 'telemetry'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -96,6 +99,7 @@ const SECTION: Record<ScreenId, string> = {
   admin: 'A :: LEDGER',
   login: 'L :: ACCESS',
   account: 'L :: YOUR NODE',
+  telemetry: 'A :: TELEMETRY',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -209,6 +213,19 @@ export default function App() {
     fetchSkillOptions().then(setRemoteSkills)
     fetchLocationOptions().then(setRemoteLocations)
   }, [])
+
+  useEffect(() => {
+    trackVisit()
+    if (draft) track('draft_restored', draft.screen)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    trackScreen(screen)
+  }, [screen])
+  useEffect(() => {
+    if (graphOpen) track('graph_opened', screen)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphOpen])
 
   // Autosave the in-progress signup so a refresh or closed tab never loses
   // answers. Welcome is excluded: saving the pristine entry state would only
@@ -386,8 +403,16 @@ export default function App() {
       break
     case 'admin':
       content = (
-        <AdminTableScreen key="admin" onBack={() => setScreen('welcome')} setMode={setMode} />
+        <AdminTableScreen
+          key="admin"
+          onTelemetry={() => go('telemetry')}
+          onBack={() => setScreen('welcome')}
+          setMode={setMode}
+        />
       )
+      break
+    case 'telemetry':
+      content = <TelemetryScreen key="telemetry" onBack={back} setMode={setMode} />
       break
     case 'about':
       content = <AboutScreen key="about" onBack={back} setMode={setMode} />

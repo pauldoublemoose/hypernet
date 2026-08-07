@@ -16,9 +16,11 @@ import type { InputMode } from '../TerminalFrame'
 type Source = 'loading' | 'db' | 'local'
 
 export function AdminTableScreen({
+  onTelemetry,
   onBack,
   setMode,
 }: {
+  onTelemetry: () => void
   onBack: () => void
   setMode: (m: InputMode) => void
 }) {
@@ -224,6 +226,9 @@ export function AdminTableScreen({
       </div>
 
       <div className="btn-row">
+        <button className="btn" onClick={onTelemetry}>
+          [ TELEMETRY ]
+        </button>
         <button className="btn dim" onClick={onBack}>
           [ BACK ]
         </button>
