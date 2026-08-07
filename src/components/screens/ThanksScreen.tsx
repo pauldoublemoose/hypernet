@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { STAY_TUNED_TEXT, THANKS_TEXT } from '../../data/copy'
-import { buildGraphData } from '../../lib/network/buildGraph'
+import { useGraphData } from '../../lib/network/useGraphData'
 import { submitSignup } from '../../lib/supabase'
 import type { Answers } from '../../types'
 import { useUi } from '../../ui'
@@ -22,10 +22,7 @@ export function ThanksScreen({
   const started = useRef(false)
   const { setEnterArmed } = useUi()
 
-  const graph = useMemo(
-    () => (stage === 'graph' ? buildGraphData(answers) : null),
-    [answers, stage],
-  )
+  const graph = useGraphData(answers, stage === 'graph')
 
   useLayoutEffect(() => {
     setMode('NAV')
@@ -48,7 +45,7 @@ export function ThanksScreen({
     return () => window.clearTimeout(id)
   }, [stage])
 
-  if (stage === 'graph' && graph) {
+  if (stage === 'graph') {
     return (
       <div className="screen net-screen">
         <div className="title">6 :: NETWORK</div>

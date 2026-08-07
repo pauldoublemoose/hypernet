@@ -421,7 +421,8 @@ export function NetworkGraph({
     transformRef.current = {
       x: (wrap?.clientWidth ?? 600) / 2,
       y: (wrap?.clientHeight ?? 400) / 2,
-      k: preview ? 0.85 : 1,
+      // Repulsion spreads the cloud ~√N, so zoom out as the network grows.
+      k: (preview ? 0.85 : 1) * Math.min(1, Math.sqrt(16 / Math.max(1, all.length))),
     }
     tempRef.current = 0
     vibRef.current = 0
@@ -584,6 +585,8 @@ export function NetworkGraph({
       sim.stop()
       simRef.current = null
       cancelAnimationFrame(rafRef.current)
+      // Reset so scheduleDraw() isn't permanently blocked after a data change.
+      rafRef.current = 0
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, newNodeId, preview])

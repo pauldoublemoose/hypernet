@@ -18,6 +18,30 @@ export interface RemoteLocationOption {
   city: string | null
 }
 
+/** Row from the graph_signups view — initials only, no contact data. */
+export interface GraphSignupRow {
+  id: string
+  status: string | null
+  initials: string | null
+  attended_events: string[] | null
+  hyperstition_years: string[] | null
+  skills: { category: string; subcategory: string; note?: string }[] | null
+  locations: { country: string; city: string }[] | null
+}
+
+export async function fetchGraphSignups(): Promise<GraphSignupRow[]> {
+  if (!supabase) return []
+  try {
+    const { data, error } = await supabase
+      .from('graph_signups')
+      .select('id, status, initials, attended_events, hyperstition_years, skills, locations')
+    if (error || !data) return []
+    return data
+  } catch {
+    return []
+  }
+}
+
 export async function fetchSkillOptions(): Promise<RemoteSkillOption[]> {
   if (!supabase) return []
   try {
