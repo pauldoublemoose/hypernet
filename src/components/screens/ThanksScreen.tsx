@@ -22,7 +22,10 @@ export function ThanksScreen({
   const started = useRef(false)
   const { setEnterArmed } = useUi()
 
-  const graph = useMemo(() => buildGraphData(answers), [answers])
+  const graph = useMemo(
+    () => (stage === 'graph' ? buildGraphData(answers) : null),
+    [answers, stage],
+  )
 
   useLayoutEffect(() => {
     setMode('NAV')
@@ -45,7 +48,7 @@ export function ThanksScreen({
     return () => window.clearTimeout(id)
   }, [stage])
 
-  if (stage === 'graph') {
+  if (stage === 'graph' && graph) {
     return (
       <div className="screen net-screen">
         <div className="title">6 :: NETWORK</div>

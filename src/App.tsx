@@ -163,7 +163,8 @@ const CONTACT_FIELDS: Record<
 export default function App() {
   const { theme, graphOpen, setGraphOpen } = useUi()
   const [answers, setAnswers] = useState<Answers>(initialAnswers)
-  const graphData = useMemo(() => buildGraphData(answers), [answers])
+  // Rebuild when the overlay opens so admin ghost changes apply immediately.
+  const graphData = useMemo(() => buildGraphData(answers), [answers, graphOpen])
   const [screen, setScreen] = useState<ScreenId>('welcome')
   const [history, setHistory] = useState<ScreenId[]>([])
   const [mode, setMode] = useState<InputMode>('NAV')
