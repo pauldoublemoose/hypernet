@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
 import { AboutScreen } from './components/screens/AboutScreen'
 import { AdminGateScreen } from './components/screens/AdminGateScreen'
@@ -38,6 +38,7 @@ import {
 } from './types'
 import { useGraphData } from './lib/network/useGraphData'
 import { NetworkGraph } from './components/NetworkGraph'
+import { clearDraft, loadDraft, saveDraft } from './lib/draft'
 import { useUi } from './ui'
 
 type ScreenId =
@@ -149,6 +150,22 @@ function getNext(id: ScreenId, a: Answers): ScreenId {
   }
 }
 
+/** Screens that are never part of an in-progress signup draft. */
+const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set(['thanks', 'adminGate', 'admin'])
+
+/** Validated draft from a previous session, or null. */
+function restoredDraft() {
+  const d = loadDraft()
+  if (!d) return null
+  const screen = d.screen as ScreenId
+  if (!(screen in SECTION) || NO_DRAFT_SCREENS.has(screen)) return null
+  const history = (Array.isArray(d.history) ? d.history : []).filter(
+    (s): s is ScreenId => s in SECTION && !NO_DRAFT_SCREENS.has(s),
+  )
+  // Merge over initialAnswers so drafts survive future Answers schema additions.
+  return { answers: { ...initialAnswers, ...d.answers }, screen, history }
+}
+
 const CONTACT_FIELDS: Record<
   'name' | ContactChannel,
   { question: string; key: 'fullName' | ContactChannel }
@@ -162,10 +179,11 @@ const CONTACT_FIELDS: Record<
 
 export default function App() {
   const { theme, graphOpen, setGraphOpen } = useUi()
-  const [answers, setAnswers] = useState<Answers>(initialAnswers)
+  const [draft] = useState(restoredDraft)
+  const [answers, setAnswers] = useState<Answers>(() => draft?.answers ?? initialAnswers)
   const graphData = useGraphData(answers, graphOpen)
-  const [screen, setScreen] = useState<ScreenId>('welcome')
-  const [history, setHistory] = useState<ScreenId[]>([])
+  const [screen, setScreen] = useState<ScreenId>(() => draft?.screen ?? 'welcome')
+  const [history, setHistory] = useState<ScreenId[]>(() => draft?.history ?? [])
   const [mode, setMode] = useState<InputMode>('NAV')
   const [editingFromReview, setEditingFromReview] = useState(false)
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
@@ -174,6 +192,27 @@ export default function App() {
   useEffect(() => {
     fetchSkillOptions().then(setRemoteSkills)
     fetchLocationOptions().then(setRemoteLocations)
+  }, [])
+
+  // Autosave the in-progress signup so a refresh or closed tab never loses
+  // answers. Welcome is excluded: saving the pristine entry state would only
+  // churn (and could clobber a real draft before it is restored).
+  const draftRef = useRef({ answers, screen, history })
+  draftRef.current = { answers, screen, history }
+  const skipDraftSave = (s: string) => s === 'welcome' || NO_DRAFT_SCREENS.has(s)
+  useEffect(() => {
+    if (skipDraftSave(screen)) return
+    const id = window.setTimeout(() => saveDraft(draftRef.current), 400)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, screen, history])
+  useEffect(() => {
+    const flush = () => {
+      if (!skipDraftSave(draftRef.current.screen)) saveDraft(draftRef.current)
+    }
+    window.addEventListener('pagehide', flush)
+    return () => window.removeEventListener('pagehide', flush)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const taxonomy = useMemo(() => {
@@ -257,6 +296,7 @@ export default function App() {
         hint="ENTER to confirm · SKIP to leave empty"
         kind={id === 'email' ? 'email' : 'text'}
         initial={answers[f.key]}
+        onDraftChange={(v) => setAnswers((a) => ({ ...a, [f.key]: v || undefined }))}
         onSubmit={(v) => advance({ [f.key]: v || undefined })}
         onBack={back}
         setMode={setMode}
@@ -400,6 +440,7 @@ export default function App() {
           hint="ENTER to confirm · SHIFT+ENTER for a new line"
           multiline
           initial={answers.contributionHistory}
+          onDraftChange={(v) => setAnswers((a) => ({ ...a, contributionHistory: v || undefined }))}
           onSubmit={(v) => advance({ contributionHistory: v || undefined })}
           onBack={back}
           setMode={setMode}
@@ -449,6 +490,7 @@ export default function App() {
           hint="ENTER to confirm · SHIFT+ENTER for a new line"
           multiline
           initial={answers.otherInfo}
+          onDraftChange={(v) => setAnswers((a) => ({ ...a, otherInfo: v || undefined }))}
           onSubmit={(v) => advance({ otherInfo: v || undefined })}
           onBack={back}
           setMode={setMode}
@@ -473,6 +515,7 @@ export default function App() {
           key="confirm"
           onSubmit={() => go('thanks')}
           onDiscard={() => {
+            clearDraft()
             setAnswers(initialAnswers)
             setHistory([])
             setEditingFromReview(false)

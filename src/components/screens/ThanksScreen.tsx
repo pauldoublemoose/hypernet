@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { STAY_TUNED_TEXT, THANKS_TEXT } from '../../data/copy'
+import { clearDraft } from '../../lib/draft'
 import { useGraphData } from '../../lib/network/useGraphData'
 import { submitSignup } from '../../lib/supabase'
 import type { Answers } from '../../types'
@@ -33,6 +34,8 @@ export function ThanksScreen({
     if (started.current) return
     started.current = true
     submitSignup(answers).then((res) => {
+      // Transmitted (or cached locally) — the draft has served its purpose.
+      clearDraft()
       setOffline(res.offline)
       setStage('added')
       window.setTimeout(() => setStage('thanks'), 600)
