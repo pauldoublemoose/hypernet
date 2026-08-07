@@ -2,8 +2,10 @@
 
 const ARCHIVE_KEY = 'hypernet_signups_archive'
 const PENDING_KEY = 'hypernet_pending_signups'
+const GHOSTED_KEY = 'hypernet_ghosted_signups'
 
 export type SignupRow = {
+  id?: string | null
   status?: string | null
   full_name?: string | null
   email?: string | null
@@ -17,6 +19,8 @@ export type SignupRow = {
   skills?: { category: string; subcategory: string; note?: string }[] | null
   locations?: { country: string; city: string }[] | null
   other_info?: string | null
+  /** Soft-deactivated in the admin ledger (local). */
+  ghosted?: boolean
 }
 
 /** Input columns only — no ids / timestamps. */
@@ -47,6 +51,47 @@ function readList(key: string): SignupRow[] {
   }
 }
 
+/** Stable key for matching the same signup across archive / pending. */
+export function signupFingerprint(row: SignupRow): string {
+  if (row.id) return `id:${row.id}`
+  return JSON.stringify({
+    status: row.status,
+    full_name: row.full_name,
+    email: row.email,
+    phone: row.phone,
+    discord: row.discord,
+    facebook: row.facebook,
+    other_info: row.other_info,
+    skills: row.skills,
+    locations: row.locations,
+  })
+}
+
+function readGhosted(): Set<string> {
+  try {
+    const raw = JSON.parse(localStorage.getItem(GHOSTED_KEY) ?? '[]')
+    return new Set(Array.isArray(raw) ? (raw as string[]) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function writeGhosted(set: Set<string>) {
+  try {
+    localStorage.setItem(GHOSTED_KEY, JSON.stringify([...set]))
+  } catch {
+    /* ignore */
+  }
+}
+
+function writeList(key: string, rows: SignupRow[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify(rows))
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Persist every signup for admin viewing (online and offline). */
 export function archiveSignup(row: Record<string, unknown>) {
   try {
@@ -58,30 +103,44 @@ export function archiveSignup(row: Record<string, unknown>) {
   }
 }
 
-/** Merge archive + pending caches; newest last. */
+/** Merge archive + pending caches; newest last. Applies local ghost flags. */
 export function loadAdminSignups(): SignupRow[] {
   const archive = readList(ARCHIVE_KEY)
   const pending = readList(PENDING_KEY)
+  const ghosted = readGhosted()
   // Dedupe by a fingerprint of input fields (no id required)
   const seen = new Set<string>()
   const out: SignupRow[] = []
   for (const row of [...archive, ...pending]) {
-    const fp = JSON.stringify({
-      status: row.status,
-      full_name: row.full_name,
-      email: row.email,
-      phone: row.phone,
-      discord: row.discord,
-      facebook: row.facebook,
-      other_info: row.other_info,
-      skills: row.skills,
-      locations: row.locations,
-    })
+    const fp = signupFingerprint(row)
     if (seen.has(fp)) continue
     seen.add(fp)
-    out.push(row)
+    out.push({ ...row, ghosted: ghosted.has(fp) || !!row.ghosted })
   }
   return out
+}
+
+/** Soft-deactivate (ghost) or restore a signup in the local admin ledger. */
+export function setSignupGhosted(row: SignupRow, ghosted: boolean): SignupRow {
+  const fp = signupFingerprint(row)
+  const set = readGhosted()
+  if (ghosted) set.add(fp)
+  else set.delete(fp)
+  writeGhosted(set)
+
+  for (const key of [ARCHIVE_KEY, PENDING_KEY]) {
+    const list = readList(key)
+    let changed = false
+    for (let i = 0; i < list.length; i++) {
+      if (signupFingerprint(list[i]) === fp) {
+        list[i] = { ...list[i], ghosted }
+        changed = true
+      }
+    }
+    if (changed) writeList(key, list)
+  }
+
+  return { ...row, ghosted }
 }
 
 export function cellValue(row: SignupRow, col: AdminColumnId): string {

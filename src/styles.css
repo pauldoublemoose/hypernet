@@ -265,6 +265,31 @@ body {
   background: color-mix(in srgb, var(--fg) 6%, transparent);
 }
 
+.admin-table tbody tr.ghosted td {
+  opacity: 0.42;
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--fg) 35%, transparent);
+}
+
+.admin-table tbody tr.ghosted:hover td {
+  opacity: 0.55;
+}
+
+.admin-ghost-col {
+  width: 1%;
+  white-space: nowrap;
+  max-width: none;
+}
+
+.admin-ghost-btn {
+  letter-spacing: 0.5px;
+}
+
+.admin-table tbody tr.ghosted .admin-ghost-btn {
+  opacity: 1;
+  text-decoration: none;
+}
+
 .term-body {
   flex: 1;
   overflow-y: auto;

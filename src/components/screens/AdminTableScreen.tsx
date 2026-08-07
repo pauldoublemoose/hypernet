@@ -3,7 +3,10 @@ import {
   ADMIN_COLUMNS,
   cellValue,
   loadAdminSignups,
+  setSignupGhosted,
+  signupFingerprint,
   type AdminColumnId,
+  type SignupRow,
 } from '../../lib/adminStore'
 import { useKeys } from '../../hooks'
 import { useUi } from '../../ui'
@@ -16,10 +19,11 @@ export function AdminTableScreen({
   onBack: () => void
   setMode: (m: InputMode) => void
 }) {
-  const rows = useMemo(() => loadAdminSignups(), [])
+  const [rows, setRows] = useState<SignupRow[]>(() => loadAdminSignups())
   const [hidden, setHidden] = useState<Set<AdminColumnId>>(() => new Set())
   const [sortBy, setSortBy] = useState<AdminColumnId>('full_name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [showGhosted, setShowGhosted] = useState(true)
   const { setEnterArmed } = useUi()
 
   useLayoutEffect(() => {
@@ -35,10 +39,14 @@ export function AdminTableScreen({
   })
 
   const visible = ADMIN_COLUMNS.filter((c) => !hidden.has(c.id))
+  const ghostCount = rows.filter((r) => r.ghosted).length
+  const activeCount = rows.length - ghostCount
 
   const sorted = useMemo(() => {
-    const copy = [...rows]
+    const copy = rows.filter((r) => showGhosted || !r.ghosted)
     copy.sort((a, b) => {
+      // Active nodes first, then ghosted
+      if (!!a.ghosted !== !!b.ghosted) return a.ghosted ? 1 : -1
       const av = cellValue(a, sortBy).toLowerCase()
       const bv = cellValue(b, sortBy).toLowerCase()
       if (av < bv) return sortDir === 'asc' ? -1 : 1
@@ -46,7 +54,7 @@ export function AdminTableScreen({
       return 0
     })
     return copy
-  }, [rows, sortBy, sortDir])
+  }, [rows, sortBy, sortDir, showGhosted])
 
   const toggleHide = (id: AdminColumnId) => {
     setHidden((prev) => {
@@ -74,11 +82,17 @@ export function AdminTableScreen({
     }
   }
 
+  const toggleGhost = (row: SignupRow) => {
+    const next = setSignupGhosted(row, !row.ghosted)
+    const fp = signupFingerprint(row)
+    setRows((prev) => prev.map((r) => (signupFingerprint(r) === fp ? next : r)))
+  }
+
   return (
     <div className="screen admin-screen">
       <div className="title">A :: LEDGER</div>
       <div className="q-text">
-        {rows.length} NODE{rows.length === 1 ? '' : 'S'} · SORT BY [{sortBy.toUpperCase()}]{' '}
+        {activeCount} ACTIVE · {ghostCount} GHOSTED · SORT BY [{sortBy.toUpperCase()}]{' '}
         {sortDir === 'asc' ? '↑' : '↓'}
       </div>
 
@@ -109,15 +123,28 @@ export function AdminTableScreen({
             </div>
           )
         })}
+        <div className="admin-col-ctrl">
+          <button
+            type="button"
+            className={`net-toggle ${showGhosted ? 'on' : ''}`}
+            onClick={() => setShowGhosted((v) => !v)}
+            title={showGhosted ? 'Hide ghosted rows' : 'Show ghosted rows'}
+          >
+            [{showGhosted ? '■' : '□'} SHOW GHOSTED]
+          </button>
+        </div>
       </div>
 
       <div className="admin-table-wrap">
         {sorted.length === 0 ? (
-          <div className="dim">NO SIGNUPS ARCHIVED YET.</div>
+          <div className="dim">
+            {rows.length === 0 ? 'NO SIGNUPS ARCHIVED YET.' : 'NO ACTIVE NODES — TOGGLE SHOW GHOSTED.'}
+          </div>
         ) : (
           <table className="admin-table">
             <thead>
               <tr>
+                <th className="admin-ghost-col">NODE</th>
                 {visible.map((c) => (
                   <th key={c.id}>
                     <button type="button" className="admin-th-btn" onClick={() => cycleSort(c.id)}>
@@ -129,13 +156,27 @@ export function AdminTableScreen({
               </tr>
             </thead>
             <tbody>
-              {sorted.map((row, i) => (
-                <tr key={i}>
-                  {visible.map((c) => (
-                    <td key={c.id}>{cellValue(row, c.id) || '—'}</td>
-                  ))}
-                </tr>
-              ))}
+              {sorted.map((row) => {
+                const fp = signupFingerprint(row)
+                const ghosted = !!row.ghosted
+                return (
+                  <tr key={fp} className={ghosted ? 'ghosted' : ''}>
+                    <td className="admin-ghost-col">
+                      <button
+                        type="button"
+                        className={`net-toggle admin-ghost-btn ${ghosted ? 'on' : ''}`}
+                        onClick={() => toggleGhost(row)}
+                        title={ghosted ? 'Restore this signup' : 'Ghost (deactivate) this signup'}
+                      >
+                        [{ghosted ? 'UNGHOST' : 'GHOST'}]
+                      </button>
+                    </td>
+                    {visible.map((c) => (
+                      <td key={c.id}>{cellValue(row, c.id) || '—'}</td>
+                    ))}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}
@@ -146,7 +187,9 @@ export function AdminTableScreen({
           [ BACK ]
         </button>
       </div>
-      <div className="screen-hint">TOGGLE columns · SORT sets order · BACKSPACE leaves</div>
+      <div className="screen-hint">
+        GHOST deactivates a signup · TOGGLE columns · SORT sets order · BACKSPACE leaves
+      </div>
     </div>
   )
 }

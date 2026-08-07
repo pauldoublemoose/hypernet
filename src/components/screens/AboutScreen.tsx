@@ -6,11 +6,9 @@ import { InfoScreen } from './InfoScreen'
 
 export function AboutScreen({
   onBack,
-  onOpenGraph,
   setMode,
 }: {
   onBack: () => void
-  onOpenGraph: () => void
   setMode: (m: InputMode) => void
 }) {
   const [openId, setOpenId] = useState<string | null>(null)
@@ -36,12 +34,10 @@ export function AboutScreen({
       text="What do you want to know?"
       options={[
         ...ABOUT_SECTIONS.map((s) => ({ id: s.id, label: s.header })),
-        { id: '__graph__', label: 'GRAPH — PRE-ALPHA NETWORK' },
         { id: '__back__', label: 'BACK TO WELCOME' },
       ]}
       onSelect={(id) => {
         if (id === '__back__') onBack()
-        else if (id === '__graph__') onOpenGraph()
         else setOpenId(id)
       }}
       onBack={onBack}

@@ -293,14 +293,7 @@ export default function App() {
       )
       break
     case 'about':
-      content = (
-        <AboutScreen
-          key="about"
-          onBack={back}
-          onOpenGraph={() => setGraphOpen(true)}
-          setMode={setMode}
-        />
-      )
+      content = <AboutScreen key="about" onBack={back} setMode={setMode} />
       break
     case 'preStatus':
       content = (
