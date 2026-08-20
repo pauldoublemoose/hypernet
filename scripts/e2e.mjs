@@ -82,12 +82,7 @@ const browser = await chromium.launch()
   await page.keyboard.press('Backspace') // back to welcome
   await page.keyboard.press('Enter') // finish welcome typing again
   await page.waitForSelector('button:has-text("SIGN UP")')
-  await page.keyboard.press('Enter') // SIGN UP (default highlight)
-
-  // pre-status info
-  await page.keyboard.press('Enter')
-  await page.waitForSelector('button:has-text("OK")')
-  await page.keyboard.press('Enter')
+  await page.keyboard.press('Enter') // SIGN UP (default highlight) — straight to status
 
   // 1 :: status — soft lock: 3×↓ to KNOWN CO-CREATOR, then ENTER
   await page.waitForSelector('text=IN WHAT CAPACITY ARE YOU JOINING HYPERNET?')
@@ -286,10 +281,7 @@ const browser = await chromium.launch()
   if (!(await page.locator('.enter-btn').isVisible())) fail('ENTER button not visible on mobile')
 
   await page.locator('.tw').first().click()
-  await page.locator('button:has-text("SIGN UP")').click()
-
-  await page.locator('.tw').first().click()
-  await page.locator('button:has-text("OK")').click()
+  await page.locator('button:text-is("[ SIGN UP ]")').click()
 
   await page.waitForSelector('text=IN WHAT CAPACITY ARE YOU JOINING HYPERNET?')
   await page.screenshot({ path: `${SHOTS}/mobile-1-status.png` })
