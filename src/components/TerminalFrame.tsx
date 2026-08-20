@@ -8,17 +8,20 @@ export type InputMode = 'NAV' | 'TXT'
 export function TerminalFrame({
   section,
   mode,
+  wide = false,
   children,
 }: {
   section: string
   mode: InputMode
+  /** Workspace mode: the frame grows to fill most of the viewport. */
+  wide?: boolean
   children: ReactNode
 }) {
   const { enterArmed, theme, cycleTheme, navUsed, graphOpen, toggleGraph } = useUi()
   const poly = theme === 'polychrome'
 
   return (
-    <div className={`chrome-frame${poly ? ' poly-card' : ''}`}>
+    <div className={`chrome-frame${wide ? ' wide' : ''}${poly ? ' poly-card' : ''}`}>
       {poly && <PolychromeFX />}
       <div className="terminal flicker">
         <div className="term-header">

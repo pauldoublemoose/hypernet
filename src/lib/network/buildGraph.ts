@@ -140,18 +140,20 @@ function graphSignupToAnswers(row: GraphSignupRow): Answers {
  * the database. Ghosted admin entries are excluded from every graph view.
  */
 export function buildGraphData(
-  current: Answers,
+  // null: no synthetic "you" node — the viewer is (or may be) a db row already.
+  current: Answers | null,
   remote: GraphSignupRow[] = [],
   extras: Answers[] = [],
 ): GraphData {
   const nodes: GraphNode[] = [...SEED_NODES]
-  const you = answersToNode(current, 'you')
-  nodes.push(you)
+  if (current) nodes.push(answersToNode(current, 'you'))
 
   const archived = loadAdminSignups()
   const ghostedIds = new Set(archived.filter((r) => r.ghosted && r.id).map((r) => r.id))
   const yourIds = new Set(
-    archived.filter((r) => r.id && isCurrentSignup(r, current)).map((r) => r.id),
+    current
+      ? archived.filter((r) => r.id && isCurrentSignup(r, current)).map((r) => r.id)
+      : [],
   )
   const remoteIds = new Set(remote.map((r) => r.id))
 
@@ -163,7 +165,7 @@ export function buildGraphData(
   archived.forEach((row, i) => {
     if (row.ghosted) return
     if (row.id && remoteIds.has(row.id)) return
-    if (isCurrentSignup(row, current)) return
+    if (current && isCurrentSignup(row, current)) return
     const id = row.id ? `arch-${row.id}` : `arch-${i}`
     nodes.push(answersToNode(signupToAnswers(row), id))
   })
