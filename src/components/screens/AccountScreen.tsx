@@ -11,12 +11,14 @@ type Stage = 'loading' | 'anon' | 'empty' | 'node'
 
 export function AccountScreen({
   onEdit,
+  onEditAbout,
   onSignup,
   onLogin,
   onExit,
   setMode,
 }: {
   onEdit: (row: OwnedSignup) => void
+  onEditAbout: () => void
   onSignup: () => void
   onLogin: () => void
   onExit: () => void
@@ -75,6 +77,7 @@ export function AccountScreen({
       : stage === 'node'
         ? [
             { label: '[ EDIT NODE ]', run: () => row && onEdit(row) },
+            { label: '[ ABOUT YOU ]', run: onEditAbout },
             { label: '[ LOGOUT ]', dim: true, run: logout },
             { label: '[ BACK ]', dim: true, run: onExit },
           ]
@@ -103,9 +106,11 @@ export function AccountScreen({
   const summary =
     row === null
       ? []
-      : ADMIN_COLUMNS.map((c) => ({ label: c.label, value: cellValue(row, c.id) })).filter(
-          (r) => r.value !== '',
-        )
+      : ADMIN_COLUMNS.filter((c) => c.id !== 'about') // about gets its own block below
+          .map((c) => ({ label: c.label, value: cellValue(row, c.id) }))
+          .filter((r) => r.value !== '')
+
+  const about = row?.about?.trim() ?? ''
 
   return (
     <div className="screen">
@@ -128,6 +133,12 @@ export function AccountScreen({
               &gt; {r.label}: {r.value.toUpperCase()}
             </div>
           ))}
+          {about !== '' && (
+            <>
+              <div>&gt; ABOUT:</div>
+              <div className="about-text">{about}</div>
+            </>
+          )}
         </div>
       )}
       {stage !== 'loading' && (

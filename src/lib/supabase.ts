@@ -162,6 +162,22 @@ export async function submitSignup(a: Answers): Promise<{ offline: boolean }> {
   }
 }
 
+/**
+ * Update just the freeform about text (RLS restricts this to the owner).
+ * Kept out of the Answers/wizard pipeline: a partial update can never
+ * clobber wizard fields, and wizard edits can never clobber this.
+ */
+export async function updateAboutText(id: string, about: string): Promise<{ ok: boolean }> {
+  if (!supabase) return { ok: false }
+  try {
+    const { error } = await supabase.from('signups').update({ about }).eq('id', id)
+    if (error) throw error
+    return { ok: true }
+  } catch {
+    return { ok: false }
+  }
+}
+
 /** Update a claimed signup in place (RLS restricts this to the owner). */
 export async function updateSignup(id: string, a: Answers): Promise<{ ok: boolean }> {
   if (!supabase) return { ok: false }

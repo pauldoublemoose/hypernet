@@ -19,6 +19,7 @@ export type SignupRow = {
   skills?: { category: string; subcategory: string; note?: string }[] | null
   locations?: { country: string; city: string }[] | null
   other_info?: string | null
+  about?: string | null
   /** Soft-deactivated in the admin ledger (local). */
   ghosted?: boolean
 }
@@ -38,6 +39,7 @@ export const ADMIN_COLUMNS = [
   { id: 'hyperstition_years', label: 'MEMBER YEARS' },
   { id: 'skills', label: 'SKILLS' },
   { id: 'other_info', label: 'OTHER' },
+  { id: 'about', label: 'ABOUT' },
 ] as const
 
 export type AdminColumnId = (typeof ADMIN_COLUMNS)[number]['id']
@@ -175,5 +177,10 @@ export function cellValue(row: SignupRow, col: AdminColumnId): string {
         .join(' · ')
     case 'other_info':
       return row.other_info ?? ''
+    case 'about': {
+      // One line for the admin grid; the full text lives on the account page.
+      const text = (row.about ?? '').replace(/\s+/g, ' ').trim()
+      return text.length > 80 ? `${text.slice(0, 79)}…` : text
+    }
   }
 }

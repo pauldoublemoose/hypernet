@@ -570,6 +570,13 @@ body {
   letter-spacing: 1px;
 }
 
+/* Freeform about text on the account page: keep the author's line breaks. */
+.about-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-left: 18px;
+}
+
 .skill-list {
   display: flex;
   flex-direction: column;
