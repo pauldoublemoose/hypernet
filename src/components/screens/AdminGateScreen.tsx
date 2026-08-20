@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { useKeys } from '../../hooks'
-import { getSession, isAdmin } from '../../lib/auth'
+import { isAdmin } from '../../lib/auth'
+import { useSession } from '../../lib/session'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
@@ -19,6 +20,7 @@ export function AdminGateScreen({
   setMode: (m: InputMode) => void
 }) {
   const [stage, setStage] = useState<Stage>('checking')
+  const { status } = useSession()
   const { setEnterArmed } = useUi()
 
   useLayoutEffect(() => {
@@ -27,14 +29,13 @@ export function AdminGateScreen({
   }, [setMode, setEnterArmed])
 
   useEffect(() => {
+    if (status === 'loading') return
+    if (status === 'anon') {
+      setStage('anon')
+      return
+    }
     let alive = true
     ;(async () => {
-      const session = await getSession()
-      if (!alive) return
-      if (!session) {
-        setStage('anon')
-        return
-      }
       const admin = await isAdmin()
       if (!alive) return
       if (admin) onUnlock()
@@ -44,7 +45,7 @@ export function AdminGateScreen({
       alive = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [status])
 
   useKeys((e) => {
     if (e.key === 'Backspace' || e.key === 'Escape') {

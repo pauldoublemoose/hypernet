@@ -1,11 +1,16 @@
 import type { Session } from '@supabase/supabase-js'
 import type { SignupRow } from './adminStore'
+import { clearServerSession, pullServerSession, pushServerSession } from './serverSession'
 import { supabase } from './supabase'
 
 /**
  * Passwordless accounts (phase A): email OTP login, claim-your-node,
  * edit-your-own-entry. All data access is enforced by RLS; the client
  * only ever sees the caller's own rows.
+ *
+ * A login is meant to outlive the visit: the session lives in local storage
+ * and is mirrored into an HttpOnly cookie (api/session.ts) that browser
+ * storage eviction cannot touch.
  */
 
 export async function requestLoginCode(email: string): Promise<{ ok: boolean; message?: string }> {
@@ -44,6 +49,45 @@ export async function getSession(): Promise<Session | null> {
 
 export async function signOut(): Promise<void> {
   await supabase?.auth.signOut()
+  await clearServerSession()
+}
+
+export type RestoreSource = 'local' | 'server' | null
+
+/**
+ * Sign the visitor back in without them typing anything.
+ *
+ * Local storage wins when it has a session: it is free, and it is what the
+ * client refreshes from anyway. The cookie is only consulted when storage
+ * came up empty — a fresh browser, or one that evicted the session between
+ * visits — because reading it spends a refresh-token rotation.
+ */
+export async function restoreSession(): Promise<{ session: Session | null; source: RestoreSource }> {
+  if (!supabase) return { session: null, source: null }
+  const existing = await getSession()
+  if (existing) return { session: existing, source: 'local' }
+
+  const stored = await pullServerSession()
+  if (!stored) return { session: null, source: null }
+  const { data, error } = await supabase.auth.setSession(stored)
+  if (error || !data.session) return { session: null, source: null }
+  return { session: data.session, source: 'server' }
+}
+
+/**
+ * Keep the cookie in step with the client session, including the new refresh
+ * token minted by every hourly rotation. Returns an unsubscribe function.
+ */
+export function startSessionSync(): () => void {
+  if (!supabase) return () => {}
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      void clearServerSession()
+      return
+    }
+    if (session?.refresh_token) void pushServerSession(session.refresh_token)
+  })
+  return () => data.subscription.unsubscribe()
 }
 
 /** The caller's newest claimed signup, or null. */
