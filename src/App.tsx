@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
+import { AboutMeScreen } from './components/screens/AboutMeScreen'
 import { AboutScreen } from './components/screens/AboutScreen'
 import { AdminGateScreen } from './components/screens/AdminGateScreen'
 import { AdminTableScreen } from './components/screens/AdminTableScreen'
@@ -72,6 +73,7 @@ type ScreenId =
   | 'admin'
   | 'login'
   | 'account'
+  | 'aboutMe'
   | 'telemetry'
 
 const SECTION: Record<ScreenId, string> = {
@@ -99,6 +101,7 @@ const SECTION: Record<ScreenId, string> = {
   admin: 'A :: LEDGER',
   login: 'L :: ACCESS',
   account: 'L :: YOUR NODE',
+  aboutMe: 'L :: ABOUT YOU',
   telemetry: 'A :: TELEMETRY',
 }
 
@@ -169,6 +172,7 @@ const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set([
   'admin',
   'login',
   'account',
+  'aboutMe',
 ])
 
 /** Validated draft from a previous session, or null. */
@@ -378,6 +382,7 @@ export default function App() {
             setEditingSignupId(row.id)
             go('review')
           }}
+          onEditAbout={() => go('aboutMe')}
           onSignup={() => go('preStatus')}
           onLogin={() => go('login')}
           onExit={() => {
@@ -385,6 +390,18 @@ export default function App() {
             setAnswers(initialAnswers)
             setHistory([])
             setScreen('welcome')
+          }}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'aboutMe':
+      content = (
+        <AboutMeScreen
+          key="aboutMe"
+          onDone={() => {
+            setHistory(['welcome'])
+            setScreen('account')
           }}
           setMode={setMode}
         />
