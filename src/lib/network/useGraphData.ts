@@ -12,7 +12,7 @@ let cachedRows: GraphSignupRow[] | null = null
  * plus everyone in the shared database. Rows are (re)fetched each time the
  * graph becomes active so new signups and admin ghost changes apply.
  */
-export function useGraphData(answers: Answers, active: boolean): GraphData {
+export function useGraphData(answers: Answers | null, active: boolean): GraphData {
   const [remote, setRemote] = useState<GraphSignupRow[]>(cachedRows ?? [])
 
   useEffect(() => {

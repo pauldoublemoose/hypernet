@@ -684,7 +684,7 @@ export default function App() {
 
   return (
     <div className="app" data-theme={theme}>
-      <TerminalFrame section={SECTION[screen]} mode={mode}>
+      <TerminalFrame section={SECTION[screen]} mode={mode} wide={screen === 'account'}>
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
           {content}
         </div>

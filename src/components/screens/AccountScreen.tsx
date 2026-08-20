@@ -2,8 +2,10 @@ import { useEffect, useLayoutEffect, useState } from 'react'
 import { useKeys } from '../../hooks'
 import { ADMIN_COLUMNS, cellValue, type SignupRow } from '../../lib/adminStore'
 import { claimSignups, fetchMySignup } from '../../lib/auth'
+import { useGraphData } from '../../lib/network/useGraphData'
 import { useSession } from '../../lib/session'
 import { useUi } from '../../ui'
+import { NetworkGraph } from '../NetworkGraph'
 import type { InputMode } from '../TerminalFrame'
 
 type OwnedSignup = SignupRow & { id: string }
@@ -32,6 +34,10 @@ export function AccountScreen({
   const [hl, setHl] = useState(0)
   const { status, email, signOut } = useSession()
   const { setEnterArmed } = useUi()
+  // The workspace graph: everyone from the database, no synthetic "you" —
+  // the owner's own db row is the one lit up instead.
+  const graphActive = stage === 'node' || stage === 'empty'
+  const graph = useGraphData(null, graphActive)
 
   useLayoutEffect(() => {
     setMode('NAV')
@@ -123,48 +129,61 @@ export function AccountScreen({
   const about = row?.about?.trim() ?? ''
 
   return (
-    <div className="screen">
+    <div className="screen account-screen">
       <div className="title">L :: YOUR NODE</div>
-      {stage === 'loading' && <div className="term-log">&gt; RETRIEVING NODE…</div>}
-      {stage === 'anon' && (
-        <div className="term-log">&gt; NO ACTIVE SESSION. LOGIN TO ACCESS YOUR NODE.</div>
-      )}
-      {stage === 'empty' && (
-        <div className="term-log">
-          <div>&gt; LOGGED IN AS {email.toUpperCase()}</div>
-          <div>&gt; NO NODE MATCHES THIS EMAIL YET.</div>
-        </div>
-      )}
-      {stage === 'node' && (
-        <div className="term-log">
-          <div>&gt; LOGGED IN AS {email.toUpperCase()}</div>
-          {summary.map((r) => (
-            <div key={r.label}>
-              &gt; {r.label}: {r.value.toUpperCase()}
+      <div className="node-workspace">
+        <div className="node-pane">
+          {stage === 'loading' && <div className="term-log">&gt; RETRIEVING NODE…</div>}
+          {stage === 'anon' && (
+            <div className="term-log">&gt; NO ACTIVE SESSION. LOGIN TO ACCESS YOUR NODE.</div>
+          )}
+          {stage === 'empty' && (
+            <div className="term-log">
+              <div>&gt; LOGGED IN AS {email.toUpperCase()}</div>
+              <div>&gt; NO NODE MATCHES THIS EMAIL YET.</div>
             </div>
-          ))}
-          {about !== '' && (
-            <>
-              <div>&gt; ABOUT:</div>
-              <div className="about-text">{about}</div>
-            </>
+          )}
+          {stage === 'node' && (
+            <div className="term-log">
+              <div>&gt; LOGGED IN AS {email.toUpperCase()}</div>
+              {summary.map((r) => (
+                <div key={r.label}>
+                  &gt; {r.label}: {r.value.toUpperCase()}
+                </div>
+              ))}
+              {about !== '' && (
+                <>
+                  <div>&gt; ABOUT:</div>
+                  <div className="about-text">{about}</div>
+                </>
+              )}
+            </div>
+          )}
+          {stage !== 'loading' && (
+            <div className="btn-row node-actions">
+              {actions.map((a, i) => (
+                <button
+                  key={a.label}
+                  className={`btn ${a.dim ? 'dim ' : ''}${hl === i ? 'hl' : ''}`}
+                  onMouseEnter={() => setHl(i)}
+                  onClick={a.run}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
           )}
         </div>
-      )}
-      {stage !== 'loading' && (
-        <div className="btn-row">
-          {actions.map((a, i) => (
-            <button
-              key={a.label}
-              className={`btn ${a.dim ? 'dim ' : ''}${hl === i ? 'hl' : ''}`}
-              onMouseEnter={() => setHl(i)}
-              onClick={a.run}
-            >
-              {a.label}
-            </button>
-          ))}
-        </div>
-      )}
+        {graphActive && (
+          <div className="node-graph">
+            <div className="net-intro dim">
+              THE NETWORK · DRAG NODES · SCROLL/PINCH ZOOM
+              {row ? ' · YOUR NODE IS LIT' : ''}
+            </div>
+            <NetworkGraph data={graph} newNodeId={row ? `db-${row.id}` : 'none'} preview />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
