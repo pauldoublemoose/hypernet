@@ -64,6 +64,8 @@ async function stubSupabase(context) {
   await context.route('**/rest/v1/rpc/claim_signups*', (r) => r.fulfill(json(0)))
   await context.route('**/rest/v1/rpc/is_admin*', (r) => r.fulfill(json(false)))
   await context.route('**/rest/v1/signups*', (r) => r.fulfill(json([])))
+  // The account workspace renders the network graph; keep it off the network.
+  await context.route('**/rest/v1/graph_signups*', (r) => r.fulfill(json([])))
 }
 
 const browser = await chromium.launch()
@@ -114,24 +116,27 @@ const browser = await chromium.launch()
 
   await page.goto(BASE)
   await page.waitForSelector('text=HYPERNET v0.1')
-  await page.keyboard.press('Enter')
-  await page.waitForSelector('text=[ SIGN UP ]')
-
-  const line = page.locator(`text=SESSION ACTIVE — ${EMAIL.toUpperCase()}`)
-  if (!(await line.count())) fail('restored session should show on the welcome screen')
-  else pass('restored session shows on the welcome screen')
-  if (!(await page.locator('text=[ YOUR NODE ]').count())) {
-    fail('restored session should not be asked to log in again')
-  } else pass('restored session skips the login prompt')
-
-  // The session must also carry into the screens that need it.
-  await page.locator('text=[ YOUR NODE ]').click()
+  // A restored session skips the pitch and lands straight on the node.
   await page.waitForSelector('text=L :: YOUR NODE')
+  pass('restored session lands directly on the node screen')
   await page.waitForSelector(`text=LOGGED IN AS ${EMAIL.toUpperCase()}`)
   pass('account screen opens straight to the restored node')
   if (await page.locator('text=NO ACTIVE SESSION').count()) {
     fail('account screen flashed a signed-out state')
   } else pass('account screen never claims there is no session')
+
+  // Going BACK reaches the welcome screen (no auto-jump loop), which still
+  // knows about the session.
+  await page.locator('text=[ BACK ]').click()
+  await page.waitForSelector('text=HYPERNET v0.1')
+  await page.keyboard.press('Enter') // skip the typewriter
+  await page.waitForSelector('text=[ SIGN UP ]')
+  const line = page.locator(`text=SESSION ACTIVE — ${EMAIL.toUpperCase()}`)
+  if (!(await line.count())) fail('welcome (via BACK) should show the live session')
+  else pass('welcome (via BACK) shows the live session, no jump loop')
+  if (!(await page.locator('text=[ YOUR NODE ]').count())) {
+    fail('welcome (via BACK) should not ask to log in again')
+  } else pass('welcome (via BACK) skips the login prompt')
 
   const stored = await page.evaluate(() =>
     Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.includes('auth-token')),
@@ -161,14 +166,12 @@ const browser = await chromium.launch()
   const page = await context.newPage()
   await page.goto(BASE)
   await page.waitForSelector('text=HYPERNET v0.1')
-  await page.keyboard.press('Enter')
-  await page.waitForSelector(`text=SESSION ACTIVE — ${EMAIL.toUpperCase()}`)
+  await page.waitForSelector(`text=LOGGED IN AS ${EMAIL.toUpperCase()}`)
 
   phase = 2
   await page.reload()
   await page.waitForSelector('text=HYPERNET v0.1')
-  await page.keyboard.press('Enter')
-  await page.waitForSelector(`text=SESSION ACTIVE — ${EMAIL.toUpperCase()}`)
+  await page.waitForSelector(`text=LOGGED IN AS ${EMAIL.toUpperCase()}`)
 
   if (calls.includes('GET')) {
     fail('a live local session should not spend a refresh-token rotation')
