@@ -13,6 +13,26 @@ const fail = (msg) => {
   process.exitCode = 1
 }
 
+/**
+ * Cut every write to Supabase.
+ *
+ * The run submits a full signup and would otherwise land a fake node — plus
+ * any custom skills it invented — in whatever database .env points at. Reads
+ * still go through; the failed insert is what puts the app on its offline
+ * path, which is what the assertions below expect.
+ */
+async function blockWrites(page) {
+  await page.route('**/rest/v1/**', (route) => {
+    const method = route.request().method()
+    if (method === 'GET' || method === 'HEAD') return route.continue()
+    return route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ message: 'writes blocked by e2e' }),
+    })
+  })
+}
+
 /** Mark first option then confirm (soft-lock ChoiceScreens). */
 async function markAndEnter(page, downs = 1) {
   for (let i = 0; i < downs; i++) await page.keyboard.press('ArrowDown')
@@ -24,13 +44,15 @@ const browser = await chromium.launch()
 // ---------- Desktop keyboard flow (KNOWN COCREATOR) ------------------------
 {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await blockWrites(page)
   await page.goto(BASE)
   await page.evaluate(() => localStorage.clear())
   await page.reload()
   await page.waitForSelector('text=HYPERNET v0.1')
 
   // theme cycles WHITE -> BLACK -> POLYCHROME -> WHITE
-  const themeBtn = page.locator('.theme-btn')
+  // (the graph toggle shares the .theme-btn class, hence the title match)
+  const themeBtn = page.locator('button[title^="Switch color mode"]')
   const appTheme = () => page.locator('.app').getAttribute('data-theme')
   if ((await themeBtn.count()) !== 1) fail('theme toggle missing')
   if ((await appTheme()) !== 'white') fail('initial theme should be white')
@@ -254,6 +276,7 @@ const browser = await chromium.launch()
     hasTouch: true,
     isMobile: true,
   })
+  await blockWrites(page)
   await page.goto(BASE)
   await page.evaluate(() => localStorage.clear())
   await page.reload()

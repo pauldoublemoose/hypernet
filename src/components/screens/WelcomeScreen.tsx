@@ -1,6 +1,7 @@
 import { useLayoutEffect, useState } from 'react'
 import { WELCOME_INTRO, WELCOME_JOIN } from '../../data/copy'
 import { useKeys, useTypewriter } from '../../hooks'
+import { useSession } from '../../lib/session'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
@@ -21,6 +22,8 @@ export function WelcomeScreen({
 }) {
   const { shown, done, finish } = useTypewriter(FULL)
   const [hl, setHl] = useState<0 | 1 | 2>(1)
+  const { status, email } = useSession()
+  const authed = status === 'authed'
   const { setEnterArmed } = useUi()
 
   useLayoutEffect(() => {
@@ -97,9 +100,12 @@ export function WelcomeScreen({
             onMouseEnter={() => setHl(2)}
             onClick={onLogin}
           >
-            [ ACCESS YOUR NODE ]
+            {authed ? '[ YOUR NODE ]' : '[ ACCESS YOUR NODE ]'}
           </button>
         </div>
+      )}
+      {done && authed && (
+        <div className="screen-hint">SESSION ACTIVE — {email.toUpperCase()}</div>
       )}
     </div>
   )

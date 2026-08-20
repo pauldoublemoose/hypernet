@@ -1,7 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useKeys } from '../../hooks'
-import { claimSignups, getSession, requestLoginCode, verifyLoginCode } from '../../lib/auth'
+import { claimSignups, requestLoginCode, verifyLoginCode } from '../../lib/auth'
 import { isValidEmail, normalizeEmail } from '../../lib/contact'
+import { useSession } from '../../lib/session'
+import { track } from '../../lib/telemetry'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
@@ -22,6 +24,7 @@ export function LoginScreen({
   const [busy, setBusy] = useState(false)
   const [nudge, setNudge] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const { status } = useSession()
 
   useLayoutEffect(() => setMode('TXT'), [setMode])
   const { setEnterArmed } = useUi()
@@ -29,17 +32,12 @@ export function LoginScreen({
     setEnterArmed(true)
   }, [setEnterArmed])
 
-  // Already logged in (e.g. via an emailed link in another tab)? Skip straight through.
+  // Already logged in — a restored session, or an emailed link opened in
+  // another tab. Nobody should be asked for a code they do not need.
   useEffect(() => {
-    let alive = true
-    getSession().then((s) => {
-      if (alive && s) onSuccess()
-    })
-    return () => {
-      alive = false
-    }
+    if (status === 'authed') onSuccess()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [status])
 
   useEffect(() => {
     const id = window.setTimeout(() => inputRef.current?.focus(), 0)
@@ -80,6 +78,7 @@ export function LoginScreen({
       setNudge(res.message ?? 'ACCESS DENIED — CHECK THE CODE')
       return
     }
+    track('login_verified')
     await claimSignups()
     setBusy(false)
     onSuccess()

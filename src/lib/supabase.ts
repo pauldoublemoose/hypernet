@@ -1,12 +1,31 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Answers } from '../types'
 import { archiveSignup } from './adminStore'
+import { authStorage } from './authStorage'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase: SupabaseClient | null =
-  url && anonKey ? createClient(url, anonKey) : null
+  url && anonKey
+    ? createClient(url, anonKey, {
+        auth: {
+          // Spelled out rather than left to defaults: a login that outlives the
+          // tab is the whole point, and a future default flip must not silently
+          // sign everyone out. The storage key stays at the library default so
+          // sessions from before this change keep working.
+          storage: authStorage,
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          // Implicit, not PKCE: the emailed link has to work when the mail app
+          // opens it in a different browser than the one that asked for the
+          // code, and a PKCE verifier never leaves the browser that started the
+          // login.
+          flowType: 'implicit',
+        },
+      })
+    : null
 
 export interface RemoteSkillOption {
   category: string

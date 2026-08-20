@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { useKeys } from '../../hooks'
 import { ADMIN_COLUMNS, cellValue, type SignupRow } from '../../lib/adminStore'
-import { claimSignups, fetchMySignup, getSession, signOut } from '../../lib/auth'
+import { claimSignups, fetchMySignup } from '../../lib/auth'
+import { useSession } from '../../lib/session'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
@@ -23,8 +24,8 @@ export function AccountScreen({
 }) {
   const [stage, setStage] = useState<Stage>('loading')
   const [row, setRow] = useState<OwnedSignup | null>(null)
-  const [email, setEmail] = useState('')
   const [hl, setHl] = useState(0)
+  const { status, email, signOut } = useSession()
   const { setEnterArmed } = useUi()
 
   useLayoutEffect(() => {
@@ -33,15 +34,16 @@ export function AccountScreen({
   }, [setMode, setEnterArmed])
 
   useEffect(() => {
+    // Wait for the shared session to resolve: a restore from the server
+    // cookie lands a moment after mount, and showing 'no session' in the
+    // meantime is exactly the flicker this screen used to have.
+    if (status === 'loading') return
+    if (status === 'anon') {
+      setStage('anon')
+      return
+    }
     let alive = true
     ;(async () => {
-      const session = await getSession()
-      if (!alive) return
-      if (!session) {
-        setStage('anon')
-        return
-      }
-      setEmail(session.user.email ?? '')
       // Idempotent: also covers logins that arrived via the emailed link
       // (which bypass the LoginScreen claim call).
       await claimSignups()
@@ -57,7 +59,7 @@ export function AccountScreen({
     return () => {
       alive = false
     }
-  }, [])
+  }, [status])
 
   const logout = async () => {
     await signOut()
