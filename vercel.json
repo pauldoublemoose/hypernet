@@ -2,9 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "www.hyperstition.cloud" }],
-      "destination": "https://hyperstition.cloud/:path*",
+      "destination": "https://hyperstition.cloud/$1",
       "permanent": true
     }
   ]
