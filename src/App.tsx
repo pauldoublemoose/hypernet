@@ -19,7 +19,6 @@ import {
   BRANCH_TEXT,
   CONTACT_CHANNEL_OPTIONS,
   EVENTS,
-  PRE_STATUS_TEXT,
   STATUS_OPTIONS,
   STATUS_QUESTION,
 } from './data/copy'
@@ -44,6 +43,7 @@ import { LoginScreen } from './components/screens/LoginScreen'
 import { clearDraft, loadDraft, saveDraft } from './lib/draft'
 import { signupToAnswers } from './lib/network/buildGraph'
 import { updateSignup } from './lib/supabase'
+import { useSession } from './lib/session'
 import { track, trackScreen, trackVisit } from './lib/telemetry'
 import { TelemetryScreen } from './components/screens/TelemetryScreen'
 import { useUi } from './ui'
@@ -51,7 +51,7 @@ import { useUi } from './ui'
 type ScreenId =
   | 'welcome'
   | 'about'
-  | 'preStatus'
+  | 'quickEmail'
   | 'status'
   | 'branch'
   | 'name'
@@ -79,7 +79,7 @@ type ScreenId =
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
   about: '0 :: ABOUT',
-  preStatus: '1 :: SIGN-UP',
+  quickEmail: '1 :: QUICK SIGN-UP',
   status: '1 :: STATUS',
   branch: '1 :: STATUS',
   name: '2 :: CONTACT',
@@ -124,8 +124,6 @@ function nextChannel(after: ContactChannel | null, a: Answers): ScreenId {
 function getNext(id: ScreenId, a: Answers): ScreenId {
   const st: Status = a.status ?? 'subscriber'
   switch (id) {
-    case 'preStatus':
-      return 'status'
     case 'status':
       return 'branch'
     case 'branch':
@@ -167,6 +165,7 @@ function getNext(id: ScreenId, a: Answers): ScreenId {
 
 /** Screens that are never part of an in-progress signup draft. */
 const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set([
+  'quickEmail',
   'thanks',
   'adminGate',
   'admin',
@@ -212,6 +211,23 @@ export default function App() {
   const [editingSignupId, setEditingSignupId] = useState<string | null>(null)
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
   const [remoteLocations, setRemoteLocations] = useState<RemoteLocationOption[]>([])
+  const { status: sessionStatus } = useSession()
+
+  // A returning visitor with a live session lands on their node, not the
+  // pitch. Runs once, and only if they are still sitting untouched on the
+  // welcome screen (a restored draft or an early click wins over the jump).
+  const autoOpened = useRef(false)
+  useEffect(() => {
+    if (autoOpened.current || sessionStatus !== 'authed') return
+    autoOpened.current = true
+    if (draft) return
+    const { screen: current, history: h } = draftRef.current
+    if (current === 'welcome' && h.length === 0) {
+      setHistory(['welcome'])
+      setScreen('account')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionStatus])
 
   useEffect(() => {
     fetchSkillOptions().then(setRemoteSkills)
@@ -352,7 +368,8 @@ export default function App() {
       content = (
         <WelcomeScreen
           key="welcome"
-          onSignup={() => go('preStatus')}
+          onSignup={() => go('status')}
+          onQuickSignup={() => go('quickEmail')}
           onAbout={() => go('about')}
           onAdmin={() => go('adminGate')}
           onLogin={() => go('account')}
@@ -382,8 +399,13 @@ export default function App() {
             setEditingSignupId(row.id)
             go('review')
           }}
+          onComplete={(row) => {
+            setAnswers(signupToAnswers(row))
+            setEditingSignupId(row.id)
+            go('status')
+          }}
           onEditAbout={() => go('aboutMe')}
-          onSignup={() => go('preStatus')}
+          onSignup={() => go('status')}
           onLogin={() => go('login')}
           onExit={() => {
             setEditingSignupId(null)
@@ -434,13 +456,25 @@ export default function App() {
     case 'about':
       content = <AboutScreen key="about" onBack={back} setMode={setMode} />
       break
-    case 'preStatus':
+    case 'quickEmail':
       content = (
-        <InfoScreen
-          key="preStatus"
-          text={PRE_STATUS_TEXT}
-          buttonLabel="OK"
-          onNext={() => go('status')}
+        <TextScreen
+          key="quickEmail"
+          title="1 :: QUICK SIGN-UP"
+          question="LEAVE YOUR EMAIL AND YOU'RE IN. YOU CAN FLESH OUT YOUR NODE ANY TIME LATER."
+          hint="ENTER to confirm"
+          kind="email"
+          required
+          onSubmit={(v) => {
+            track('quick_signup', 'quickEmail')
+            setAnswers({
+              ...initialAnswers,
+              status: 'subscriber',
+              email: v,
+              contactChannels: ['email'],
+            })
+            go('thanks')
+          }}
           onBack={back}
           setMode={setMode}
         />

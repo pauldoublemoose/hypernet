@@ -9,19 +9,21 @@ const FULL = `${WELCOME_INTRO}\n\n${WELCOME_JOIN}`
 
 export function WelcomeScreen({
   onSignup,
+  onQuickSignup,
   onAbout,
   onAdmin,
   onLogin,
   setMode,
 }: {
   onSignup: () => void
+  onQuickSignup: () => void
   onAbout: () => void
   onAdmin: () => void
   onLogin: () => void
   setMode: (m: InputMode) => void
 }) {
   const { shown, done, finish } = useTypewriter(FULL)
-  const [hl, setHl] = useState<0 | 1 | 2>(1)
+  const [hl, setHl] = useState(1)
   const { status, email } = useSession()
   const authed = status === 'authed'
   const { setEnterArmed } = useUi()
@@ -38,15 +40,16 @@ export function WelcomeScreen({
   useKeys((e) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setHl((h) => ((h + 2) % 3) as 0 | 1 | 2)
+      setHl((h) => (h + 3) % 4)
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setHl((h) => ((h + 1) % 3) as 0 | 1 | 2)
+      setHl((h) => (h + 1) % 4)
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       if (!done) finish()
       else if (hl === 0) onAbout()
       else if (hl === 1) onSignup()
+      else if (hl === 2) onQuickSignup()
       else onLogin()
     }
   })
@@ -96,8 +99,15 @@ export function WelcomeScreen({
             [ SIGN UP ]
           </button>
           <button
-            className={`btn dim ${hl === 2 ? 'hl' : ''}`}
+            className={`btn ${hl === 2 ? 'hl' : ''}`}
             onMouseEnter={() => setHl(2)}
+            onClick={onQuickSignup}
+          >
+            [ QUICK SIGN UP ]
+          </button>
+          <button
+            className={`btn dim ${hl === 3 ? 'hl' : ''}`}
+            onMouseEnter={() => setHl(3)}
             onClick={onLogin}
           >
             {authed ? '[ YOUR NODE ]' : '[ ACCESS YOUR NODE ]'}

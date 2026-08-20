@@ -11,6 +11,7 @@ type Stage = 'loading' | 'anon' | 'empty' | 'node'
 
 export function AccountScreen({
   onEdit,
+  onComplete,
   onEditAbout,
   onSignup,
   onLogin,
@@ -18,6 +19,8 @@ export function AccountScreen({
   setMode,
 }: {
   onEdit: (row: OwnedSignup) => void
+  /** Walk the full wizard prefilled from a bare (quick-signup) node. */
+  onComplete: (row: OwnedSignup) => void
   onEditAbout: () => void
   onSignup: () => void
   onLogin: () => void
@@ -68,6 +71,11 @@ export function AccountScreen({
     onExit()
   }
 
+  // A quick signup leaves everything but the email empty; until the wizard
+  // has been walked once, "edit" would open a review of blanks.
+  const bare =
+    row !== null && !(row.full_name ?? '').trim() && (row.locations ?? []).length === 0
+
   const actions: { label: string; dim?: boolean; run: () => void }[] =
     stage === 'anon'
       ? [
@@ -76,7 +84,9 @@ export function AccountScreen({
         ]
       : stage === 'node'
         ? [
-            { label: '[ EDIT NODE ]', run: () => row && onEdit(row) },
+            bare
+              ? { label: '[ COMPLETE NODE ]', run: () => row && onComplete(row) }
+              : { label: '[ EDIT NODE ]', run: () => row && onEdit(row) },
             { label: '[ ABOUT YOU ]', run: onEditAbout },
             { label: '[ LOGOUT ]', dim: true, run: logout },
             { label: '[ BACK ]', dim: true, run: onExit },

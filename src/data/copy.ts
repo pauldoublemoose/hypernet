@@ -44,7 +44,6 @@ REACH OUT if you want to join the software development team creating HYPERNET!`,
   },
 ]
 
-export const PRE_STATUS_TEXT = `On the following page you may sign up to simply stay posted for when the next thing drops, or you can flag yourself as a potential co-creator.`
 
 export const STATUS_QUESTION = 'IN WHAT CAPACITY ARE YOU JOINING HYPERNET?'
 

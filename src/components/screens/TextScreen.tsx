@@ -12,6 +12,7 @@ export function TextScreen({
   multiline,
   initial,
   kind,
+  required,
   onDraftChange,
   onSubmit,
   onBack,
@@ -24,6 +25,8 @@ export function TextScreen({
   initial?: string
   /** When 'email', non-empty values must pass a light format check. */
   kind?: 'text' | 'email'
+  /** Disallow empty submissions and hide the SKIP button. */
+  required?: boolean
   /** Live value updates while typing (uncommitted), e.g. for draft autosave. */
   onDraftChange?: (value: string) => void
   onSubmit: (value: string) => void
@@ -54,9 +57,13 @@ export function TextScreen({
 
   const trySubmit = (raw: string) => {
     const trimmed = raw.trim()
+    if (required && !trimmed) {
+      setNudge(kind === 'email' ? 'AN EMAIL IS REQUIRED HERE' : 'THIS FIELD IS REQUIRED')
+      return
+    }
     if (kind === 'email') {
       if (trimmed && !isValidEmail(trimmed)) {
-        setNudge('EMAIL LOOKS INCOMPLETE — FIX IT OR SKIP')
+        setNudge(required ? 'EMAIL LOOKS INCOMPLETE — PLEASE FIX IT' : 'EMAIL LOOKS INCOMPLETE — FIX IT OR SKIP')
         return
       }
       onSubmit(trimmed ? normalizeEmail(trimmed) : '')
@@ -123,9 +130,11 @@ export function TextScreen({
         <button className="btn" onClick={() => trySubmit(val)}>
           [ OK ]
         </button>
-        <button className="btn dim" onClick={() => onSubmit('')}>
-          [ SKIP ]
-        </button>
+        {!required && (
+          <button className="btn dim" onClick={() => onSubmit('')}>
+            [ SKIP ]
+          </button>
+        )}
       </div>
       <div className="screen-hint">
         {nudge ?? hint ?? null}
