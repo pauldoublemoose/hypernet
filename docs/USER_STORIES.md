@@ -25,16 +25,13 @@
 ### US-1.2 — Edit my profile `P0` 🔲
 
 **As a** registered node,  
-**I want** separate sections on my profile for who I am and what I can do,  
-**So that** others can discover my interests and recruit me for my skills.
+**I want** to add an avatar, bio, and skills/interests to my profile,  
+**So that** others can discover what I contribute and recruit me.
 
 **Acceptance criteria**
-- [ ] Profile supports: avatar image
-- [ ] **About** section — free text for yourself, your interests, and what you're about (separate from skills)
-- [ ] **Skills** section — free text only; describe what you can contribute (e.g. sound engineering, welding, camp logistics)
-- [ ] About and Skills are distinct fields with distinct labels; not combined into one block
+- [ ] Profile supports: avatar image, brief description, skills/interests (free text)
 - [ ] Changes save and are visible on my public profile immediately (respecting privacy)
-- [ ] No skill tags or taxonomy in MVP — free text only
+- [ ] Skills field accepts free text; no taxonomy required in MVP
 - [ ] Profile page matches Hypernet visual identity (terminal aesthetic, theme-aware)
 
 ---
@@ -46,7 +43,7 @@
 **So that** I control who sees my information.
 
 **Acceptance criteria**
-- [ ] Each section (avatar, About, Skills, Chronicle) has a visibility toggle: Public / Private
+- [ ] Each section (avatar, bio, skills, Chronicle) has a visibility toggle: Public / Private
 - [ ] Private sections are hidden from other users and excluded from search
 - [ ] Owner always sees their own full profile
 
@@ -79,34 +76,47 @@
 
 ---
 
+### US-1.6 — Understand what I'm looking at `P0` 🔲
+
+**As a** new user unfamiliar with Hypernet's terminology,  
+**I want** a brief explanation whenever I encounter a concept like Horizon or Chronicle,  
+**So that** I know what I'm interacting with without leaving the flow.
+
+**Acceptance criteria**
+- [ ] Each major feature screen includes a one-line description at first point of use (see PROJECT_PLAN.md §1 one-liners)
+- [ ] Same wording used everywhere for the same concept — no inconsistent paraphrasing
+- [ ] Explanations are inline or immediately adjacent — no separate docs page required
+- [ ] Onboarding is progressive: concepts introduced when relevant, not dumped upfront
+- [ ] New user can complete signup → profile → first horizon without confusion
+
+---
+
 ## Epic 2: Recruitment & Discovery
 
 ### US-2.1 — Search people by skill `P0` 🔲
 
 **As a** camp lead preparing for a burn,  
-**I want** to search for people by what they've written in their Skills section,  
+**I want** to search for people with a specific skill (e.g. "sound engineering"),  
 **So that** I can recruit talent outside my friend group.
 
 **Acceptance criteria**
-- [ ] Search input matches against profile Skills section (free text only)
-- [ ] Results show avatar, name, About excerpt, and link to full profile
+- [ ] Search input matches against profile skills (free text)
+- [ ] Results show avatar, name, bio excerpt, and link to full profile
 - [ ] Only public profiles/skills appear in results
 - [ ] Empty state explains how to refine search
-- [ ] No skill tags required for MVP search to work
 
 ---
 
-### US-2.2 — Browse and use skill tags `P1` 🔲
+### US-2.2 — Browse skills taxonomy `P1` 🔲
 
 **As a** recruiter,  
-**I want** to browse structured skill tags and filter people by tag,  
+**I want** to browse a structured list of skill tags,  
 **So that** I can discover common skills without guessing exact search terms.
 
 **Acceptance criteria**
-- [ ] Skill tags generated from aggregated free-text Skills entries (data-driven, not manually curated upfront)
+- [ ] Taxonomy generated from aggregated free-text skills (not manually curated upfront)
 - [ ] Tags are clickable and trigger people search
-- [ ] Profiles can adopt tags in addition to (or derived from) their free-text Skills section
-- [ ] Free-text Skills section remains available; tags are a core-growth layer on top
+- [ ] Users can still enter free-text skills on their profile
 
 ---
 
@@ -210,7 +220,7 @@
 **Acceptance criteria**
 - [ ] Event page shows participant list grouped or badged by role
 - [ ] Adding a participant creates an entry on their Chronicle (if they accept or if admin adds them)
-- [ ] Role colors match the global scheme (see PROJECT_PLAN.md §5)
+- [ ] Role colors match the global scheme (see PROJECT_PLAN.md §7.2)
 
 ---
 
@@ -255,7 +265,7 @@
 
 ## Epic 5: Horizons
 
-### US-4.1 — Publish a horizon `P1` 🔲
+### US-4.1 — Publish a horizon `P0` 🔲
 
 **As a** camp or collective admin,  
 **I want** to publish a horizon of our events on behalf of my group,  
@@ -264,13 +274,28 @@
 **Acceptance criteria**
 - [ ] A profile or group admin can create a horizon with name and description
 - [ ] Horizon has visibility setting (public/private)
-- [ ] Events can be added to a horizon during or after event creation
+- [ ] Horizon has a contribution setting: **Admins only** (default) or **Open** (any authenticated user may add events)
+- [ ] Events can be added to a horizon during or after event creation (subject to contribution setting)
 - [ ] Public horizons have a shareable URL
 - [ ] Horizon page shows owner (profile or group) with link
 
 ---
 
-### US-4.2 — Subscribe to a horizon `P1` 🔲
+### US-4.1b — Admin a horizon `P0` 🔲
+
+**As a** horizon owner,  
+**I want** to assign other profiles as horizon admins,  
+**So that** multiple co-organizers can curate events on the same horizon.
+
+**Acceptance criteria**
+- [ ] Horizon owner can add or remove horizon admins
+- [ ] Horizon admins can add events to the horizon (when contribution setting is Admins only)
+- [ ] Horizon admins can edit horizon metadata (name, description) — owner retains delete and settings control
+- [ ] Non-admins cannot add events unless the horizon is set to Open
+
+---
+
+### US-4.2 — Subscribe to a horizon `P0` 🔲
 
 **As a** community member,  
 **I want** to subscribe to a camp's horizon,  
@@ -463,6 +488,7 @@
 ```
 PHASE 1 — MVP Foundation
 ├── US-1.1  Fast node creation          P0
+├── US-1.6  Contextual copy             P0
 ├── US-1.2  Edit profile                P0
 ├── US-1.3  Profile visibility          P0
 ├── US-2.1  Skill search                P0
@@ -473,6 +499,9 @@ PHASE 1 — MVP Foundation
 ├── US-3.1  Create event                P0
 ├── US-3.2  Add past events             P0
 ├── US-3.3  Participation roles         P0
+├── US-4.1  Publish horizon             P0
+├── US-4.1b Admin a horizon             P0
+├── US-4.2  Subscribe to horizon        P0
 ├── US-5.1  Graph explore               P0
 ├── US-5.2  Graph event filter          P0
 ├── US-5.3  Graph interaction           P0
@@ -480,15 +509,13 @@ PHASE 1 — MVP Foundation
 ├── US-7.2  Polychrome mode             P0  🟡
 └── US-7.3  Consistent UI               P0
 
-PHASE 2 — Horizons & Lists
-├── US-4.1  Publish horizon             P1
-├── US-4.2  Subscribe to horizon        P1
+PHASE 2 — Discovery & Lists
 ├── US-4.3  Search events               P1
 ├── US-1.4  Granular privacy            P1
 ├── US-3.4  Invite contact lists        P1
 ├── US-5.4  Graph city filter           P1
 ├── US-6.1  Contact lists               P1
-└── US-2.2  Skill tags                    P1
+└── US-2.2  Skills taxonomy             P1
 
 PHASE 3 — Future
 ├── US-1.5  AI profile                  P2
@@ -508,7 +535,8 @@ A user story is **done** when:
 1. Acceptance criteria are met on desktop and mobile
 2. Feature respects active theme (Light / Dark / Polychrome)
 3. Privacy rules enforced server-side (not UI-only)
-4. No regression to existing signup terminal flow until intentionally replaced
+4. Non-obvious concepts include a user-facing one-liner (see PROJECT_PLAN.md §1)
+5. No regression to existing signup terminal flow until intentionally replaced
 
 ---
 

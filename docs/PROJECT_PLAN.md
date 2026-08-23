@@ -18,11 +18,20 @@ It is **not** a consumption feed like Facebook. It is a **recruitment and discov
 | Term          | Meaning                                                                                                            |
 | ------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Node**      | A person in the network (their profile). Used during onboarding: *"Create your node."*                             |
-| **Profile**   | A person's page — avatar, About, Skills, Chronicle. Synonymous with *node* in user-facing copy.                    |
+| **Profile**   | A person's page — avatar, bio, skills, Chronicle. Synonymous with *node* in user-facing copy.                      |
 | **Group**     | An organization or collective (e.g. a camp, crew, label). Has its own page, managed by one or more profile admins. |
 | **Link**      | A connection between two nodes — typically a shared event, or shared city.                                         |
 | **Chronicle** | A profile section listing events a person has participated in, with their role.                                    |
-| **Horizon**   | A publishable, subscribable collection of events owned by a profile or a group.                                    |
+| **Horizon**   | A publishable, subscribable collection of events owned by a profile or a group. Multiple horizon admins; **contribution setting** controls who may add events: *Admins only* (default) or *Open* (any authenticated profile). |
+
+**User-facing one-liners** *(use consistently wherever the term first appears)*
+
+| Term | Explain it as… |
+| ---- | -------------- |
+| **Node** | You in the network. |
+| **Horizon** | A shared calendar — create one, add events, let others subscribe. |
+| **Chronicle** | Your event history — what you've joined and the role you played. |
+| **Group** | A camp, crew, or collective — run by people, with its own page. |
 
 
 **Profile vs. Group vs. contact list**
@@ -51,9 +60,10 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 
 1. **Graph-first brand** — The network visualization is what people remember. Invest in physics, motion, and interaction quality early.
 2. **Streamlined UI** — Every screen uses space intelligently. No clutter from tags, toggles, or buttons that are not immediately useful.
-3. **Retro-futuristic aesthetic mixed with high-end sleek design** — CRT lines, monospace fonts, white and black plus chrome/silver accents and rainbow/polychrome highlights. Three theme modes (see §8).
+3. **Retro-futuristic aesthetic mixed with high-end sleek design** — CRT lines, monospace fonts, white and black plus chrome/silver accents and rainbow/polychrome highlights. Three theme modes (see §7).
 4. **User-controlled visibility** — Profile and group fields, events, and connections are governed by granular privacy settings.
 5. **Fast path to value** — Signup creates a node in seconds; profile details are filled in later.
+6. **Explain the language** — Hypernet uses its own terms. Where one isn't obvious, show a brief inline explanation at the point of use — the same wording sitewide, never a wall of jargon. Onboarding introduces concepts only when the user reaches them.
 
 ---
 
@@ -61,20 +71,25 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 
 ### 4.1 MVP (Must Have — Phase 1–2)
 
+**Skill search vs. skills taxonomy:** MVP ships **free-text skill search** (camp recruitment depends on it). Structured **skills taxonomy** — browseable tags clustered from user input — comes in Core Growth once enough profiles exist.
+
 
 | Feature                  | Description                                                                                                                                                            |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Fast signup**          | Minimal fields to create a node and join the network. Profile editing deferred.                                                                                        |
-| **Profile page**         | Avatar; **About** section (yourself, interests); **Skills** section (free text only). Separate sections, separate fields. |
+| **Profile page**         | Avatar, short bio, skills/interests (free text for now).                                                                                                               |
 | **Group page**           | Organization profile (e.g. camp): name, image, description. Managed by profile admin(s).                                                                               |
 | **Basic event creation** | Title, date, description, visibility toggle (public/private). Hosted by a **profile** or a **group**. External ticket/link URL is fine — no native ticketing required. |
 | **Event database**       | Events stored persistently; past events can be added to a user's Chronicle with role.                                                                                  |
-| **Event roles**          | Guest, Co-creator, Sponsor, Admin — color-coded (see §8).                                                                                                              |
+| **Event roles**          | Guest, Co-creator, Sponsor, Admin — color-coded (see §7.2).                                                                                                              |
 | **Network graph v1**     | Nodes = people. Links = shared events and/or city. Drag, zoom, click-through to profile.                                                                               |
 | **Graph filters**        | Toggle event connections on/off; selected events pull related nodes together.                                                                                          |
-| **Skill search**         | Find people by free-text match in their Skills section (e.g. "sound engineering"). No skill tags in MVP.                                                                |
+| **Skill search**         | Find people by free-text match on profile skills (e.g. "sound engineering"). Essential for camp recruitment. |
+| **Horizons**             | Profiles and groups publish horizons. Multiple horizon admins. Contribution setting: admins only or open.       |
+| **Horizon subscriptions** | Subscribe to a horizon; get notified when a new event is added.                                                |
 | **Theme system**         | Light, Dark, and Polychrome modes.                                                                                                                                     |
 | **Basic privacy**        | Per-field or per-section visibility: Public / Private (Friends-only and custom lists in Phase 3).                                                                      |
+| **Contextual copy**      | Every feature screen includes a one-line explanation of what the user is looking at (see terminology one-liners). Onboarding flows step-by-step without overwhelming. |
 
 
 ### 4.2 Core Growth (Should Have — Phase 3–4)
@@ -82,11 +97,9 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 
 | Feature                   | Description                                                                                                        |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Horizons**              | Profiles and groups publish horizons; others subscribe and get notified when events are added.                     |
-| **Horizon subscriptions** | Notification when a subscribed horizon gets a new event.                                                           |
 | **Contact lists**         | User-defined lists of profiles (e.g. "Camp crew", "Sound team") for targeted event invites — distinct from groups. |
 | **Granular privacy**      | Public / Friends-only / Private / Custom list visibility per field or section.                                     |
-| **Skill tags**            | Structured skill tags derived from accumulated free-text skills (data-driven, not designed upfront). Browse and filter by tag. |
+| **Skills taxonomy**       | Structured, browseable tags derived from accumulated free-text skills (data-driven — not in MVP).          |
 | **Event invitations**     | Invite contact lists to events.                                                                                    |
 
 
@@ -105,22 +118,7 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 
 ---
 
-## 5. Event Role Color System
-
-Use consistently across profiles, Chronicle, graph badges, and event pages.
-
-
-| Role       | Color                | Token name (suggested) |
-| ---------- | -------------------- | ---------------------- |
-| Guest      | White                | `--role-guest`         |
-| Co-creator | Black                | `--role-cocreator`     |
-| Sponsor    | Chrome / silver      | `--role-sponsor`       |
-| Admin      | Polychrome (rainbow) | `--role-admin`         |
-
-
----
-
-## 6. Phased Roadmap
+## 5. Phased Roadmap
 
 ### Phase 0 — Pre-Alpha *(Done)*
 
@@ -139,17 +137,19 @@ Use consistently across profiles, Chronicle, graph badges, and event pages.
 | -------------------------------- | -------------------------------------------------------- |
 | Auth (email magic link or OAuth) | Replace anonymous signup insert with authenticated users |
 | User ↔ signup migration          | Map existing `signups` rows to `users` / `profiles`      |
-| Profile CRUD API                 | Avatar upload; About section (bio, interests); Skills section (free text only); location |
+| Profile CRUD API                 | Avatar upload, bio, skills (free text), location         |
 | Profile page UI                  | Retro-terminal aesthetic; mobile-friendly                |
+| Skill search (free text)         | Full-text match on profile skills; public profiles only  |
 | Landing page                     | Signup CTA as first action                               |
+| Contextual copy & onboarding     | One-liner per concept at first touch; progressive, not front-loaded |
 | Privacy v1                       | Public / Private per profile section                     |
 
 
-**Exit criteria:** New user signs up → edits profile → appears on graph as isolated node.
+**Exit criteria:** New user signs up → edits profile with skills → searchable by skill keyword → appears on graph as isolated node.
 
-### Phase 2 — Events, Groups & Chronicle *(4–6 weeks)*
+### Phase 2 — Events, Groups, Horizons & Chronicle *(4–6 weeks)*
 
-**Goal:** Profiles and groups create events, link participation with roles, and build Chronicles.
+**Goal:** Profiles and groups create events and horizons, link participation with roles, and build Chronicles.
 
 
 | Task                       | Notes                                                                                          |
@@ -160,30 +160,30 @@ Use consistently across profiles, Chronicle, graph badges, and event pages.
 | Events schema              | title, dates, description, visibility, external_url; host = profile **or** group (polymorphic) |
 | Event participation schema | user_id, event_id, role (guest/cocreator/sponsor/admin)                                        |
 | Event creation flow        | Choose host: my profile or a group I admin; link-out for tickets/details OK                    |
+| Horizons schema            | owner (profile or group), name, description, visibility, contribution setting (admins only / open) |
+| Horizon admins             | `horizon_admins` — multiple profiles can add events to a horizon                               |
+| Horizon ↔ events           | Add events during or after creation; enforce contribution setting                              |
+| Horizon subscriptions      | Subscribe/unsubscribe; notify subscribers when an event is added                               |
 | Chronicle on profile       | Filterable list with role badges (color-coded)                                                 |
 | Group hosted events        | Group page lists events hosted by that group                                                   |
 | Graph links from events    | Toggle event → pull co-participants together                                                   |
 | Past events                | Allow adding historical events to Chronicle                                                    |
 
 
-**Exit criteria:** A camp group hosts an event → two participant profiles co-listed → graph shows link when that event filter is on.
+**Exit criteria:** Camp group publishes a horizon → co-admin adds an event → subscriber gets notified → two participant profiles co-listed on event → graph shows link when that event filter is on.
 
-### Phase 3 — Discovery & Horizons *(4–6 weeks)*
+### Phase 3 — Discovery *(4–6 weeks)*
 
 **Goal:** Community can find people and events beyond their immediate network.
 
 
-| Task                | Notes                                                   |
-| ------------------- | ------------------------------------------------------- |
-| Skill search        | Full-text match on profile Skills section; extend with tag filter once skill tags ship (Phase 4) |
-| Public event search | Filter by date, location, visibility                    |
-| Horizon entity      | Owner = profile or group; name, description, visibility |
-| Horizon ↔ events    | Events belong to one or more horizons                   |
-| Subscriptions       | Subscribe to horizon; notification on new event         |
-| Contact lists       | CRUD lists; add members; use for invites                |
+| Task                | Notes                                            |
+| ------------------- | ------------------------------------------------ |
+| Public event search | Filter by date, location, visibility             |
+| Contact lists       | CRUD lists; add members; use for invites         |
 
 
-**Exit criteria:** User subscribes to a camp horizon → gets notified when camp publishes a new event.
+**Exit criteria:** User searches public events by keyword and date range.
 
 ### Phase 4 — Privacy, Invites & Polish *(3–4 weeks)*
 
@@ -195,7 +195,7 @@ Use consistently across profiles, Chronicle, graph badges, and event pages.
 | Granular privacy     | Friends-only + custom list visibility                   |
 | Event invitations    | Invite contact list to event                            |
 | Graph physics polish | Spring/elastic links; smooth drag; zoom summary tooltip |
-| Skill tags v1        | Cluster free-text skills into suggested tags; profiles can adopt tags         |
+| Skills taxonomy v1   | Cluster free-text skills into browseable tags; enhance search |
 | Performance          | Graph rendering with 100+ nodes                         |
 
 
@@ -214,11 +214,11 @@ Prioritize based on user feedback after Phase 4 launch.
 
 ---
 
-## 7. Data Model (High-Level)
+## 6. Data Model (High-Level)
 
 ```
 users
-  └── profiles (avatar, about, skills_text, location, privacy_settings)
+  └── profiles (avatar, bio, skills[], location, privacy_settings)
   └── contact_lists
         └── contact_list_members
 
@@ -233,6 +233,9 @@ events
 
 horizons
   └── owner_type (profile | group), owner_id
+  └── name, description, visibility
+  └── contribution_setting (admins_only | open)
+  └── horizon_admins (profile_id, horizon_id)
   └── horizon_events (horizon_id, event_id)
   └── horizon_subscriptions (user_id, horizon_id)
 
@@ -245,9 +248,9 @@ Existing `signups`, `skill_options`, and `location_options` tables from pre-alph
 
 ---
 
-## 8. Visual Design System
+## 7. Visual Design System
 
-### 8.1 Theme Modes
+### 7.1 Theme Modes
 
 
 | Mode           | Base                | Accents                     | Usage                                        |
@@ -259,13 +262,25 @@ Existing `signups`, `skill_options`, and `location_options` tables from pre-alph
 
 Polychrome is a **brand identity element**, not a gimmick. Use it sparingly in special locations (Admin badges, highlight node on creation, role indicators).
 
-### 8.2 Typography & Texture
+### 7.2 Event Role Colors
+
+Use consistently across profiles, Chronicle, graph badges, and event pages.
+
+
+| Role       | Color                | Token name (suggested) |
+| ---------- | -------------------- | ---------------------- |
+| Guest      | White                | `--role-guest`         |
+| Co-creator | Black                | `--role-cocreator`     |
+| Sponsor    | Chrome / silver      | `--role-sponsor`       |
+| Admin      | Polychrome (rainbow) | `--role-admin`         |
+
+### 7.3 Typography & Texture
 
 - Monospace / terminal fonts (VT323 or similar — already in codebase)
 - CRT scanline overlay
 - Chrome frame borders (existing `TerminalFrame.tsx`, `public/chrome-concept.html`)
 
-### 8.3 Graph Interaction Spec
+### 7.4 Graph Interaction Spec
 
 
 | Action                    | Behavior                                       |
@@ -280,24 +295,25 @@ Polychrome is a **brand identity element**, not a gimmick. Use it sparingly in s
 
 ---
 
-## 9. Where to Start Streamlining the UI
+## 8. Where to Start Streamlining the UI
 
 **Start now, in Phase 1** — not after features are built.
 
 Recommended approach for a non-designer product owner working with engineers:
 
-### Step 1: Define the 6 core screens (wireframe in words)
+### Step 1: Define the 7 core screens (wireframe in words)
 
 Before building features, agree on these screens and what each shows:
 
 1. **Landing** — One CTA: "Create your node." Nothing else competes for attention.
-2. **Profile (view)** — Avatar, About section, Skills section, Chronicle tab, graph mini-preview.
-3. **Profile (edit)** — Same layout as view; About and Skills are separate editable sections.
+2. **Profile (view)** — Avatar, bio, skills, Chronicle tab, graph mini-preview.
+3. **Profile (edit)** — Same layout as view, inline editable fields.
 4. **Group (view)** — Name, image, description, hosted events, horizons. Admin sees edit controls.
 5. **Graph (full)** — Full-screen visualization with filter bar (events, skills, city). Nodes = profiles only.
 6. **Event (view/create)** — Title, date, host (profile or group), role list, external link, visibility toggle.
+7. **Horizon (view/create)** — Name, description, event list, contribution setting, admin list, subscribe button.
 
-Every other screen is a variation of these six.
+Every other screen is a variation of these seven.
 
 ### Step 2: Component audit (weekly, 30 min)
 
@@ -317,21 +333,22 @@ The codebase already has:
 - `PolychromeFX.tsx` — polychrome effects
 - Theme tokens in `ui.tsx` and `styles.css`
 
-**Do not introduce new visual patterns** until the six core screens feel consistent.
+**Do not introduce new visual patterns** until the seven core screens feel consistent.
 
 ### Step 4: Product owner review gate
 
 Before merging any UI PR:
 
 1. Open the app on desktop and phone.
-2. Walk through: signup → profile → group → graph → event in under 2 minutes.
+2. Walk through: signup → profile → group → horizon → graph → event in under 2 minutes.
 3. Flag anything that feels cluttered or redundant.
+4. Confirm every new screen names what it is in plain language (see §1 one-liners).
 
 This keeps you in the design loop without needing to write CSS.
 
 ---
 
-## 10. Technical Notes for Engineers
+## 9. Technical Notes for Engineers
 
 
 | Area               | Recommendation                                                                                         |
@@ -347,13 +364,13 @@ This keeps you in the design loop without needing to write CSS.
 
 ---
 
-## 11. Open Questions
+## 10. Open Questions
 
 
 | #   | Question                                                             | Owner         | Blocking? |
 | --- | -------------------------------------------------------------------- | ------------- | --------- |
 | 1   | Auth method: magic link vs. OAuth (Google/Discord)                   | Product + Eng | Phase 1   |
-| 2   | Can one event belong to multiple horizons?                           | Product       | Phase 3   |
+| 2   | Can one event belong to multiple horizons?                           | Product       | Phase 2   |
 | 3   | Graph link: same city only, or same country?                         | Product       | Phase 2   |
 | 4   | Should groups appear as nodes on the graph, or only as linked pages? | Product       | Phase 2   |
 | 5   | Retribalise AI flow — license/API approach                           | Eng           | Phase 5+  |
@@ -362,7 +379,7 @@ This keeps you in the design loop without needing to write CSS.
 
 ---
 
-## 12. Success Metrics (Post-Launch)
+## 11. Success Metrics (Post-Launch)
 
 
 | Metric                      | Target (6 months) |
