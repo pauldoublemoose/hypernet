@@ -15,9 +15,11 @@
 **So that** I can join the network in seconds and fill in details later.
 
 **Acceptance criteria**
-- [ ] Landing page presents a single primary action: create node / sign up
+- [ ] Redesigned onboarding (pre-alpha CRT signup is not the long-term UI; use screen space properly)
+- [ ] Landing presents a clear primary action: create node / sign up
 - [ ] Required fields at signup: email (or OAuth) + display name only
-- [ ] User is authenticated and redirected to profile edit after signup
+- [ ] User is authenticated; a **private default Horizon** is created automatically
+- [ ] Redirected to profile edit after signup
 - [ ] No multi-step wizard blocking access to the network
 
 ---
@@ -25,25 +27,27 @@
 ### US-1.2 — Edit my profile `P0` 🔲
 
 **As a** registered node,  
-**I want** to add an avatar, bio, and skills/interests to my profile,  
-**So that** others can discover what I contribute and recruit me.
+**I want** to add an avatar, bio, skills/interests, and how to reach me externally,  
+**So that** others can discover what I contribute and contact me outside Hypernet.
 
 **Acceptance criteria**
-- [ ] Profile supports: avatar image, brief description, skills/interests (free text)
+- [ ] Profile supports: avatar, brief description, skills/interests (free text), optional external contact fields
 - [ ] Changes save and are visible on my public profile immediately (respecting privacy)
 - [ ] Skills field accepts free text; no taxonomy required in MVP
-- [ ] Profile page matches Hypernet visual identity (terminal aesthetic, theme-aware)
+- [ ] No in-app messaging required in MVP — external contact is enough
+- [ ] Profile page matches Hypernet visual identity (theme-aware)
 
 ---
 
 ### US-1.3 — Control profile visibility `P0` 🔲
 
 **As a** node owner,  
-**I want** to set each profile section as public or private,  
-**So that** I control who sees my information.
+**I want** each profile section public by default with an obvious privacy toggle,  
+**So that** I can quickly lock anything I don’t want shared.
 
 **Acceptance criteria**
-- [ ] Each section (avatar, bio, skills, Chronicle) has a visibility toggle: Public / Private
+- [ ] Default for bio, skills, Chronicle: **Public**
+- [ ] Each section (avatar, bio, skills, Chronicle) has a highly visible Public / Private toggle
 - [ ] Private sections are hidden from other users and excluded from search
 - [ ] Owner always sees their own full profile
 
@@ -128,11 +132,25 @@
 
 **Acceptance criteria**
 - [ ] Profile has a "Chronicle" tab
-- [ ] Lists events the user chose to share, with role badge per event
+- [ ] Lists events from *Going* attendance after the event date, plus manual past entries
 - [ ] Role badges are color-coded: Guest=white, Co-creator=black, Sponsor=chrome, Admin=polychrome
+- [ ] Early MVP: self-declared entries allowed; admin confirmation is a near-term follow-up (P1)
 - [ ] Respects visibility settings (hidden events do not appear)
 
 ---
+
+### US-2.4 — Browse the group directory `P0` 🔲
+
+**As a** camp lead or new visitor,  
+**I want** a list of all groups on Hypernet,  
+**So that** I can discover camps, their size, and whether they have an active Horizon.
+
+**Acceptance criteria**
+- [ ] Directory presents groups in a table/list (row per group)
+- [ ] Columns include at least: group name, member count, Horizon status indicator
+- [ ] Horizon indicator: grayed = no Horizon; high-contrast B/W = Horizon with no upcoming events; polychrome = Horizon with ≥1 future-dated event
+- [ ] Indicator colors invert appropriately with light/dark theme
+- [ ] Clicking a row opens the group page
 
 ---
 
@@ -147,7 +165,7 @@
 **Acceptance criteria**
 - [ ] Any authenticated profile can create a group
 - [ ] Group fields: name, image, brief description, visibility (public/private)
-- [ ] Creator is automatically assigned as group admin
+- [ ] Creator is automatically assigned as group admin **and** member
 - [ ] Group has a public URL distinct from the creator's profile
 
 ---
@@ -161,7 +179,7 @@
 **Acceptance criteria**
 - [ ] Admins can edit group name, image, and description
 - [ ] Admins can add or remove other profile admins
-- [ ] Non-admins see the group page in read-only mode
+- [ ] Non-admins see the group page in read-only mode (except Join)
 - [ ] Admin status is visible to group admins (not necessarily public)
 
 ---
@@ -169,14 +187,41 @@
 ### US-3.0c — View a group page `P0` 🔲
 
 **As a** community member,  
-**I want** to visit a group's page and see its hosted events and horizons,  
+**I want** to visit a group's page and see members, hosted events, and horizons,  
 **So that** I can follow what a camp or collective is doing.
 
 **Acceptance criteria**
-- [ ] Group page shows: name, image, description, list of hosted events
+- [ ] Group page shows: name, image, description, member count / list, hosted events
 - [ ] Links to group's public horizons (if any)
+- [ ] Horizon status consistent with directory indicators
 - [ ] Respects group visibility settings
-- [ ] Matches Hypernet visual identity (terminal aesthetic, theme-aware)
+- [ ] Matches Hypernet visual identity (theme-aware)
+
+---
+
+### US-3.0d — Join a group as a member `P0` 🔲
+
+**As a** community member,  
+**I want** to join a group,  
+**So that** I appear among the camp’s members.
+
+**Acceptance criteria**
+- [ ] Early MVP: **anyone can join** (open policy)
+- [ ] Joining increments member count and lists me on the group page
+- [ ] Core Growth: join policy toggles — open / admin approval / member approval (US deferred to P1)
+
+---
+
+### US-3.0e — Group join policies `P1` 🔲
+
+**As a** group admin,  
+**I want** to choose who can join my group,  
+**So that** camps can stay open or moderated as they grow.
+
+**Acceptance criteria**
+- [ ] Settings: anyone can join / admin approval / approval by another member
+- [ ] Pending requests visible to the approving role
+- [ ] Member count only includes approved members
 
 ---
 
@@ -191,10 +236,26 @@
 **Acceptance criteria**
 - [ ] Event fields: title, date(s), description, visibility (public/private)
 - [ ] Host selector: my profile **or** a group where I am admin
-- [ ] Optional external URL for tickets or more info (link to Billetto, etc. is fine)
+- [ ] Optional external URL for tickets or more info
+- [ ] Event may be added to **one or many** Horizons
 - [ ] Creator is automatically listed as Admin on the event (as a participant)
 - [ ] Event page displays the host (profile or group) with link to their page
 - [ ] Event is stored in the database and searchable if public
+
+---
+
+### US-3.1b — Mark Interested or Going `P0` 🔲
+
+**As a** community member,  
+**I want** to save an event I’m interested in, or mark that I’m going and in what capacity,  
+**So that** it lands on my Horizon and (if going) later on my Chronicle.
+
+**Acceptance criteria**
+- [ ] **Interested** — one-click add to my private default Horizon only; does **not** create Chronicle entry
+- [ ] **Going** — prompts for role (Guest, Co-creator, Sponsor, Admin as applicable)
+- [ ] Going also adds the event to my default Horizon
+- [ ] After the event date, Going entries appear on my Chronicle with role badge
+- [ ] Separate control to add the event to other Horizons I manage
 
 ---
 
@@ -206,8 +267,22 @@
 
 **Acceptance criteria**
 - [ ] User can manually add an event to their Chronicle with: event name, date, role
+- [ ] Early MVP: self-declared (honor system)
 - [ ] Added events appear on profile with correct role badge
 - [ ] User controls visibility of each Chronicle entry
+
+---
+
+### US-3.2b — Confirm Chronicle participation `P1` 🔲
+
+**As an** event admin,  
+**I want** to confirm that someone participated in my event,  
+**So that** Chronicles are trustworthy beyond self-declaration.
+
+**Acceptance criteria**
+- [ ] Event admin can confirm or dispute participation claims
+- [ ] Confirmed entries are marked as verified on Chronicle
+- [ ] Unconfirmed self-declared entries remain allowed until policy tightens
 
 ---
 
@@ -274,8 +349,8 @@
 **Acceptance criteria**
 - [ ] A profile or group admin can create a horizon with name and description
 - [ ] Horizon has visibility setting (public/private)
-- [ ] Horizon has a contribution setting: **Admins only** (default) or **Open** (any authenticated user may add events)
-- [ ] Events can be added to a horizon during or after event creation (subject to contribution setting)
+- [ ] Horizon has a contribution setting: **Admins only** (default) or **Open**
+- [ ] Events can sit on multiple Horizons (many-to-many)
 - [ ] Public horizons have a shareable URL
 - [ ] Horizon page shows owner (profile or group) with link
 
@@ -295,6 +370,20 @@
 
 ---
 
+### US-4.1c — Personal default Horizon `P0` 🔲
+
+**As a** registered node,  
+**I want** a private default Horizon created at signup (like a “liked / starred” playlist),  
+**So that** I can one-click save events I’m interested in or going to.
+
+**Acceptance criteria**
+- [ ] Created automatically at signup; private; only visible to owner
+- [ ] Interested / Going flows add events here by default
+- [ ] Separate UI to add an event to other Horizons I manage
+- [ ] Not subscribable by others
+
+---
+
 ### US-4.2 — Subscribe to a horizon `P0` 🔲
 
 **As a** community member,  
@@ -303,7 +392,7 @@
 
 **Acceptance criteria**
 - [ ] Subscribe/unsubscribe button on horizon page
-- [ ] Notification delivered when a new event is added (in-app minimum)
+- [ ] **In-app** notification when a new event is added (email deferred)
 - [ ] Subscriber sees new events in a personal "My subscriptions" view
 
 ---
@@ -326,28 +415,28 @@
 ### US-5.1 — Explore the network graph `P0` 🔲
 
 **As a** visitor,  
-**I want** to see all nodes in an interactive graph visualization,  
+**I want** to open a dedicated interactive graph view,  
 **So that** I can visually explore the Hypernet community.
 
 **Acceptance criteria**
-- [ ] Full-screen graph view with nodes representing people
-- [ ] Default state: nodes float with no links visible
-- [ ] Graph uses Hypernet aesthetic (terminal/CRT, theme-aware)
+- [ ] Full graph is a **dedicated screen** — not the post-login home (home may use an artistic motif)
+- [ ] Nodes represent people (profiles)
+- [ ] Graph uses Hypernet aesthetic (theme-aware)
 - [ ] Performs acceptably with 50+ nodes
+- [ ] Link topology for large events is **TBD** — do not implement all-to-all guest cliques (see PROJECT_PLAN.md §7.4)
 
 ---
 
-### US-5.2 — Filter graph by event `P0` 🔲
+### US-5.2 — Filter graph connections `P0` 🔲
 
 **As a** user,  
-**I want** to toggle an event's connections on the graph,  
-**So that** I can see who co-participated and watch nodes pull together.
+**I want** to toggle meaningful connections on the graph,  
+**So that** I can explore relationships without combinatorial explosion.
 
 **Acceptance criteria**
-- [ ] Event filter control (dropdown or multi-select) in graph UI
-- [ ] Enabling an event draws links between co-participants
-- [ ] Connected nodes animate together with spring/elastic physics
-- [ ] Multiple events can be toggled simultaneously
+- [ ] Filters available once link model is chosen (group co-membership and/or co-creator roles preferred over all guests)
+- [ ] Connected nodes animate with spring/elastic physics where links exist
+- [ ] Multiple filters can be toggled when supported by the model
 
 ---
 
@@ -493,17 +582,21 @@ PHASE 1 — MVP Foundation
 ├── US-1.3  Profile visibility          P0
 ├── US-2.1  Skill search                P0
 ├── US-2.3  Chronicle                   P0
+├── US-2.4  Group directory             P0
 ├── US-3.0  Create group                P0
 ├── US-3.0b Admin a group               P0
 ├── US-3.0c View group page             P0
+├── US-3.0d Join group (open)           P0
 ├── US-3.1  Create event                P0
+├── US-3.1b Interested / Going          P0
 ├── US-3.2  Add past events             P0
 ├── US-3.3  Participation roles         P0
 ├── US-4.1  Publish horizon             P0
 ├── US-4.1b Admin a horizon             P0
+├── US-4.1c Personal default Horizon    P0
 ├── US-4.2  Subscribe to horizon        P0
 ├── US-5.1  Graph explore               P0
-├── US-5.2  Graph event filter          P0
+├── US-5.2  Graph filters (TBD links)   P0
 ├── US-5.3  Graph interaction           P0
 ├── US-7.1  Light/Dark theme            P0  🟡
 ├── US-7.2  Polychrome mode             P0  🟡
@@ -512,6 +605,8 @@ PHASE 1 — MVP Foundation
 PHASE 2 — Discovery & Lists
 ├── US-4.3  Search events               P1
 ├── US-1.4  Granular privacy            P1
+├── US-3.0e Group join policies         P1
+├── US-3.2b Chronicle verification      P1
 ├── US-3.4  Invite contact lists        P1
 ├── US-5.4  Graph city filter           P1
 ├── US-6.1  Contact lists               P1
