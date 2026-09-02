@@ -13,6 +13,8 @@ type IconId =
   | 'chronicle'
   | 'admin'
   | 'settings'
+  | 'my-group'
+  | 'my-horizons'
 
 type DeskIcon = {
   id: IconId
@@ -22,13 +24,22 @@ type DeskIcon = {
   tip: string
 }
 
-const ICONS: DeskIcon[] = [
+/* TERM future tabs (no UI yet): 1 Global Chat, 2 Global Updates, 3 Update log (Hypernet), 4 About */
+
+const LEFT_ICONS: DeskIcon[] = [
   {
-    id: 'terminal',
-    glyph: '▮',
-    label: 'TERM',
-    locked: false,
-    tip: 'Signup terminal — create your node',
+    id: 'groups',
+    glyph: '▦',
+    label: 'GROUPS',
+    locked: true,
+    tip: 'Groups — a camp, crew, or collective. Coming soon.',
+  },
+  {
+    id: 'horizons',
+    glyph: '◎',
+    label: 'HORIZONS',
+    locked: true,
+    tip: 'Horizons — shared calendars you can subscribe to. Coming soon.',
   },
   {
     id: 'graph',
@@ -38,11 +49,11 @@ const ICONS: DeskIcon[] = [
     tip: 'Network graph — the community as nodes',
   },
   {
-    id: 'groups',
-    glyph: '▦',
-    label: 'GROUPS',
+    id: 'find',
+    glyph: '※',
+    label: 'Find the others',
     locked: true,
-    tip: 'Groups — a camp, crew, or collective. Coming soon.',
+    tip: 'Find the others — search the network for people. Coming soon.',
   },
   {
     id: 'events',
@@ -52,32 +63,42 @@ const ICONS: DeskIcon[] = [
     tip: 'Events — find and host gatherings. Coming soon.',
   },
   {
-    id: 'horizons',
-    glyph: '◎',
-    label: 'HORIZON',
-    locked: true,
-    tip: 'Horizons — a shared calendar you can subscribe to. Coming soon.',
-  },
-  {
-    id: 'profile',
-    glyph: '◉',
-    label: 'PROFILE',
-    locked: false,
-    tip: 'Profile — you in the network. Avatar, bio, skills, contact.',
-  },
-  {
-    id: 'find',
-    glyph: '※',
-    label: 'Find the others',
-    locked: true,
-    tip: 'Find the others — search the network for people. Coming soon.',
-  },
-  {
     id: 'chronicle',
     glyph: '☰',
     label: 'LOG',
     locked: true,
     tip: 'Chronicle — your event history and roles. Coming soon.',
+  },
+  {
+    id: 'terminal',
+    glyph: '▮',
+    label: 'TERM',
+    locked: true,
+    tip: 'TERM locked for now. Later tabs: Global Chat, Global Updates, Update log, About.',
+  },
+]
+
+const RIGHT_ICONS: DeskIcon[] = [
+  {
+    id: 'profile',
+    glyph: '◉',
+    label: 'MY NODE',
+    locked: false,
+    tip: 'My node — you in the network. Avatar, bio, skills, contact.',
+  },
+  {
+    id: 'my-group',
+    glyph: '▤',
+    label: 'MY GROUP',
+    locked: true,
+    tip: 'My group — your camp or crew hub. Coming soon.',
+  },
+  {
+    id: 'my-horizons',
+    glyph: '◌',
+    label: 'MY HORIZONS',
+    locked: true,
+    tip: 'My horizons — calendars you own or curate. Coming soon.',
   },
   {
     id: 'admin',
@@ -95,6 +116,43 @@ const ICONS: DeskIcon[] = [
   },
 ]
 
+function IconButton({
+  item,
+  active,
+  tipSide,
+  onActivate,
+}: {
+  item: DeskIcon
+  active: ShellFeature
+  tipSide: 'left' | 'right'
+  onActivate: (id: IconId, locked: boolean) => void
+}) {
+  const on =
+    (item.id === 'profile' && active === 'profile') ||
+    (item.id === 'settings' && active === 'settings') ||
+    (item.id === 'graph' && active === 'graph') ||
+    (item.id === 'admin' && active === 'admin') ||
+    (item.id === 'terminal' && active === 'terminal')
+  return (
+    <button
+      type="button"
+      className={`desk-icon tip-${tipSide}${item.locked ? ' is-locked' : ''}${on ? ' is-on' : ''}`}
+      aria-current={on ? 'page' : undefined}
+      aria-disabled={item.locked || undefined}
+      aria-label={item.tip}
+      data-tip={item.tip}
+      title={item.tip}
+      onClick={() => onActivate(item.id, item.locked)}
+    >
+      <span className="desk-glyph" aria-hidden>
+        {item.glyph}
+        {item.locked && <span className="desk-lock" />}
+      </span>
+      <span className="desk-label">{item.label}</span>
+    </button>
+  )
+}
+
 export function DesktopIcons({
   active,
   onTerminal,
@@ -110,39 +168,27 @@ export function DesktopIcons({
   onProfile: () => void
   onSettings: () => void
 }) {
+  void onTerminal // TERM locked — keep prop for App compatibility
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
-    if (id === 'terminal') onTerminal()
-    else if (id === 'graph') onGraph()
+    if (id === 'graph') onGraph()
     else if (id === 'admin') onAdmin()
     else if (id === 'profile') onProfile()
     else if (id === 'settings') onSettings()
   }
 
   return (
-    <nav className="desktop-icons" aria-label="Hypernet desktop">
-      {ICONS.map((item) => {
-        const on = item.id === active
-        return (
-          <button
-            key={item.id}
-            type="button"
-            className={`desk-icon${item.locked ? ' is-locked' : ''}${on ? ' is-on' : ''}`}
-            aria-current={on ? 'page' : undefined}
-            aria-disabled={item.locked || undefined}
-            aria-label={item.tip}
-            data-tip={item.tip}
-            title={item.tip}
-            onClick={() => activate(item.id, item.locked)}
-          >
-            <span className="desk-glyph" aria-hidden>
-              {item.glyph}
-              {item.locked && <span className="desk-lock" />}
-            </span>
-            <span className="desk-label">{item.label}</span>
-          </button>
-        )
-      })}
-    </nav>
+    <>
+      <nav className="desktop-icons desktop-icons-left" aria-label="Hypernet discovery">
+        {LEFT_ICONS.map((item) => (
+          <IconButton key={item.id} item={item} active={active} tipSide="right" onActivate={activate} />
+        ))}
+      </nav>
+      <nav className="desktop-icons desktop-icons-right" aria-label="Hypernet mine">
+        {RIGHT_ICONS.map((item) => (
+          <IconButton key={item.id} item={item} active={active} tipSide="left" onActivate={activate} />
+        ))}
+      </nav>
+    </>
   )
 }

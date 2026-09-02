@@ -33,7 +33,7 @@ body {
   --desk-lock-bg: #fff;
   height: 100%;
   display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
+  grid-template-columns: 104px minmax(0, 1fr) 104px;
   align-items: stretch;
 }
 
@@ -58,6 +58,7 @@ body {
 .chrome-frame {
   position: relative;
   z-index: 1;
+  grid-column: 2;
   display: flex;
   flex-direction: column;
   width: min(820px, 100%);
@@ -93,7 +94,7 @@ body {
   height: auto;
   min-width: 0;
   min-height: 0;
-  margin: 10px 10px 10px 0;
+  margin: 10px 0;
   justify-self: stretch;
   align-self: stretch;
 }
@@ -418,7 +419,6 @@ body {
 /* ---- desktop icons (on the backdrop, not inside the CRT) -------------- */
 
 .desktop-icons {
-  grid-column: 1;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -427,6 +427,22 @@ body {
   gap: 2px;
   padding: 16px 4px 12px 8px;
   overflow: visible;
+}
+
+.desktop-icons-left {
+  grid-column: 1;
+}
+
+.desktop-icons-right {
+  grid-column: 3;
+  padding: 16px 8px 12px 4px;
+  align-items: center;
+}
+
+.desk-icon.tip-left[data-tip]:hover::after,
+.desk-icon.tip-left[data-tip]:focus-visible::after {
+  left: auto;
+  right: calc(100% + 8px);
 }
 
 .desk-icon {
