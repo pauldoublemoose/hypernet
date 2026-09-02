@@ -128,12 +128,7 @@ function IconButton({
   tipSide: 'left' | 'right'
   onActivate: (id: IconId, locked: boolean) => void
 }) {
-  const on =
-    (item.id === 'profile' && active === 'profile') ||
-    (item.id === 'settings' && active === 'settings') ||
-    (item.id === 'graph' && active === 'graph') ||
-    (item.id === 'admin' && active === 'admin') ||
-    (item.id === 'terminal' && active === 'terminal')
+  const on = !item.locked && item.id === active
   return (
     <button
       type="button"
