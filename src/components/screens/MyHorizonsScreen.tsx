@@ -133,7 +133,7 @@ export function MyHorizonsScreen({
   return (
     <div className="screen hz-screen">
       <div className="title">MH :: MY HORIZONS</div>
-      <p className="dim hz-lead">Your default private list plus Horizons you create</p>
+      <p className="dim hz-lead">Your default private list plus Horizons you create. Event owner/privacy is enforced on Events first — Horizons do not yet mirror it.</p>
       <div className="profile-actions">
         <button type="button" className="btn" onClick={() => setCreating(true)}>
           New Horizon

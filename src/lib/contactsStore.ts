@@ -288,6 +288,86 @@ export function simulateIncomingRequest(fromPersonId: string) {
   saveFriendRequests(rows)
 }
 
+
+/** Undirected friends of a person (self or seed) from the friendship graph. */
+export function friendsOf(personId: string): string[] {
+  const out = new Set<string>()
+  for (const f of loadFriendships()) {
+    if (f.aId === personId) out.add(f.bId)
+    else if (f.bId === personId) out.add(f.aId)
+  }
+  return [...out]
+}
+
+/** True if a and b share a friendship edge. */
+export function areFriendsBetween(aId: string, bId: string): boolean {
+  if (aId === bId) return true
+  return loadFriendships().some(
+    (f) => (f.aId === aId && f.bId === bId) || (f.bId === aId && f.aId === bId),
+  )
+}
+
+/**
+ * Friend-of-friend: viewer has a friend who is friends with personId,
+ * and viewer is not already a direct friend of personId.
+ * Graph includes self + seed people friendships.
+ */
+export function isFriendOfFriend(personId: string, viewerId: string = SELF_ID): boolean {
+  if (personId === viewerId || areFriendsBetween(viewerId, personId)) return false
+  const myFriends = friendsOf(viewerId)
+  for (const fid of myFriends) {
+    if (areFriendsBetween(fid, personId)) return true
+  }
+  return false
+}
+
+/** Friend or FoF of personId (from viewer). */
+export function isFriendOrFoF(personId: string, viewerId: string = SELF_ID): boolean {
+  if (personId === viewerId) return true
+  return areFriendsBetween(viewerId, personId) || isFriendOfFriend(personId, viewerId)
+}
+
+/**
+ * Demo FoF graph among seed people so FoF paths exist without inventing users.
+ * Safe to call repeatedly — only fills missing seed↔seed edges.
+ */
+export function ensureSeedFriendshipGraph() {
+  ensureSeedPeople()
+  const edges: [string, string][] = [
+    ['p-anna', 'p-rio'],
+    ['p-rio', 'p-kai'],
+    ['p-mira', 'p-sasha'],
+    ['p-jon', 'p-anna'],
+  ]
+  const friends = loadFriendships()
+  let changed = false
+  for (const [a, b] of edges) {
+    const exists = friends.some(
+      (f) => (f.aId === a && f.bId === b) || (f.aId === b && f.bId === a),
+    )
+    if (!exists) {
+      friends.push({
+        id: uid('friend'),
+        aId: a,
+        bId: b,
+        createdAt: new Date().toISOString(),
+      })
+      changed = true
+    }
+  }
+  if (changed) saveFriendships(friends)
+}
+
+/** Is viewer a member of any of the given contact lists? */
+export function viewerOnAnyList(listIds: string[], viewerId: string = SELF_ID): boolean {
+  if (!listIds.length) return false
+  const lists = ensureDefaultLists()
+  return listIds.some((lid) => {
+    const list = lists.find((l) => l.id === lid)
+    return !!list && list.memberIds.includes(viewerId)
+  })
+}
+
 export function relationshipLabel(personId: string): string {
   const bits: string[] = []
   if (areFriends(personId)) bits.push('Friend')

@@ -1,7 +1,16 @@
 /** Local Events + Horizons store (browser only — no auth rewrite). */
 
+import {
+  areFriendsBetween,
+  ensureSeedFriendshipGraph,
+  isFriendOfFriend,
+  selfId,
+  viewerOnAnyList,
+} from './contactsStore'
+
 export type EventRole = 'guest' | 'co-creator' | 'sponsor' | 'admin'
 export type AttendStatus = 'interested' | 'going'
+export type EventPrivacy = 'public' | 'private' | 'friends_of_friends' | 'lists'
 
 export interface HyperEvent {
   id: string
@@ -11,6 +20,11 @@ export interface HyperEvent {
   externalUrl: string
   hostName: string
   createdAt: string
+  /** Profile ids that own the event. Creator (`self`) always included. */
+  ownerIds: string[]
+  privacy: EventPrivacy
+  /** When privacy === 'lists', one or more contact list ids. */
+  privacyListIds: string[]
 }
 
 export interface Horizon {
@@ -59,8 +73,42 @@ function writeJson(key: string, value: unknown) {
   }
 }
 
+/** Migrate legacy events missing owner/privacy fields. */
+export function normalizeEvent(raw: Partial<HyperEvent> & Pick<HyperEvent, 'id' | 'title'>): HyperEvent {
+  const privacy = (raw.privacy as EventPrivacy | undefined) ?? 'public'
+  const valid: EventPrivacy[] = ['public', 'private', 'friends_of_friends', 'lists']
+  return {
+    id: raw.id,
+    title: raw.title ?? '',
+    date: raw.date ?? '',
+    description: raw.description ?? '',
+    externalUrl: raw.externalUrl ?? '',
+    hostName: raw.hostName ?? 'You',
+    createdAt: raw.createdAt ?? new Date().toISOString(),
+    ownerIds: raw.ownerIds?.length ? [...raw.ownerIds] : [selfId()],
+    privacy: valid.includes(privacy) ? privacy : 'public',
+    privacyListIds: Array.isArray(raw.privacyListIds) ? [...raw.privacyListIds] : [],
+  }
+}
+
+function ensureCreatorOwner(ownerIds: string[]): string[] {
+  const me = selfId()
+  const ids = ownerIds.filter(Boolean)
+  if (!ids.includes(me)) ids.unshift(me)
+  return [...new Set(ids)]
+}
+
 export function loadEvents(): HyperEvent[] {
-  return readJson<HyperEvent[]>(EVENTS_KEY, [])
+  const raw = readJson<Partial<HyperEvent>[]>((EVENTS_KEY), [])
+  const events = raw
+    .filter((e) => e && typeof e.id === 'string' && typeof e.title === 'string')
+    .map((e) => normalizeEvent(e as Partial<HyperEvent> & Pick<HyperEvent, 'id' | 'title'>))
+  // Persist migration when any event was missing fields
+  const needsWrite = raw.some(
+    (e) => !e?.ownerIds?.length || e.privacy == null || !Array.isArray(e.privacyListIds),
+  )
+  if (needsWrite && events.length) saveEvents(events)
+  return events
 }
 
 export function saveEvents(events: HyperEvent[]) {
@@ -113,7 +161,13 @@ export function createEvent(input: {
   description: string
   externalUrl: string
   hostName: string
+  ownerIds?: string[]
+  privacy?: EventPrivacy
+  privacyListIds?: string[]
 }): HyperEvent {
+  const privacy: EventPrivacy = input.privacy ?? 'public'
+  const privacyListIds =
+    privacy === 'lists' ? [...new Set((input.privacyListIds ?? []).filter(Boolean))] : []
   const event: HyperEvent = {
     id: uid('evt'),
     title: input.title.trim(),
@@ -122,6 +176,9 @@ export function createEvent(input: {
     externalUrl: input.externalUrl.trim(),
     hostName: input.hostName.trim() || 'You',
     createdAt: new Date().toISOString(),
+    ownerIds: ensureCreatorOwner(input.ownerIds ?? [selfId()]),
+    privacy,
+    privacyListIds,
   }
   const events = loadEvents()
   events.unshift(event)
@@ -129,8 +186,76 @@ export function createEvent(input: {
   return event
 }
 
+export function updateEvent(
+  id: string,
+  patch: Partial<
+    Pick<
+      HyperEvent,
+      'title' | 'date' | 'description' | 'externalUrl' | 'hostName' | 'ownerIds' | 'privacy' | 'privacyListIds'
+    >
+  >,
+): HyperEvent | undefined {
+  const events = loadEvents()
+  const idx = events.findIndex((e) => e.id === id)
+  if (idx < 0) return undefined
+  const prev = events[idx]
+  const privacy = patch.privacy ?? prev.privacy
+  const next: HyperEvent = {
+    ...prev,
+    ...patch,
+    title: patch.title != null ? patch.title.trim() : prev.title,
+    description: patch.description != null ? patch.description.trim() : prev.description,
+    externalUrl: patch.externalUrl != null ? patch.externalUrl.trim() : prev.externalUrl,
+    hostName: patch.hostName != null ? (patch.hostName.trim() || prev.hostName) : prev.hostName,
+    ownerIds: ensureCreatorOwner(patch.ownerIds ?? prev.ownerIds),
+    privacy,
+    privacyListIds:
+      privacy === 'lists'
+        ? [...new Set((patch.privacyListIds ?? prev.privacyListIds).filter(Boolean))]
+        : [],
+  }
+  events[idx] = next
+  saveEvents(events)
+  return next
+}
+
 export function getEvent(id: string): HyperEvent | undefined {
   return loadEvents().find((e) => e.id === id)
+}
+
+/**
+ * Best-effort localStorage privacy check. Viewer is local `self`.
+ * Owners always see their events.
+ *
+ * Note: Horizons do not yet mirror owner/privacy — filter events first;
+ * horizon calendars still list event ids without a separate privacy layer.
+ */
+export function canViewerSeeEvent(event: HyperEvent, viewerId: string = selfId()): boolean {
+  ensureSeedFriendshipGraph()
+  const e = normalizeEvent(event)
+  if (e.ownerIds.includes(viewerId)) return true
+  switch (e.privacy) {
+    case 'public':
+      return true
+    case 'private':
+      return false
+    case 'friends_of_friends':
+      return e.ownerIds.some((oid) => {
+        if (oid === viewerId) return true
+        if (areFriendsBetween(viewerId, oid)) return true
+        return isFriendOfFriend(oid, viewerId)
+      })
+    case 'lists': {
+      // Lists hold contact person ids; self is rarely a member — owners still see.
+      return viewerOnAnyList(e.privacyListIds, viewerId)
+    }
+    default:
+      return true
+  }
+}
+
+export function visibleEvents(viewerId: string = selfId()): HyperEvent[] {
+  return loadEvents().filter((e) => canViewerSeeEvent(e, viewerId))
 }
 
 export function createHorizon(input: {
@@ -197,7 +322,9 @@ export function getAttendance(eventId: string): Attendance | undefined {
 
 export function eventsForHorizon(horizon: Horizon): HyperEvent[] {
   const map = new Map(loadEvents().map((e) => [e.id, e]))
-  return horizon.eventIds.map((id) => map.get(id)).filter(Boolean) as HyperEvent[]
+  return horizon.eventIds
+    .map((id) => map.get(id))
+    .filter((e): e is HyperEvent => !!e && canViewerSeeEvent(e))
 }
 
 export function publishedHorizons(): Horizon[] {
@@ -215,5 +342,20 @@ export function formatEventDate(isoDay: string): string {
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
   } catch {
     return isoDay
+  }
+}
+
+export function privacyLabel(privacy: EventPrivacy): string {
+  switch (privacy) {
+    case 'public':
+      return 'Public'
+    case 'private':
+      return 'Private (owners only)'
+    case 'friends_of_friends':
+      return 'Friends of friends'
+    case 'lists':
+      return 'Contact lists'
+    default:
+      return privacy
   }
 }
