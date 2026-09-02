@@ -14,6 +14,11 @@ import { SkillsScreen } from './components/screens/SkillsScreen'
 import { PhoneScreen } from './components/screens/PhoneScreen'
 import { ProfileScreen } from './components/screens/ProfileScreen'
 import { SettingsScreen } from './components/screens/SettingsScreen'
+import { EventsScreen } from './components/screens/EventsScreen'
+import { HorizonsScreen } from './components/screens/HorizonsScreen'
+import { MyHorizonsScreen } from './components/screens/MyHorizonsScreen'
+import { ensureDefaultHorizon } from './lib/horizonStore'
+import { loadProfile } from './lib/profileStore'
 import { TextScreen } from './components/screens/TextScreen'
 import { ThanksScreen } from './components/screens/ThanksScreen'
 import { WelcomeScreen } from './components/screens/WelcomeScreen'
@@ -68,6 +73,9 @@ type ScreenId =
   | 'admin'
   | 'profile'
   | 'settings'
+  | 'events'
+  | 'horizons'
+  | 'myHorizons'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -94,6 +102,9 @@ const SECTION: Record<ScreenId, string> = {
   admin: 'A :: LEDGER',
   profile: 'P :: NODE',
   settings: 'S :: SETTINGS',
+  events: 'E :: EVENTS',
+  horizons: 'H :: HORIZONS',
+  myHorizons: 'MH :: MY HORIZONS',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -176,6 +187,9 @@ function shellFeature(screen: ScreenId, graphOpen: boolean): ShellFeature {
   if (isAdminScreen(screen)) return 'admin'
   if (screen === 'profile') return 'profile'
   if (screen === 'settings') return 'settings'
+  if (screen === 'events') return 'events'
+  if (screen === 'horizons') return 'horizons'
+  if (screen === 'myHorizons') return 'my-horizons'
   return 'terminal'
 }
 
@@ -520,6 +534,21 @@ export default function App() {
     case 'settings':
       content = <SettingsScreen key="settings" onBack={back} setMode={setMode} />
       break
+    case 'events':
+      content = (
+        <EventsScreen key="events" answers={answers} onBack={back} />
+      )
+      break
+    case 'horizons':
+      content = (
+        <HorizonsScreen key="horizons" answers={answers} onBack={back} />
+      )
+      break
+    case 'myHorizons':
+      content = (
+        <MyHorizonsScreen key="myHorizons" answers={answers} onBack={back} />
+      )
+      break
   }
 
   const openGraph = () => setGraphOpen(true)
@@ -539,6 +568,23 @@ export default function App() {
     if (screen !== 'settings') go('settings')
   }
 
+  const openEvents = () => {
+    setGraphOpen(false)
+    if (screen !== 'events') go('events')
+  }
+
+  const openHorizons = () => {
+    setGraphOpen(false)
+    if (screen !== 'horizons') go('horizons')
+  }
+
+  const openMyHorizons = () => {
+    setGraphOpen(false)
+    const name = loadProfile(answers).displayName || answers.fullName || 'You'
+    ensureDefaultHorizon(name)
+    if (screen !== 'myHorizons') go('myHorizons')
+  }
+
   return (
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
@@ -547,6 +593,9 @@ export default function App() {
         onAdmin={openAdmin}
         onProfile={openProfile}
         onSettings={openSettings}
+        onEvents={openEvents}
+        onHorizons={openHorizons}
+        onMyHorizons={openMyHorizons}
       />
       <TerminalFrame section={SECTION[screen]} mode={mode}>
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>

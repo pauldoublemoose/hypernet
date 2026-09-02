@@ -2053,3 +2053,104 @@ html[data-reduce-motion='on'] .tw,
 html[data-reduce-motion='on'] .terminal {
   animation: none;
 }
+
+/* ---- Events / Horizons ------------------------------------------------ */
+
+.hz-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.hz-lead {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.hz-heading {
+  font-size: 28px;
+  letter-spacing: 1px;
+  font-weight: normal;
+}
+
+.hz-meta {
+  font-size: 16px;
+  margin-top: -4px;
+}
+
+.hz-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.hz-field span,
+.hz-check {
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.hz-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.hz-panel {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+
+.hz-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  overflow: auto;
+}
+
+.hz-list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 1px dotted var(--border);
+  cursor: pointer;
+}
+
+.hz-list-item:hover,
+.hz-list-item:focus-visible {
+  border-style: solid;
+  outline: none;
+}
+
+.hz-list-static {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px dotted var(--border);
+}
+
+.hz-list-title {
+  font-weight: normal;
+  letter-spacing: 0.5px;
+}
+
+.hz-link {
+  color: inherit;
+}
+
+.hz-status {
+  margin: 6px 0;
+}

@@ -1,4 +1,4 @@
-export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile' | 'settings'
+export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile' | 'settings' | 'events' | 'horizons' | 'my-horizons'
 
 type IconId =
   | 'terminal'
@@ -36,8 +36,8 @@ const LEFT_ICONS: DeskIcon[] = [
     id: 'horizons',
     glyph: '◎',
     label: 'HORIZONS',
-    locked: true,
-    tip: 'Horizons — shared calendars you can subscribe to. Coming soon.',
+    locked: false,
+    tip: 'Horizons — published shared calendars.',
   },
   {
     id: 'graph',
@@ -57,8 +57,8 @@ const LEFT_ICONS: DeskIcon[] = [
     id: 'events',
     glyph: '▣',
     label: 'EVENTS',
-    locked: true,
-    tip: 'Events — find and host gatherings. Coming soon.',
+    locked: false,
+    tip: 'Events — create gatherings and mark Interested / Going.',
   },
   {
     id: 'chronicle',
@@ -95,8 +95,8 @@ const RIGHT_TOP: DeskIcon[] = [
     id: 'my-horizons',
     glyph: '◌',
     label: 'MY HORIZONS',
-    locked: true,
-    tip: 'My horizons — calendars you own or curate. Coming soon.',
+    locked: false,
+    tip: 'My horizons — your default list and calendars you create.',
   },
 ]
 
@@ -156,6 +156,9 @@ export function DesktopIcons({
   onAdmin,
   onProfile,
   onSettings,
+  onEvents,
+  onHorizons,
+  onMyHorizons,
 }: {
   active: ShellFeature
   onTerminal?: () => void
@@ -163,6 +166,9 @@ export function DesktopIcons({
   onAdmin: () => void
   onProfile: () => void
   onSettings: () => void
+  onEvents: () => void
+  onHorizons: () => void
+  onMyHorizons: () => void
 }) {
   void onTerminal // TERM locked — optional for App compatibility
   const activate = (id: IconId, locked: boolean) => {
@@ -171,6 +177,9 @@ export function DesktopIcons({
     else if (id === 'admin') onAdmin()
     else if (id === 'profile') onProfile()
     else if (id === 'settings') onSettings()
+    else if (id === 'events') onEvents()
+    else if (id === 'horizons') onHorizons()
+    else if (id === 'my-horizons') onMyHorizons()
   }
 
   return (
