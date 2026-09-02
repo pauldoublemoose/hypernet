@@ -3,7 +3,7 @@ import { pressKey } from './hooks'
 
 export type Theme = 'white' | 'black' | 'polychrome'
 
-const THEME_ORDER: Theme[] = ['white', 'black', 'polychrome']
+export const THEME_ORDER: Theme[] = ['white', 'black', 'polychrome']
 
 function loadTheme(): Theme {
   try {
@@ -17,11 +17,37 @@ function loadTheme(): Theme {
   }
 }
 
+function loadFlag(key: string, fallback: boolean): boolean {
+  try {
+    const raw = localStorage.getItem(key)
+    if (raw === '1' || raw === 'true' || raw === 'on') return true
+    if (raw === '0' || raw === 'false' || raw === 'off') return false
+  } catch {
+    /* ignore */
+  }
+  return fallback
+}
+
+function osPrefersReduceMotion(): boolean {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  } catch {
+    return false
+  }
+}
+
 interface UiCtx {
   enterArmed: boolean
   setEnterArmed: (v: boolean) => void
   theme: Theme
+  setTheme: (t: Theme) => void
   cycleTheme: () => void
+  /** UI/CRT sounds preference. No sounds wired yet; state is stored. */
+  sound: boolean
+  setSound: (v: boolean) => void
+  /** Less animation / polychrome flash. */
+  reduceMotion: boolean
+  setReduceMotion: (v: boolean) => void
   /** True once the keyboard has been used for menu navigation. */
   navUsed: boolean
   /** Overlay graph view; form progress is preserved underneath. */
@@ -38,6 +64,10 @@ const UiContext = createContext<UiCtx | null>(null)
 export function UiProvider({ children }: { children: ReactNode }) {
   const [enterArmed, setEnterArmed] = useState(true)
   const [theme, setTheme] = useState<Theme>(loadTheme)
+  const [sound, setSound] = useState(() => loadFlag('hypernet_sound', true))
+  const [reduceMotion, setReduceMotion] = useState(() =>
+    loadFlag('hypernet_reduce_motion', osPrefersReduceMotion()),
+  )
   const [navUsed, setNavUsed] = useState(false)
   const [graphOpen, setGraphOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
@@ -50,6 +80,24 @@ export function UiProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
   }, [theme])
+
+  useEffect(() => {
+    document.documentElement.dataset.sound = sound ? 'on' : 'off'
+    try {
+      localStorage.setItem('hypernet_sound', sound ? 'on' : 'off')
+    } catch {
+      /* ignore */
+    }
+  }, [sound])
+
+  useEffect(() => {
+    document.documentElement.dataset.reduceMotion = reduceMotion ? 'on' : 'off'
+    try {
+      localStorage.setItem('hypernet_reduce_motion', reduceMotion ? 'on' : 'off')
+    } catch {
+      /* ignore */
+    }
+  }, [reduceMotion])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -86,8 +134,13 @@ export function UiProvider({ children }: { children: ReactNode }) {
         enterArmed,
         setEnterArmed,
         theme,
+        setTheme,
         cycleTheme: () =>
           setTheme((t) => THEME_ORDER[(THEME_ORDER.indexOf(t) + 1) % THEME_ORDER.length]),
+        sound,
+        setSound,
+        reduceMotion,
+        setReduceMotion,
         navUsed,
         graphOpen,
         toggleGraph: () => setGraphOpen((g) => !g),

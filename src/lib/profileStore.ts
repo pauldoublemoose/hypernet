@@ -91,6 +91,10 @@ export function saveProfile(profile: ProfileData) {
   }
 }
 
+export function cloneProfile(profile: ProfileData): ProfileData {
+  return { ...profile, privacy: { ...profile.privacy } }
+}
+
 /** Square-crop an image file to a small JPEG data URL for localStorage. */
 export function readAvatarFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

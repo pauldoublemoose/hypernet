@@ -1,6 +1,6 @@
 import { useUi } from '../ui'
 
-export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile'
+export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile' | 'settings'
 
 type IconId =
   | 'terminal'
@@ -12,7 +12,7 @@ type IconId =
   | 'find'
   | 'chronicle'
   | 'admin'
-  | 'theme'
+  | 'settings'
 
 type DeskIcon = {
   id: IconId
@@ -87,11 +87,11 @@ const ICONS: DeskIcon[] = [
     tip: 'Admin ledger — passphrase gate (already in the welcome screen)',
   },
   {
-    id: 'theme',
-    glyph: '◐',
-    label: 'THEME',
+    id: 'settings',
+    glyph: '⬡',
+    label: 'SETTINGS',
     locked: false,
-    tip: 'Cycle color mode — WHITE / BLACK / POLYCHROME',
+    tip: 'Settings — theme, sound, motion.',
   },
 ]
 
@@ -101,30 +101,28 @@ export function DesktopIcons({
   onGraph,
   onAdmin,
   onProfile,
+  onSettings,
 }: {
   active: ShellFeature
   onTerminal: () => void
   onGraph: () => void
   onAdmin: () => void
   onProfile: () => void
+  onSettings: () => void
 }) {
-  const { theme, cycleTheme } = useUi()
-
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
     if (id === 'terminal') onTerminal()
     else if (id === 'graph') onGraph()
     else if (id === 'admin') onAdmin()
     else if (id === 'profile') onProfile()
-    else if (id === 'theme') cycleTheme()
+    else if (id === 'settings') onSettings()
   }
 
   return (
     <nav className="desktop-icons" aria-label="Hypernet desktop">
       {ICONS.map((item) => {
         const on = item.id === active
-        const tip =
-          item.id === 'theme' ? `${item.tip} · now ${theme.toUpperCase()}` : item.tip
         return (
           <button
             key={item.id}
@@ -133,8 +131,8 @@ export function DesktopIcons({
             aria-current={on ? 'page' : undefined}
             aria-disabled={item.locked || undefined}
             aria-label={item.tip}
-            data-tip={tip}
-            title={tip}
+            data-tip={item.tip}
+            title={item.tip}
             onClick={() => activate(item.id, item.locked)}
           >
             <span className="desk-glyph" aria-hidden>

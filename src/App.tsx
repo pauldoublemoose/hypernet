@@ -13,6 +13,7 @@ import { ReviewScreen, type ReviewTarget } from './components/screens/ReviewScre
 import { SkillsScreen } from './components/screens/SkillsScreen'
 import { PhoneScreen } from './components/screens/PhoneScreen'
 import { ProfileScreen } from './components/screens/ProfileScreen'
+import { SettingsScreen } from './components/screens/SettingsScreen'
 import { TextScreen } from './components/screens/TextScreen'
 import { ThanksScreen } from './components/screens/ThanksScreen'
 import { WelcomeScreen } from './components/screens/WelcomeScreen'
@@ -66,6 +67,7 @@ type ScreenId =
   | 'adminGate'
   | 'admin'
   | 'profile'
+  | 'settings'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -91,6 +93,7 @@ const SECTION: Record<ScreenId, string> = {
   adminGate: 'A :: ACCESS',
   admin: 'A :: LEDGER',
   profile: 'P :: NODE',
+  settings: 'S :: SETTINGS',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -169,13 +172,14 @@ function isAdminScreen(id: ScreenId) {
 }
 
 function isShellScreen(id: ScreenId) {
-  return isAdminScreen(id) || id === 'profile'
+  return isAdminScreen(id) || id === 'profile' || id === 'settings'
 }
 
 function shellFeature(screen: ScreenId, graphOpen: boolean): ShellFeature {
   if (graphOpen) return 'graph'
   if (isAdminScreen(screen)) return 'admin'
   if (screen === 'profile') return 'profile'
+  if (screen === 'settings') return 'settings'
   return 'terminal'
 }
 
@@ -517,6 +521,9 @@ export default function App() {
         />
       )
       break
+    case 'settings':
+      content = <SettingsScreen key="settings" onBack={back} setMode={setMode} />
+      break
   }
 
   const openTerminal = () => {
@@ -539,6 +546,11 @@ export default function App() {
     if (screen !== 'profile') go('profile')
   }
 
+  const openSettings = () => {
+    setGraphOpen(false)
+    if (screen !== 'settings') go('settings')
+  }
+
   return (
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
@@ -547,6 +559,7 @@ export default function App() {
         onGraph={openGraph}
         onAdmin={openAdmin}
         onProfile={openProfile}
+        onSettings={openSettings}
       />
       <TerminalFrame section={SECTION[screen]} mode={mode}>
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
