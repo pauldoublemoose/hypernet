@@ -91,7 +91,7 @@ const ICONS: DeskIcon[] = [
     glyph: '⬡',
     label: 'SETTINGS',
     locked: false,
-    tip: 'Settings — theme, sound, motion.',
+    tip: 'Settings — theme, notifications, privacy, account.',
   },
 ]
 

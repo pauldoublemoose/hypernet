@@ -1879,6 +1879,45 @@ html[data-theme='polychrome'] body {
   color: var(--fg-dim);
 }
 
+.settings-block {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+}
+
+.settings-block > .settings-copy {
+  padding: 12px 12px 8px;
+}
+
+.settings-block .settings-row {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.settings-block .settings-row.is-locked {
+  border-top-style: dashed;
+  opacity: 0.72;
+}
+
+.settings-sub {
+  margin: 0;
+  font-size: 15px;
+  font-weight: normal;
+  letter-spacing: 2px;
+}
+
+.btn:disabled,
+.privacy-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover,
+.btn.dim:disabled:hover {
+  background: none;
+  color: inherit;
+}
+
 @media (max-width: 700px), (pointer: coarse) {
   .settings-row {
     flex-direction: column;

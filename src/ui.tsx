@@ -45,9 +45,14 @@ interface UiCtx {
   /** UI/CRT sounds preference. No sounds wired yet; state is stored. */
   sound: boolean
   setSound: (v: boolean) => void
-  /** Less animation / polychrome flash. */
+  /** Email notification preference. No mail backend; state is stored. */
+  notifyEmail: boolean
+  setNotifyEmail: (v: boolean) => void
+  /** Browser desktop notification preference. */
+  notifyDesktop: boolean
+  setNotifyDesktop: (v: boolean) => void
+  /** OS prefers-reduced-motion. No Settings row — used to quiet FX. */
   reduceMotion: boolean
-  setReduceMotion: (v: boolean) => void
   /** True once the keyboard has been used for menu navigation. */
   navUsed: boolean
   /** Overlay graph view; form progress is preserved underneath. */
@@ -65,9 +70,9 @@ export function UiProvider({ children }: { children: ReactNode }) {
   const [enterArmed, setEnterArmed] = useState(true)
   const [theme, setTheme] = useState<Theme>(loadTheme)
   const [sound, setSound] = useState(() => loadFlag('hypernet_sound', true))
-  const [reduceMotion, setReduceMotion] = useState(() =>
-    loadFlag('hypernet_reduce_motion', osPrefersReduceMotion()),
-  )
+  const [notifyEmail, setNotifyEmail] = useState(() => loadFlag('hypernet_notify_email', true))
+  const [notifyDesktop, setNotifyDesktop] = useState(() => loadFlag('hypernet_notify_desktop', false))
+  const [reduceMotion, setReduceMotion] = useState(osPrefersReduceMotion)
   const [navUsed, setNavUsed] = useState(false)
   const [graphOpen, setGraphOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
@@ -91,13 +96,36 @@ export function UiProvider({ children }: { children: ReactNode }) {
   }, [sound])
 
   useEffect(() => {
-    document.documentElement.dataset.reduceMotion = reduceMotion ? 'on' : 'off'
     try {
-      localStorage.setItem('hypernet_reduce_motion', reduceMotion ? 'on' : 'off')
+      localStorage.setItem('hypernet_notify_email', notifyEmail ? 'on' : 'off')
     } catch {
       /* ignore */
     }
-  }, [reduceMotion])
+  }, [notifyEmail])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('hypernet_notify_desktop', notifyDesktop ? 'on' : 'off')
+    } catch {
+      /* ignore */
+    }
+  }, [notifyDesktop])
+
+  useEffect(() => {
+    const apply = (on: boolean) => {
+      setReduceMotion(on)
+      document.documentElement.dataset.reduceMotion = on ? 'on' : 'off'
+    }
+    apply(osPrefersReduceMotion())
+    try {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+      const onChange = () => apply(mq.matches)
+      mq.addEventListener('change', onChange)
+      return () => mq.removeEventListener('change', onChange)
+    } catch {
+      return
+    }
+  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -139,8 +167,11 @@ export function UiProvider({ children }: { children: ReactNode }) {
           setTheme((t) => THEME_ORDER[(THEME_ORDER.indexOf(t) + 1) % THEME_ORDER.length]),
         sound,
         setSound,
+        notifyEmail,
+        setNotifyEmail,
+        notifyDesktop,
+        setNotifyDesktop,
         reduceMotion,
-        setReduceMotion,
         navUsed,
         graphOpen,
         toggleGraph: () => setGraphOpen((g) => !g),

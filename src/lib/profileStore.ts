@@ -17,6 +17,7 @@ export interface ProfileData {
 }
 
 const STORAGE_KEY = 'hypernet_profile'
+const PRIVACY_DEFAULT_KEY = 'hypernet_privacy_default'
 
 export const DEFAULT_PRIVACY: Record<ProfileSection, Visibility> = {
   avatar: 'public',
@@ -24,6 +25,36 @@ export const DEFAULT_PRIVACY: Record<ProfileSection, Visibility> = {
   skills: 'public',
   contact: 'public',
   chronicle: 'public',
+}
+
+export function loadPrivacyDefault(): Visibility {
+  try {
+    const raw = localStorage.getItem(PRIVACY_DEFAULT_KEY)
+    if (raw === 'private') return 'private'
+  } catch {
+    /* ignore */
+  }
+  return 'public'
+}
+
+export function savePrivacyDefault(value: Visibility) {
+  try {
+    localStorage.setItem(PRIVACY_DEFAULT_KEY, value)
+  } catch {
+    /* ignore */
+  }
+}
+
+export function privacyDefaults(
+  value: Visibility = loadPrivacyDefault(),
+): Record<ProfileSection, Visibility> {
+  return {
+    avatar: value,
+    bio: value,
+    skills: value,
+    contact: value,
+    chronicle: value,
+  }
 }
 
 export function emptyProfile(): ProfileData {
@@ -36,7 +67,7 @@ export function emptyProfile(): ProfileData {
     discord: '',
     facebook: '',
     avatarDataUrl: '',
-    privacy: { ...DEFAULT_PRIVACY },
+    privacy: privacyDefaults(),
   }
 }
 
@@ -52,7 +83,7 @@ function readStored(): Partial<ProfileData> | null {
 }
 
 function fillBlanks(profile: ProfileData, answers: Answers): ProfileData {
-  const next = { ...profile, privacy: { ...DEFAULT_PRIVACY, ...profile.privacy } }
+  const next = { ...profile, privacy: { ...privacyDefaults(), ...profile.privacy } }
   if (!next.displayName && answers.fullName) next.displayName = answers.fullName
   if (!next.bio && answers.otherInfo) next.bio = answers.otherInfo
   if (!next.email && answers.email) next.email = answers.email
@@ -77,7 +108,7 @@ export function loadProfile(answers: Answers): ProfileData {
     ? {
         ...emptyProfile(),
         ...stored,
-        privacy: { ...DEFAULT_PRIVACY, ...stored.privacy },
+        privacy: { ...privacyDefaults(), ...stored.privacy },
       }
     : emptyProfile()
   return fillBlanks(base, answers)
