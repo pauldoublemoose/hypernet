@@ -1,5 +1,3 @@
-import { useUi } from '../ui'
-
 export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile' | 'settings'
 
 type IconId =
@@ -127,12 +125,7 @@ function IconButton({
   tipSide: 'left' | 'right'
   onActivate: (id: IconId, locked: boolean) => void
 }) {
-  const on =
-    (item.id === 'profile' && active === 'profile') ||
-    (item.id === 'settings' && active === 'settings') ||
-    (item.id === 'graph' && active === 'graph') ||
-    (item.id === 'admin' && active === 'admin') ||
-    (item.id === 'terminal' && active === 'terminal')
+  const on = item.id === active
   return (
     <button
       type="button"
@@ -155,20 +148,17 @@ function IconButton({
 
 export function DesktopIcons({
   active,
-  onTerminal,
   onGraph,
   onAdmin,
   onProfile,
   onSettings,
 }: {
   active: ShellFeature
-  onTerminal: () => void
   onGraph: () => void
   onAdmin: () => void
   onProfile: () => void
   onSettings: () => void
 }) {
-  void onTerminal // TERM locked — keep prop for App compatibility
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
     if (id === 'graph') onGraph()
@@ -181,12 +171,24 @@ export function DesktopIcons({
     <>
       <nav className="desktop-icons desktop-icons-left" aria-label="Hypernet discovery">
         {LEFT_ICONS.map((item) => (
-          <IconButton key={item.id} item={item} active={active} tipSide="right" onActivate={activate} />
+          <IconButton
+            key={item.id}
+            item={item}
+            active={active}
+            tipSide="right"
+            onActivate={activate}
+          />
         ))}
       </nav>
       <nav className="desktop-icons desktop-icons-right" aria-label="Hypernet mine">
         {RIGHT_ICONS.map((item) => (
-          <IconButton key={item.id} item={item} active={active} tipSide="left" onActivate={activate} />
+          <IconButton
+            key={item.id}
+            item={item}
+            active={active}
+            tipSide="left"
+            onActivate={activate}
+          />
         ))}
       </nav>
     </>

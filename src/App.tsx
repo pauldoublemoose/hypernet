@@ -171,10 +171,6 @@ function isAdminScreen(id: ScreenId) {
   return id === 'admin' || id === 'adminGate'
 }
 
-function isShellScreen(id: ScreenId) {
-  return isAdminScreen(id) || id === 'profile' || id === 'settings'
-}
-
 function shellFeature(screen: ScreenId, graphOpen: boolean): ShellFeature {
   if (graphOpen) return 'graph'
   if (isAdminScreen(screen)) return 'admin'
@@ -526,14 +522,6 @@ export default function App() {
       break
   }
 
-  const openTerminal = () => {
-    setGraphOpen(false)
-    if (isShellScreen(screen)) {
-      setScreen('welcome')
-      setHistory([])
-    }
-  }
-
   const openGraph = () => setGraphOpen(true)
 
   const openAdmin = () => {
@@ -555,7 +543,6 @@ export default function App() {
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
         active={shellFeature(screen, graphOpen)}
-        onTerminal={openTerminal}
         onGraph={openGraph}
         onAdmin={openAdmin}
         onProfile={openProfile}
