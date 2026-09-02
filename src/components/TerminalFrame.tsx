@@ -14,8 +14,17 @@ export function TerminalFrame({
   mode: InputMode
   children: ReactNode
 }) {
-  const { enterArmed, theme, cycleTheme, navUsed, graphOpen, toggleGraph, expanded, toggleExpanded } =
-    useUi()
+  const {
+    enterArmed,
+    theme,
+    cycleTheme,
+    navUsed,
+    graphOpen,
+    toggleGraph,
+    expanded,
+    toggleExpanded,
+    statusCenter,
+  } = useUi()
   const poly = theme === 'polychrome'
 
   return (
@@ -65,13 +74,17 @@ export function TerminalFrame({
           <span className={`mode-chip ${mode === 'TXT' && !graphOpen ? 'txt' : ''}`}>
             {graphOpen ? '◆ NET' : mode === 'NAV' ? '◆ NAV' : '▮ TXT'}
           </span>
-          <span className="hints">
-            {graphOpen
-              ? 'DRAG NODES · SCROLL/PINCH ZOOM · HOLD +HEAT · TOGGLE LAYERS'
-              : mode === 'NAV'
-                ? '↑↓ MOVE · SPACE SELECT · ENTER CONFIRM · BACKSPACE BACK'
-                : 'TYPE · ENTER CONFIRM · BACKSPACE ON EMPTY = BACK'}
-          </span>
+          {!graphOpen && statusCenter ? (
+            statusCenter
+          ) : (
+            <span className="hints">
+              {graphOpen
+                ? 'DRAG NODES · SCROLL/PINCH ZOOM · HOLD +HEAT · TOGGLE LAYERS'
+                : mode === 'NAV'
+                  ? '↑↓ MOVE · SPACE SELECT · ENTER CONFIRM · BACKSPACE BACK'
+                  : 'TYPE · ENTER CONFIRM · BACKSPACE ON EMPTY = BACK'}
+            </span>
+          )}
           <span className="status-actions">
             <button
               className="mbtn back-btn"

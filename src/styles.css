@@ -631,6 +631,39 @@ body {
   letter-spacing: 1px;
 }
 
+.status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.status-tab {
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  cursor: pointer;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+.status-tab:hover,
+.status-tab:active {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.status-tab.is-on {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+}
+
 .status-actions {
   display: flex;
   margin-left: auto;
@@ -1011,6 +1044,15 @@ body {
 
   .hints {
     display: none;
+  }
+
+  .status-tabs {
+    gap: 3px 4px;
+  }
+
+  .status-tab {
+    font-size: 12px;
+    padding: 2px 6px;
   }
 
   .enter-btn {

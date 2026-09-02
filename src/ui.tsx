@@ -62,6 +62,9 @@ interface UiCtx {
   /** Desktop-only: enlarge the CRT window. Default remains the compact frame. */
   expanded: boolean
   toggleExpanded: () => void
+  /** Optional center slot in the terminal status bar (e.g. Terminal tabs). */
+  statusCenter: ReactNode | null
+  setStatusCenter: (n: ReactNode | null) => void
 }
 
 const UiContext = createContext<UiCtx | null>(null)
@@ -76,6 +79,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
   const [navUsed, setNavUsed] = useState(false)
   const [graphOpen, setGraphOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [statusCenter, setStatusCenter] = useState<ReactNode | null>(null)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -178,6 +182,8 @@ export function UiProvider({ children }: { children: ReactNode }) {
         setGraphOpen,
         expanded,
         toggleExpanded: () => setExpanded((v) => !v),
+        statusCenter,
+        setStatusCenter,
       }}
     >
       {children}

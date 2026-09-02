@@ -53,12 +53,32 @@ export function TerminalScreen({
   setMode: (m: InputMode) => void
 }) {
   const [tab, setTab] = useState<Tab>('help')
-  const { setEnterArmed } = useUi()
+  const { setEnterArmed, setStatusCenter } = useUi()
 
   useLayoutEffect(() => {
     setMode('NAV')
     setEnterArmed(false)
   }, [setMode, setEnterArmed])
+
+  useLayoutEffect(() => {
+    setStatusCenter(
+      <div className="status-tabs" role="tablist" aria-label="Terminal sections">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`status-tab${tab === t.id ? ' is-on' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>,
+    )
+    return () => setStatusCenter(null)
+  }, [tab, setStatusCenter])
 
   useKeys((e) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -72,20 +92,10 @@ export function TerminalScreen({
   return (
     <div className="screen hz-screen">
       <div className="title">T :: TERMINAL</div>
-      <p className="dim hz-lead">Help, chat, network pulse, product log, and About — Esc / Backspace to leave.</p>
-
-      <div className="btn-row hz-tabs">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`privacy-btn${tab === t.id ? ' is-on' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <p className="dim hz-lead">
+        Tabs live in the bottom status bar — Help, chat, network pulse, product log, and About. Esc /
+        Backspace to leave.
+      </p>
 
       {tab === 'help' && (
         <>
@@ -96,9 +106,9 @@ export function TerminalScreen({
             Locked icons show a tip and stay closed until unlocked.
           </p>
           <p className="profile-view-text">
-            From Terminal, use the tabs for Help (this page), Global Chat, Global Updates, the product
-            Update log, and About. Esc or Backspace returns to the previous screen. Expand the window
-            with the chrome control when you want a larger pane.
+            Switch sections with the tabs in the bottom status bar: Help (this page), Global Chat,
+            Global Updates, the product Update log, and About. Esc or Backspace returns to the
+            previous screen. Expand the window with the chrome control when you want a larger pane.
           </p>
 
           <h3 className="profile-section-title">Terminology</h3>
