@@ -26,6 +26,7 @@ It is **not** a consumption feed like Facebook. It is a **recruitment and discov
 | **Chronicle** | A profile section listing events a person has participated in, with their role. Built from “going” attendance after the event date, or manual past entries.                                                                    |
 | **Horizon**   | A publishable, subscribable collection of events (like a playlist/calendar). Owned by a profile or group. Multiple admins; contribution setting: *Admins only* or *Open*. Every profile also gets a **private default Horizon** (personal “liked / starred” list). |
 | **Interested / Going** | Two ways to save an event: *Interested* adds it only to your default Horizon; *Going* asks for role (guest, co-creator, etc.) and later feeds Chronicle after the event. |
+| **Looking for** | Needs or intents a person **broadcasts** so camps and crews can find them (the inverse of skill search). Two flavors — **event-scoped needs** (tied to an event; auto-expire when the event ends / after the event date) and **soft intents** (longer-lived; cleared manually and/or via a TTL). Designed now; **implement with Events (Phase 2+ / Core Growth)** — not MVP Profile chips. See subsection below. |
 
 
 **User-facing one-liners** *(use consistently wherever the term first appears)*
@@ -37,6 +38,7 @@ It is **not** a consumption feed like Facebook. It is a **recruitment and discov
 | **Horizon**   | A shared calendar — create one, add events, let others subscribe. |
 | **Chronicle** | Your event history — what you've joined and the role you played.  |
 | **Group**     | A camp, crew, or collective — run by people, with its own page.   |
+| **Looking for** | Needs you broadcast so camps and crews can find you.            |
 
 
 **Profile vs. Group vs. contact list**
@@ -44,6 +46,17 @@ It is **not** a consumption feed like Facebook. It is a **recruitment and discov
 - A **profile** represents a person; a **group** represents an organization. Both can publish events and horizons.
 - A **contact list** is a private, user-defined list of people for invites and visibility — not the same as a group.
 - **Group members** belong to the camp/collective; **group admins** manage the page. Distinct from contact lists.
+
+**Looking for (designed now; implement with Events)**
+
+People broadcast what they need so camps and crews can discover them — the other direction from skill search (camps hunting talent).
+
+Two flavors:
+
+1. **Event-scoped needs** — attached to a specific event. They **auto-expire when the event ends** (or after the event date). Example: looking for a camp or a ride *for this burn*.
+2. **Soft intents** — longer-lived, not tied to one event. Cleared **manually** by the owner and/or via a **TTL** (time-to-live) so stale signals do not sit forever. Example: generally looking for a sound crew next season.
+
+**Not current Profile / Settings work.** Do **not** add Looking-for chips (or similar) to the Phase 1 Profile or Settings UI. Implementation waits for Events (Phase 2+ / Core Growth). Stories: [USER_STORIES.md](./USER_STORIES.md) US-2.5–US-2.7.
 
 **Horizon status indicators** *(group directory and similar lists; colors invert with light/dark theme)*
 
@@ -122,6 +135,7 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 | **Group join policies** | Toggle: anyone can join / admin approval / approval by another member.                                           |
 | **Chronicle verification** | Event admins confirm participation (beyond early self-declared Chronicle).                                    |
 | **Email notifications** | Horizon subscription alerts and similar via email.                                                              |
+| **Looking for**       | Broadcast needs/intents so camps can find people. Event-scoped (auto-expire after the event) and soft intents (manual clear and/or TTL). **Not** MVP Profile chips — implement with Events (Phase 2+). See §1. |
 
 
 ### 4.3 Future (Nice to Have — Phase 5+)
@@ -161,7 +175,7 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 | User ↔ signup migration          | Map existing `signups` rows to `users` / `profiles`                 |
 | Redesigned onboarding            | Replace cramped CRT signup flow; full-viewport layouts              |
 | Profile CRUD API                 | Avatar upload, bio, skills (free text), location, contact fields    |
-| Profile page UI                  | Public by default; obvious privacy toggles; mobile-friendly         |
+| Profile page UI                  | Public by default; obvious privacy toggles; mobile-friendly. **No Looking-for chips** — that waits for Events (Core Growth). |
 | Personal default Horizon         | Auto-create private “liked” Horizon at signup                       |
 | Skill search (free text)         | Full-text match on profile skills; public profiles only             |
 | Landing / home                   | Bias to discovery (groups/events); optional artistic graph motif    |
@@ -194,6 +208,8 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 | Past events                | Manual Chronicle entries allowed                                                                   |
 
 
+**Follow-on (not this phase’s Profile work):** **Looking for** is designed in §1 and scheduled for Core Growth. Event-scoped needs depend on Events existing, so implementation is Phase 2+ — **do not** ship Profile chips in Phase 1 Identity & Profiles. See US-2.5–US-2.7.
+
 **Exit criteria:** User browses group directory → opens camp Horizon → marks Going on an event with a role → after event date, Chronicle updates → subscriber of that Horizon saw in-app notice when event was added.
 
 ### Phase 3 — Discovery *(4–6 weeks)*
@@ -205,6 +221,7 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 | ------------------- | ---------------------------------------- |
 | Public event search | Filter by date, location, visibility     |
 | Contact lists       | CRUD lists; add members; use for invites |
+| Looking for         | Event-scoped needs + soft intents; camps find people by broadcast needs. Depends on Events. **Not** Profile chips. See §1 / US-2.5–US-2.7. |
 
 
 **Exit criteria:** User searches public events by keyword and date range.
@@ -269,6 +286,14 @@ horizons
 graph_links (derived view — topology TBD)
   └── prefer group co-membership and/or co-creation roles; avoid all-to-all guest links for large events
   └── location_shared: optional
+
+looking_for  -- Core Growth / Phase 2+; not MVP Profile
+  └── profile_id
+  └── flavor (event_scoped | soft_intent)
+  └── need text
+  └── event_id (required for event_scoped)
+  └── expires_at  -- event end / event date, or TTL for soft intents
+  └── cleared_at  -- manual clear (soft intents; optional for event-scoped)
 ```
 
 Existing `signups`, `skill_options`, and `location_options` tables from pre-alpha should be migrated, not discarded.
@@ -428,6 +453,7 @@ This keeps you in the design loop without needing to write CSS.
 | Privacy defaults | Public by default; toggles must be obvious. |
 | Pre-alpha signup UI | Radically reworked — not the long-term shell. |
 | Docs structure | Keep PROJECT_PLAN + USER_STORIES as two files. |
+| Looking for | Needs/intents people broadcast so camps can find them. Event-scoped auto-expire after the event; soft intents clear manually and/or via TTL. Design now; implement with Events (Phase 2+ / Core Growth). **Not** MVP Profile/Settings chips. |
 
 
 ---
@@ -447,4 +473,4 @@ This keeps you in the design loop without needing to write CSS.
 
 ---
 
-*Last updated: Aug 2026 — derived from product vision voice notes.*
+*Last updated: Sep 2026 — derived from product vision voice notes; Looking for designed for Events (Phase 2+ / Core Growth).*

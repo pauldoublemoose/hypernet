@@ -154,6 +154,48 @@
 
 ---
 
+### US-2.5 — Broadcast an event-scoped Looking for `P1` 🔲
+
+**As a** community member heading to a specific event,  
+**I want** to broadcast what I’m looking for (a camp, a crew, a ride) tied to that event,  
+**So that** camps and crews recruiting for it can find me.
+
+**Acceptance criteria**
+- [ ] Looking for can be scoped to a specific event (Events must exist — see PROJECT_PLAN.md §1)
+- [ ] The need **auto-expires when the event ends** (or after the event date)
+- [ ] Camps/crews can discover people by these needs
+- [ ] **Not** implemented as Profile chips in current Profile/Settings UI — ships with Events (Phase 2+ / Core Growth)
+
+---
+
+### US-2.6 — Broadcast a soft intent `P1` 🔲
+
+**As a** community member between events,  
+**I want** to post a longer-lived Looking-for intent and clear it myself or let it time out,  
+**So that** camps can still find me without a stale, forever-on signal.
+
+**Acceptance criteria**
+- [ ] Soft intents are not tied to a single event
+- [ ] Owner can **clear** a soft intent **manually**
+- [ ] Soft intents also expire via a **TTL** (time-to-live)
+- [ ] Same discovery surface as event-scoped needs (camps/crews can find people)
+- [ ] **Not** Phase 1 Profile/Settings chips — implement with Events (see PROJECT_PLAN.md §1 Looking for)
+
+---
+
+### US-2.7 — Find people by Looking for `P1` 🔲
+
+**As a** camp lead,  
+**I want** to find people who are looking for a camp, crew, or role,  
+**So that** I can recruit beyond skill search alone.
+
+**Acceptance criteria**
+- [ ] Search or browse includes active Looking-for needs and intents
+- [ ] Event-scoped results exclude needs that expired after the event
+- [ ] Soft intents exclude manually cleared and TTL-expired entries
+
+---
+
 ## Epic 3: Groups
 
 ### US-3.0 — Create a group `P0` 🔲
@@ -610,7 +652,10 @@ PHASE 2 — Discovery & Lists
 ├── US-3.4  Invite contact lists        P1
 ├── US-5.4  Graph city filter           P1
 ├── US-6.1  Contact lists               P1
-└── US-2.2  Skills taxonomy             P1
+├── US-2.2  Skills taxonomy             P1
+├── US-2.5  Event-scoped Looking for    P1  (with Events; not Profile chips)
+├── US-2.6  Soft-intent Looking for     P1  (manual clear and/or TTL)
+└── US-2.7  Find people by Looking for  P1
 
 PHASE 3 — Future
 ├── US-1.5  AI profile                  P2
@@ -635,4 +680,4 @@ A user story is **done** when:
 
 ---
 
-*Last updated: Aug 2026 — derived from product vision voice notes.*
+*Last updated: Sep 2026 — derived from product vision voice notes; Looking for designed for Events (Phase 2+ / Core Growth).*
