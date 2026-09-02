@@ -163,13 +163,13 @@ export function DesktopIcons({
   onSettings,
 }: {
   active: ShellFeature
-  onTerminal: () => void
+  onTerminal?: () => void
   onGraph: () => void
   onAdmin: () => void
   onProfile: () => void
   onSettings: () => void
 }) {
-  void onTerminal // TERM locked — keep prop for App compatibility
+  void onTerminal // TERM locked — optional for App compatibility
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
     if (id === 'graph') onGraph()
