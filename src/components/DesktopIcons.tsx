@@ -1,5 +1,3 @@
-import { useUi } from '../ui'
-
 export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile' | 'settings'
 
 type IconId =
