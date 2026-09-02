@@ -17,6 +17,7 @@ import { SettingsScreen } from './components/screens/SettingsScreen'
 import { EventsScreen } from './components/screens/EventsScreen'
 import { HorizonsScreen } from './components/screens/HorizonsScreen'
 import { MyHorizonsScreen } from './components/screens/MyHorizonsScreen'
+import { ContactsScreen } from './components/screens/ContactsScreen'
 import { ensureDefaultHorizon } from './lib/horizonStore'
 import { loadProfile } from './lib/profileStore'
 import { TextScreen } from './components/screens/TextScreen'
@@ -76,6 +77,7 @@ type ScreenId =
   | 'events'
   | 'horizons'
   | 'myHorizons'
+  | 'contacts'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -105,6 +107,7 @@ const SECTION: Record<ScreenId, string> = {
   events: 'E :: EVENTS',
   horizons: 'H :: HORIZONS',
   myHorizons: 'MH :: MY HORIZONS',
+  contacts: 'C :: CONTACTS',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -190,6 +193,7 @@ function shellFeature(screen: ScreenId, graphOpen: boolean): ShellFeature {
   if (screen === 'events') return 'events'
   if (screen === 'horizons') return 'horizons'
   if (screen === 'myHorizons') return 'my-horizons'
+  if (screen === 'contacts') return 'contacts'
   return 'terminal'
 }
 
@@ -549,6 +553,9 @@ export default function App() {
         <MyHorizonsScreen key="myHorizons" answers={answers} onBack={back} />
       )
       break
+    case 'contacts':
+      content = <ContactsScreen key="contacts" onBack={back} />
+      break
   }
 
   const openGraph = () => setGraphOpen(true)
@@ -585,6 +592,11 @@ export default function App() {
     if (screen !== 'myHorizons') go('myHorizons')
   }
 
+  const openContacts = () => {
+    setGraphOpen(false)
+    if (screen !== 'contacts') go('contacts')
+  }
+
   return (
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
@@ -596,6 +608,7 @@ export default function App() {
         onEvents={openEvents}
         onHorizons={openHorizons}
         onMyHorizons={openMyHorizons}
+        onContacts={openContacts}
       />
       <TerminalFrame section={SECTION[screen]} mode={mode}>
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>

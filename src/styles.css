@@ -2154,3 +2154,17 @@ html[data-reduce-motion='on'] .terminal {
 .hz-status {
   margin: 6px 0;
 }
+
+
+.hz-tabs {
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.hz-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}

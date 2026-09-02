@@ -1,4 +1,4 @@
-export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile' | 'settings' | 'events' | 'horizons' | 'my-horizons'
+export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile' | 'settings' | 'events' | 'horizons' | 'my-horizons' | 'contacts'
 
 type IconId =
   | 'terminal'
@@ -13,6 +13,7 @@ type IconId =
   | 'settings'
   | 'my-group'
   | 'my-horizons'
+  | 'contacts'
 
 type DeskIcon = {
   id: IconId
@@ -83,6 +84,13 @@ const RIGHT_TOP: DeskIcon[] = [
     label: 'MY NODE',
     locked: false,
     tip: 'My node — you in the network. Avatar, bio, skills, contact.',
+  },
+  {
+    id: 'contacts',
+    glyph: '☷',
+    label: 'CONTACTS',
+    locked: false,
+    tip: 'Contacts — lists, Follow, and Friend requests.',
   },
   {
     id: 'my-group',
@@ -159,6 +167,7 @@ export function DesktopIcons({
   onEvents,
   onHorizons,
   onMyHorizons,
+  onContacts,
 }: {
   active: ShellFeature
   onTerminal?: () => void
@@ -169,6 +178,7 @@ export function DesktopIcons({
   onEvents: () => void
   onHorizons: () => void
   onMyHorizons: () => void
+  onContacts: () => void
 }) {
   void onTerminal // TERM locked — optional for App compatibility
   const activate = (id: IconId, locked: boolean) => {
@@ -180,6 +190,7 @@ export function DesktopIcons({
     else if (id === 'events') onEvents()
     else if (id === 'horizons') onHorizons()
     else if (id === 'my-horizons') onMyHorizons()
+    else if (id === 'contacts') onContacts()
   }
 
   return (
