@@ -14,12 +14,29 @@ export function TerminalFrame({
   mode: InputMode
   children: ReactNode
 }) {
-  const { enterArmed, theme, cycleTheme, navUsed, graphOpen, toggleGraph } = useUi()
+  const { enterArmed, theme, cycleTheme, navUsed, graphOpen, toggleGraph, expanded, toggleExpanded } =
+    useUi()
   const poly = theme === 'polychrome'
 
   return (
-    <div className={`chrome-frame${poly ? ' poly-card' : ''}`}>
+    <div className={`chrome-frame${poly ? ' poly-card' : ''}${expanded ? ' is-expanded' : ''}`}>
       {poly && <PolychromeFX />}
+      <div className="win-controls">
+        <button
+          type="button"
+          className="win-btn"
+          onClick={toggleExpanded}
+          title={
+            expanded
+              ? 'Restore compact window'
+              : 'Expand window — larger terminal (desktop shell comes later)'
+          }
+          aria-label={expanded ? 'Restore compact window' : 'Expand window'}
+          aria-pressed={expanded}
+        >
+          <span className={`win-glyph ${expanded ? 'is-restore' : 'is-expand'}`} aria-hidden />
+        </button>
+      </div>
       <div className="terminal flicker">
         <div className="term-header">
           <span>HYPERNET v0.1 // PRE-ALPHA TERMINAL</span>

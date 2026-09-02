@@ -28,11 +28,29 @@ body {
 }
 
 .app {
+  --desk-icon: #111;
+  --desk-muted: #444;
+  --desk-lock-bg: #fff;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px 40px;
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.app.is-expanded {
+  padding: 0;
+}
+
+.app[data-theme='black'] {
+  --desk-icon: #e8e8e8;
+  --desk-muted: #9a9a9a;
+  --desk-lock-bg: #000;
+}
+
+.app[data-theme='polychrome'] {
+  --desk-icon: #111;
+  --desk-muted: #333;
+  --desk-lock-bg: #d8dde3;
 }
 
 /* ---- chrome module ----------------------------------------------------- */
@@ -40,8 +58,14 @@ body {
 .chrome-frame {
   position: relative;
   z-index: 1;
-  width: min(820px, 96vw);
+  display: flex;
+  flex-direction: column;
+  width: min(820px, 100%);
+  margin: 24px 16px 40px 8px;
+  justify-self: center;
+  align-self: center;
   padding: 22px;
+  transition: width 0.28s ease, height 0.28s ease, margin 0.28s ease;
   background: linear-gradient(
     180deg,
     #ffffff 0%,
@@ -61,6 +85,17 @@ body {
     inset -3px 0 0 rgba(10, 14, 18, 0.35),
     0 34px 60px -24px rgba(15, 20, 25, 0.5),
     0 12px 24px -12px rgba(15, 20, 25, 0.35);
+}
+
+.app.is-expanded .chrome-frame,
+.chrome-frame.is-expanded {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  margin: 10px 10px 10px 0;
+  justify-self: stretch;
+  align-self: stretch;
 }
 
 .chrome-frame::before {
@@ -86,6 +121,73 @@ body {
   outline: 1px solid rgba(20, 26, 32, 0.35);
 }
 
+/* ---- window expand (desktop bezel) ------------------------------------ */
+
+.win-controls {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  z-index: 4;
+  display: flex;
+  gap: 4px;
+}
+
+.win-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(20, 26, 32, 0.45);
+  background: linear-gradient(180deg, #f7f8fa 0%, #b4bac1 55%, #8e959d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(10, 14, 18, 0.25),
+    0 1px 0 rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  color: #1a1d22;
+}
+
+.win-btn:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #c5ccd3 55%, #9aa3ac 100%);
+}
+
+.win-btn:active {
+  background: linear-gradient(180deg, #8e959d 0%, #b4bac1 100%);
+  box-shadow: inset 0 1px 2px rgba(10, 14, 18, 0.35);
+}
+
+.win-glyph {
+  display: block;
+  pointer-events: none;
+}
+
+.win-glyph.is-expand {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid currentColor;
+}
+
+.win-glyph.is-restore {
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid currentColor;
+  margin: 2px 0 0 -1px;
+  position: relative;
+}
+
+.win-glyph.is-restore::before {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid currentColor;
+  top: -4px;
+  left: 3px;
+  background: #c5ccd3;
+}
+
 /* ---- the inset screen (black text on white) ----------------------------- */
 
 .terminal {
@@ -101,6 +203,12 @@ body {
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.1),
     inset 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.chrome-frame.is-expanded .terminal {
+  height: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .crt {
@@ -162,6 +270,12 @@ body {
 
 .form-layer.is-hidden {
   display: none;
+}
+
+.form-layer,
+.graph-overlay {
+  flex: 1;
+  min-height: 0;
 }
 
 .graph-overlay {
@@ -292,10 +406,127 @@ body {
 
 .term-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   padding: 22px 26px;
   scrollbar-width: thin;
   scrollbar-color: var(--fg-dim) transparent;
+  min-width: 0;
+}
+
+/* ---- desktop icons (on the backdrop, not inside the CRT) -------------- */
+
+.desktop-icons {
+  grid-column: 1;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-content: flex-start;
+  gap: 2px;
+  padding: 16px 4px 12px 8px;
+  overflow: visible;
+}
+
+.desk-icon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 88px;
+  padding: 6px 4px 4px;
+  font: inherit;
+  color: var(--desk-icon);
+  background: none;
+  border: 1px dotted transparent;
+  cursor: pointer;
+}
+
+.desk-icon:hover,
+.desk-icon:focus-visible {
+  border-color: var(--desk-icon);
+  outline: none;
+}
+
+.desk-icon.is-on .desk-label {
+  background: var(--desk-icon);
+  color: var(--desk-lock-bg);
+}
+
+.desk-icon.is-locked {
+  color: var(--desk-muted);
+  cursor: help;
+}
+
+.desk-glyph {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.desk-label {
+  max-width: 100%;
+  padding: 0 3px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  line-height: 1.15;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desk-lock {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 9px;
+  height: 8px;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  background: var(--desk-lock-bg);
+}
+
+.desk-lock::before {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: -4px;
+  width: 5px;
+  height: 4px;
+  border: 1px solid currentColor;
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+}
+
+.desk-icon[data-tip]:hover::after,
+.desk-icon[data-tip]:focus-visible::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  width: max-content;
+  max-width: 240px;
+  padding: 6px 10px;
+  border: 1px solid var(--desk-icon);
+  background: var(--desk-lock-bg);
+  color: var(--desk-icon);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+  box-shadow: 0 8px 18px -10px rgba(15, 20, 25, 0.45);
 }
 
 .term-status {
@@ -665,12 +896,24 @@ body {
   }
 
   .app {
+    grid-template-columns: 1fr;
     padding: 0;
+  }
+
+  .app.is-expanded {
+    padding: 0;
+  }
+
+  .desktop-icons {
+    display: none;
   }
 
   .chrome-frame {
     width: 100vw;
     height: 100dvh;
+    margin: 0;
+    justify-self: stretch;
+    align-self: stretch;
     padding: 10px;
     background: linear-gradient(
       180deg,
@@ -684,6 +927,17 @@ body {
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
       inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .app.is-expanded .chrome-frame,
+  .chrome-frame.is-expanded {
+    width: 100vw;
+    height: 100dvh;
+    margin: 0;
+  }
+
+  .win-controls {
+    display: none;
   }
 
   .chrome-frame::before {
@@ -782,6 +1036,23 @@ html[data-theme='black'] body {
     inset 3px 0 0 rgba(255, 255, 255, 0.2),
     inset -3px 0 0 rgba(0, 0, 0, 0.5),
     0 34px 60px -24px rgba(0, 0, 0, 0.75);
+}
+
+.app[data-theme='black'] .win-btn {
+  border-color: rgba(0, 0, 0, 0.7);
+  background: linear-gradient(180deg, #6a7078 0%, #2a2e34 55%, #12151a 100%);
+  color: #e8e8e8;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.app[data-theme='black'] .win-btn:hover {
+  background: linear-gradient(180deg, #7a8088 0%, #3a3e44 55%, #1a1d22 100%);
+}
+
+.app[data-theme='black'] .win-glyph.is-restore::before {
+  background: #3a3e44;
 }
 
 .app[data-theme='black'] .terminal {
@@ -1327,5 +1598,11 @@ html[data-theme='polychrome'] body {
   .net-toggle {
     font-size: 14px;
     padding: 6px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chrome-frame {
+    transition: none;
   }
 }

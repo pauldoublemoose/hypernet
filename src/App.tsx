@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { DesktopIcons, type ShellFeature } from './components/DesktopIcons'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
 import { AboutScreen } from './components/screens/AboutScreen'
 import { AdminGateScreen } from './components/screens/AdminGateScreen'
@@ -160,8 +161,18 @@ const CONTACT_FIELDS: Record<
   facebook: { question: 'FACEBOOK NAME:', key: 'facebook' },
 }
 
+function isAdminScreen(id: ScreenId) {
+  return id === 'admin' || id === 'adminGate'
+}
+
+function shellFeature(screen: ScreenId, graphOpen: boolean): ShellFeature {
+  if (graphOpen) return 'graph'
+  if (isAdminScreen(screen)) return 'admin'
+  return 'terminal'
+}
+
 export default function App() {
-  const { theme, graphOpen, setGraphOpen } = useUi()
+  const { theme, graphOpen, setGraphOpen, expanded } = useUi()
   const [answers, setAnswers] = useState<Answers>(initialAnswers)
   // Rebuild when the overlay opens so admin ghost changes apply immediately.
   const graphData = useMemo(() => buildGraphData(answers), [answers, graphOpen])
@@ -489,8 +500,29 @@ export default function App() {
       break
   }
 
+  const openTerminal = () => {
+    setGraphOpen(false)
+    if (isAdminScreen(screen)) {
+      setScreen('welcome')
+      setHistory([])
+    }
+  }
+
+  const openGraph = () => setGraphOpen(true)
+
+  const openAdmin = () => {
+    setGraphOpen(false)
+    if (!isAdminScreen(screen)) go('adminGate')
+  }
+
   return (
-    <div className="app" data-theme={theme}>
+    <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
+      <DesktopIcons
+        active={shellFeature(screen, graphOpen)}
+        onTerminal={openTerminal}
+        onGraph={openGraph}
+        onAdmin={openAdmin}
+      />
       <TerminalFrame section={SECTION[screen]} mode={mode}>
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
           {content}

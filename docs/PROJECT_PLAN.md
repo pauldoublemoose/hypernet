@@ -376,6 +376,8 @@ The codebase already has:
 
 **Do not introduce new visual patterns** until the core screens feel consistent. Prefer full-viewport layouts over cramped terminal panes.
 
+**Near-term shell (pre-alpha):** Compact CRT window stays the default, sitting on a desktop backdrop. Feature icons live on that backdrop (not inside the chrome). Desktop users can expand the window from a corner control; the expanded window leaves the left icon column visible. Unlocked icons open existing screens; locked icons are planned. A full Win95-style multi-window shell is deferred.
+
 ### Step 4: Product owner review gate
 
 Before merging any UI PR:

@@ -28,6 +28,9 @@ interface UiCtx {
   graphOpen: boolean
   toggleGraph: () => void
   setGraphOpen: (v: boolean) => void
+  /** Desktop-only: enlarge the CRT window. Default remains the compact frame. */
+  expanded: boolean
+  toggleExpanded: () => void
 }
 
 const UiContext = createContext<UiCtx | null>(null)
@@ -37,6 +40,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(loadTheme)
   const [navUsed, setNavUsed] = useState(false)
   const [graphOpen, setGraphOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -88,6 +92,8 @@ export function UiProvider({ children }: { children: ReactNode }) {
         graphOpen,
         toggleGraph: () => setGraphOpen((g) => !g),
         setGraphOpen,
+        expanded,
+        toggleExpanded: () => setExpanded((v) => !v),
       }}
     >
       {children}
