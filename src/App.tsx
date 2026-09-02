@@ -18,6 +18,7 @@ import { EventsScreen } from './components/screens/EventsScreen'
 import { HorizonsScreen } from './components/screens/HorizonsScreen'
 import { MyHorizonsScreen } from './components/screens/MyHorizonsScreen'
 import { ContactsScreen } from './components/screens/ContactsScreen'
+import { TerminalScreen } from './components/screens/TerminalScreen'
 import { ensureDefaultHorizon } from './lib/horizonStore'
 import { loadProfile } from './lib/profileStore'
 import { TextScreen } from './components/screens/TextScreen'
@@ -78,6 +79,7 @@ type ScreenId =
   | 'horizons'
   | 'myHorizons'
   | 'contacts'
+  | 'terminal'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -108,6 +110,7 @@ const SECTION: Record<ScreenId, string> = {
   horizons: 'H :: HORIZONS',
   myHorizons: 'MH :: MY HORIZONS',
   contacts: 'C :: CONTACTS',
+  terminal: 'T :: TERMINAL',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -194,6 +197,7 @@ function shellFeature(screen: ScreenId, graphOpen: boolean): ShellFeature {
   if (screen === 'horizons') return 'horizons'
   if (screen === 'myHorizons') return 'my-horizons'
   if (screen === 'contacts') return 'contacts'
+  if (screen === 'terminal') return 'terminal'
   return 'terminal'
 }
 
@@ -309,7 +313,7 @@ export default function App() {
         <WelcomeScreen
           key="welcome"
           onSignup={() => go('preStatus')}
-          onSignIn={() => go('events')}
+          onSignIn={() => go('terminal')}
           onAbout={() => go('about')}
           onAdmin={() => go('adminGate')}
           setMode={setMode}
@@ -557,6 +561,16 @@ export default function App() {
     case 'contacts':
       content = <ContactsScreen key="contacts" onBack={back} />
       break
+    case 'terminal':
+      content = (
+        <TerminalScreen key="terminal" onBack={back} setMode={setMode} />
+      )
+      break
+  }
+
+  const openTerminal = () => {
+    setGraphOpen(false)
+    if (screen !== 'terminal') go('terminal')
   }
 
   const openGraph = () => setGraphOpen(true)
@@ -602,6 +616,7 @@ export default function App() {
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
         active={shellFeature(screen, graphOpen)}
+        onTerminal={openTerminal}
         onGraph={openGraph}
         onAdmin={openAdmin}
         onProfile={openProfile}

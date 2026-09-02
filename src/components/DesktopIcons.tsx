@@ -23,9 +23,14 @@ type DeskIcon = {
   tip: string
 }
 
-/* TERM future tabs (no UI yet): 1 Global Chat, 2 Global Updates, 3 Update log (Hypernet), 4 About */
-
 const LEFT_ICONS: DeskIcon[] = [
+  {
+    id: 'terminal',
+    glyph: '▮',
+    label: 'Terminal',
+    locked: false,
+    tip: 'Terminal — Help, Global Chat, Updates, Update log, About.',
+  },
   {
     id: 'groups',
     glyph: '▦',
@@ -67,13 +72,6 @@ const LEFT_ICONS: DeskIcon[] = [
     label: 'LOG',
     locked: true,
     tip: 'Chronicle — your event history and roles. Coming soon.',
-  },
-  {
-    id: 'terminal',
-    glyph: '▮',
-    label: 'TERM',
-    locked: true,
-    tip: 'TERM locked for now. Later tabs: Global Chat, Global Updates, Update log, About.',
   },
 ]
 
@@ -180,10 +178,10 @@ export function DesktopIcons({
   onMyHorizons: () => void
   onContacts: () => void
 }) {
-  void onTerminal // TERM locked — optional for App compatibility
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
-    if (id === 'graph') onGraph()
+    if (id === 'terminal') onTerminal?.()
+    else if (id === 'graph') onGraph()
     else if (id === 'admin') onAdmin()
     else if (id === 'profile') onProfile()
     else if (id === 'settings') onSettings()
