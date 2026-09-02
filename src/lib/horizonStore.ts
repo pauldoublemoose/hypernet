@@ -3,14 +3,13 @@
 import {
   areFriendsBetween,
   ensureSeedFriendshipGraph,
-  isFriendOfFriend,
   selfId,
   viewerOnAnyList,
 } from './contactsStore'
 
 export type EventRole = 'guest' | 'co-creator' | 'sponsor' | 'admin'
 export type AttendStatus = 'interested' | 'going'
-export type EventPrivacy = 'public' | 'private' | 'friends_of_friends' | 'lists'
+export type EventPrivacy = 'only_me' | 'friends' | 'contacts' | 'everyone'
 
 export interface HyperEvent {
   id: string
@@ -23,7 +22,7 @@ export interface HyperEvent {
   /** Profile ids that own the event. Creator (`self`) always included. */
   ownerIds: string[]
   privacy: EventPrivacy
-  /** When privacy === 'lists', one or more contact list ids. */
+  /** When privacy === 'contacts', one or more contact list ids. */
   privacyListIds: string[]
 }
 
@@ -73,10 +72,30 @@ function writeJson(key: string, value: unknown) {
   }
 }
 
+/** Map legacy privacy strings → current enum. Defaults to everyone. */
+export function migratePrivacy(raw: string | undefined | null): EventPrivacy {
+  switch (raw) {
+    case 'only_me':
+    case 'friends':
+    case 'contacts':
+    case 'everyone':
+      return raw
+    case 'private':
+      return 'only_me'
+    case 'public':
+      return 'everyone'
+    case 'friends_of_friends':
+      return 'friends'
+    case 'lists':
+      return 'contacts'
+    default:
+      return 'everyone'
+  }
+}
+
 /** Migrate legacy events missing owner/privacy fields. */
 export function normalizeEvent(raw: Partial<HyperEvent> & Pick<HyperEvent, 'id' | 'title'>): HyperEvent {
-  const privacy = (raw.privacy as EventPrivacy | undefined) ?? 'public'
-  const valid: EventPrivacy[] = ['public', 'private', 'friends_of_friends', 'lists']
+  const privacy = migratePrivacy(raw.privacy as string | undefined)
   return {
     id: raw.id,
     title: raw.title ?? '',
@@ -86,7 +105,7 @@ export function normalizeEvent(raw: Partial<HyperEvent> & Pick<HyperEvent, 'id' 
     hostName: raw.hostName ?? 'You',
     createdAt: raw.createdAt ?? new Date().toISOString(),
     ownerIds: raw.ownerIds?.length ? [...raw.ownerIds] : [selfId()],
-    privacy: valid.includes(privacy) ? privacy : 'public',
+    privacy,
     privacyListIds: Array.isArray(raw.privacyListIds) ? [...raw.privacyListIds] : [],
   }
 }
@@ -104,8 +123,13 @@ export function loadEvents(): HyperEvent[] {
     .filter((e) => e && typeof e.id === 'string' && typeof e.title === 'string')
     .map((e) => normalizeEvent(e as Partial<HyperEvent> & Pick<HyperEvent, 'id' | 'title'>))
   // Persist migration when any event was missing fields
+  const legacyPrivacy = new Set(['public', 'private', 'friends_of_friends', 'lists'])
   const needsWrite = raw.some(
-    (e) => !e?.ownerIds?.length || e.privacy == null || !Array.isArray(e.privacyListIds),
+    (e) =>
+      !e?.ownerIds?.length ||
+      e.privacy == null ||
+      !Array.isArray(e.privacyListIds) ||
+      (typeof e.privacy === 'string' && legacyPrivacy.has(e.privacy)),
   )
   if (needsWrite && events.length) saveEvents(events)
   return events
@@ -165,9 +189,9 @@ export function createEvent(input: {
   privacy?: EventPrivacy
   privacyListIds?: string[]
 }): HyperEvent {
-  const privacy: EventPrivacy = input.privacy ?? 'public'
+  const privacy: EventPrivacy = migratePrivacy(input.privacy ?? 'everyone')
   const privacyListIds =
-    privacy === 'lists' ? [...new Set((input.privacyListIds ?? []).filter(Boolean))] : []
+    privacy === 'contacts' ? [...new Set((input.privacyListIds ?? []).filter(Boolean))] : []
   const event: HyperEvent = {
     id: uid('evt'),
     title: input.title.trim(),
@@ -199,7 +223,7 @@ export function updateEvent(
   const idx = events.findIndex((e) => e.id === id)
   if (idx < 0) return undefined
   const prev = events[idx]
-  const privacy = patch.privacy ?? prev.privacy
+  const privacy = migratePrivacy(patch.privacy ?? prev.privacy)
   const next: HyperEvent = {
     ...prev,
     ...patch,
@@ -210,7 +234,7 @@ export function updateEvent(
     ownerIds: ensureCreatorOwner(patch.ownerIds ?? prev.ownerIds),
     privacy,
     privacyListIds:
-      privacy === 'lists'
+      privacy === 'contacts'
         ? [...new Set((patch.privacyListIds ?? prev.privacyListIds).filter(Boolean))]
         : [],
   }
@@ -235,20 +259,15 @@ export function canViewerSeeEvent(event: HyperEvent, viewerId: string = selfId()
   const e = normalizeEvent(event)
   if (e.ownerIds.includes(viewerId)) return true
   switch (e.privacy) {
-    case 'public':
+    case 'everyone':
       return true
-    case 'private':
+    case 'only_me':
       return false
-    case 'friends_of_friends':
-      return e.ownerIds.some((oid) => {
-        if (oid === viewerId) return true
-        if (areFriendsBetween(viewerId, oid)) return true
-        return isFriendOfFriend(oid, viewerId)
-      })
-    case 'lists': {
-      // Lists hold contact person ids; self is rarely a member — owners still see.
+    case 'friends':
+      return e.ownerIds.some((oid) => areFriendsBetween(viewerId, oid))
+    case 'contacts':
+      // Contact lists hold person ids; owners already returned true above.
       return viewerOnAnyList(e.privacyListIds, viewerId)
-    }
     default:
       return true
   }
@@ -346,15 +365,15 @@ export function formatEventDate(isoDay: string): string {
 }
 
 export function privacyLabel(privacy: EventPrivacy): string {
-  switch (privacy) {
-    case 'public':
-      return 'Public'
-    case 'private':
-      return 'Private (owners only)'
-    case 'friends_of_friends':
-      return 'Friends of friends'
-    case 'lists':
-      return 'Contact lists'
+  switch (migratePrivacy(privacy)) {
+    case 'only_me':
+      return 'only me'
+    case 'friends':
+      return 'friends'
+    case 'contacts':
+      return 'contacts'
+    case 'everyone':
+      return 'everyone'
     default:
       return privacy
   }

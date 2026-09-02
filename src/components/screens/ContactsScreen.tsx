@@ -145,8 +145,8 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
         </section>
 
         <section className="hz-panel">
-          <h3 className="profile-section-title">Add to lists</h3>
-          <p className="dim hz-lead">Pick one or more tags/lists for this person</p>
+          <h3 className="profile-section-title">Add to contact lists</h3>
+          <p className="dim hz-lead">Pick one or more contact lists for this person</p>
           <div className="hz-checks">
             {lists.map((l) => (
               <label key={l.id} className="hz-check">
@@ -176,7 +176,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
                 refresh()
               }}
             >
-              Save lists
+              Save contact lists
             </button>
           </div>
         </section>
@@ -194,7 +194,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
     <div className="screen hz-screen">
       <div className="title">C :: CONTACTS</div>
       <p className="dim hz-lead">
-        Lists + Follow (no accept) + Friend (request → accept). Local demo people until real profiles.
+        Contact lists + Follow (no accept) + Friend (request → accept). Local demo people until real profiles.
       </p>
 
       <div className="btn-row hz-tabs">
@@ -202,7 +202,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
           People
         </button>
         <button type="button" className={`privacy-btn${tab === 'lists' ? ' is-on' : ''}`} onClick={() => setTab('lists')}>
-          Lists
+          Contact lists
         </button>
         <button type="button" className={`privacy-btn${tab === 'requests' ? ' is-on' : ''}`} onClick={() => setTab('requests')}>
           Requests{incoming.length ? ` (${incoming.length})` : ''}
@@ -231,7 +231,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
       {tab === 'lists' && (
         <>
           <label className="hz-field">
-            <span>New list</span>
+            <span>New contact list</span>
             <input className="profile-input" value={newListName} onChange={(e) => setNewListName(e.target.value)} placeholder="e.g. Sound team" />
           </label>
           <div className="btn-row">
@@ -245,7 +245,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
                 refresh()
               }}
             >
-              Create list
+              Create contact list
             </button>
           </div>
           <ul className="hz-list" style={{ marginTop: 12 }}>
@@ -256,7 +256,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
               </li>
             ))}
           </ul>
-          <p className="dim hz-lead">Open a person under People to assign lists.</p>
+          <p className="dim hz-lead">Open a person under People to assign contact lists.</p>
         </>
       )}
 

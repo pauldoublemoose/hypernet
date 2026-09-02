@@ -309,6 +309,7 @@ export default function App() {
         <WelcomeScreen
           key="welcome"
           onSignup={() => go('preStatus')}
+          onSignIn={() => go('events')}
           onAbout={() => go('about')}
           onAdmin={() => go('adminGate')}
           setMode={setMode}

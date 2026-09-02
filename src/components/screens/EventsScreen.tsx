@@ -31,10 +31,10 @@ import type { Answers } from '../../types'
 const ROLES: EventRole[] = ['guest', 'co-creator', 'sponsor', 'admin']
 
 const PRIVACY_OPTIONS: { value: EventPrivacy; label: string; hint: string }[] = [
-  { value: 'public', label: 'Public', hint: 'Everyone can see' },
-  { value: 'private', label: 'Private', hint: 'Owners only' },
-  { value: 'friends_of_friends', label: 'Friends of friends', hint: 'Friends + FoF of owners' },
-  { value: 'lists', label: 'Lists', hint: 'People on selected contact lists' },
+  { value: 'only_me', label: 'only me', hint: 'Owners only' },
+  { value: 'friends', label: 'friends', hint: 'Owners or friends of an owner' },
+  { value: 'contacts', label: 'contacts', hint: 'Owners or people on selected contact lists' },
+  { value: 'everyone', label: 'everyone', hint: 'Everyone can see' },
 ]
 
 function ownerCandidates(): ContactPerson[] {
@@ -78,7 +78,7 @@ export function EventsScreen({
   const [description, setDescription] = useState('')
   const [externalUrl, setExternalUrl] = useState('')
   const [ownerIds, setOwnerIds] = useState<string[]>([selfId()])
-  const [privacy, setPrivacy] = useState<EventPrivacy>('public')
+  const [privacy, setPrivacy] = useState<EventPrivacy>('everyone')
   const [privacyListIds, setPrivacyListIds] = useState<string[]>([])
   const [role, setRole] = useState<EventRole>('guest')
   const [addHz, setAddHz] = useState('')
@@ -107,7 +107,7 @@ export function EventsScreen({
     setDescription('')
     setExternalUrl('')
     setOwnerIds([selfId()])
-    setPrivacy('public')
+    setPrivacy('everyone')
     setPrivacyListIds([])
   }
 
@@ -146,7 +146,7 @@ export function EventsScreen({
       hostName,
       ownerIds,
       privacy,
-      privacyListIds: privacy === 'lists' ? privacyListIds : [],
+      privacyListIds: privacy === 'contacts' ? privacyListIds : [],
     })
     setCreating(false)
     resetForm()
@@ -163,7 +163,7 @@ export function EventsScreen({
       externalUrl,
       ownerIds,
       privacy,
-      privacyListIds: privacy === 'lists' ? privacyListIds : [],
+      privacyListIds: privacy === 'contacts' ? privacyListIds : [],
     })
     setEditing(false)
     refresh()
@@ -250,11 +250,11 @@ export function EventsScreen({
             </label>
           ))}
         </div>
-        {privacy === 'lists' ? (
+        {privacy === 'contacts' ? (
           <div className="hz-checks" style={{ marginTop: 8 }}>
-            <p className="dim hz-lead">Visible to members of these lists (and owners)</p>
+            <p className="dim hz-lead">Visible to members of these contact lists (and owners)</p>
             {lists.length === 0 ? (
-              <p className="dim">No lists yet — create some in Contacts</p>
+              <p className="dim">No contact lists yet — create some in My Contacts</p>
             ) : (
               lists.map((l: ContactList) => (
                 <label key={l.id} className="hz-check">
@@ -316,7 +316,7 @@ export function EventsScreen({
       .map((id) => (id === selfId() ? 'You' : getPerson(id)?.displayName ?? id))
       .join(', ')
     const listNames =
-      viewing.privacy === 'lists'
+      viewing.privacy === 'contacts'
         ? lists
             .filter((l) => viewing.privacyListIds.includes(l.id))
             .map((l) => l.name)
@@ -332,7 +332,7 @@ export function EventsScreen({
         </p>
         <p className="hz-meta dim">
           {privacyLabel(viewing.privacy)}
-          {viewing.privacy === 'lists' && listNames ? ` · ${listNames}` : ''}
+          {viewing.privacy === 'contacts' && listNames ? ` · ${listNames}` : ''}
           {' · '}
           owners: {ownerNames}
         </p>

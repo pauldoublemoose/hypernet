@@ -29,9 +29,9 @@ const LEFT_ICONS: DeskIcon[] = [
   {
     id: 'groups',
     glyph: '▦',
-    label: 'GROUPS',
+    label: 'My Groups',
     locked: true,
-    tip: 'Groups — a camp, crew, or collective. Coming soon.',
+    tip: 'My Groups — a camp, crew, or collective. Coming soon.',
   },
   {
     id: 'horizons',
@@ -88,16 +88,16 @@ const RIGHT_TOP: DeskIcon[] = [
   {
     id: 'contacts',
     glyph: '☷',
-    label: 'CONTACTS',
+    label: 'My Contacts',
     locked: false,
-    tip: 'Contacts — lists, Follow, and Friend requests.',
+    tip: 'My Contacts — contact lists, Follow, and Friend requests.',
   },
   {
     id: 'my-group',
     glyph: '▤',
-    label: 'MY GROUP',
+    label: 'My Groups',
     locked: true,
-    tip: 'My group — your camp or crew hub. Coming soon.',
+    tip: 'My Groups — your camp or crew hub. Coming soon.',
   },
   {
     id: 'my-horizons',

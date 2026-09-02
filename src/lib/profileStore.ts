@@ -102,6 +102,22 @@ function fillBlanks(profile: ProfileData, answers: Answers): ProfileData {
 }
 
 /** Load the local profile, filling empty fields from signup answers when present. */
+/** True if this browser already has a saved local profile (returning user). */
+export function hasSavedProfile(): boolean {
+  const stored = readStored()
+  if (!stored) return false
+  return Boolean(
+    (stored.displayName && stored.displayName.trim()) ||
+      (stored.bio && stored.bio.trim()) ||
+      (stored.email && stored.email.trim()) ||
+      (stored.phone && stored.phone.trim()) ||
+      (stored.discord && stored.discord.trim()) ||
+      (stored.facebook && stored.facebook.trim()) ||
+      (stored.skillsText && stored.skillsText.trim()) ||
+      stored.avatarDataUrl,
+  )
+}
+
 export function loadProfile(answers: Answers): ProfileData {
   const stored = readStored()
   const base = stored
