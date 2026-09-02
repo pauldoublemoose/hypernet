@@ -473,14 +473,16 @@ body {
 
 .desk-label {
   max-width: 100%;
-  padding: 0 3px;
-  font-size: 13px;
-  letter-spacing: 1px;
+  padding: 0 2px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
   line-height: 1.15;
   text-align: center;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
 }
 
 .desk-lock {
@@ -1588,6 +1590,231 @@ html[data-theme='polychrome'] body {
 .net-legend {
   font-size: 14px;
   letter-spacing: 1px;
+}
+
+/* ---- profile page ----------------------------------------------------- */
+
+.profile-screen {
+  gap: 14px;
+}
+
+.profile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-save {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--fg-dim);
+}
+
+.profile-save.is-flash {
+  color: var(--fg);
+}
+
+.profile-oneliner {
+  letter-spacing: 1px;
+}
+
+.profile-hero {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-avatar {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+  color: var(--fg);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 28px;
+  letter-spacing: 2px;
+}
+
+.profile-hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-name-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-name-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--border);
+  outline: none;
+  color: var(--fg);
+  font: inherit;
+  font-size: 26px;
+  letter-spacing: 2px;
+  caret-color: var(--fg);
+}
+
+.profile-place {
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.profile-hero-privacy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.app.is-expanded .profile-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 12px 14px;
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+
+.profile-section.is-wide {
+  grid-column: 1 / -1;
+}
+
+.profile-section.is-private {
+  border-style: dashed;
+}
+
+.profile-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.profile-section-title {
+  font-size: 16px;
+  font-weight: normal;
+  letter-spacing: 2px;
+  color: var(--fg);
+}
+
+.profile-explain {
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  color: var(--fg-dim);
+  margin-top: 2px;
+}
+
+.profile-private-note {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--fg-dim);
+}
+
+.privacy-toggle {
+  display: flex;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.privacy-btn {
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: none;
+  border: none;
+  color: var(--fg-dim);
+  cursor: pointer;
+  padding: 2px 8px;
+}
+
+.privacy-btn.is-on {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.app.is-expanded .profile-contact-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 20px;
+}
+
+.app.is-expanded .profile-contact-fields .profile-field {
+  margin-top: 0;
+}
+
+.profile-chronicle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 88px;
+  padding: 12px;
+  border: 1px dashed var(--border);
+}
+
+.profile-chronicle-empty {
+  letter-spacing: 3px;
+  color: var(--fg-dim);
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .profile-hero {
+    flex-direction: column;
+  }
+
+  .profile-avatar {
+    width: 88px;
+    height: 88px;
+  }
+
+  .profile-section-head {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 700px), (pointer: coarse) {

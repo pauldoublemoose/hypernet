@@ -12,6 +12,7 @@ import { MultiScreen } from './components/screens/MultiScreen'
 import { ReviewScreen, type ReviewTarget } from './components/screens/ReviewScreen'
 import { SkillsScreen } from './components/screens/SkillsScreen'
 import { PhoneScreen } from './components/screens/PhoneScreen'
+import { ProfileScreen } from './components/screens/ProfileScreen'
 import { TextScreen } from './components/screens/TextScreen'
 import { ThanksScreen } from './components/screens/ThanksScreen'
 import { WelcomeScreen } from './components/screens/WelcomeScreen'
@@ -64,6 +65,7 @@ type ScreenId =
   | 'thanks'
   | 'adminGate'
   | 'admin'
+  | 'profile'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -88,6 +90,7 @@ const SECTION: Record<ScreenId, string> = {
   thanks: '6 :: COMPLETE',
   adminGate: 'A :: ACCESS',
   admin: 'A :: LEDGER',
+  profile: 'P :: NODE',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -165,9 +168,14 @@ function isAdminScreen(id: ScreenId) {
   return id === 'admin' || id === 'adminGate'
 }
 
+function isShellScreen(id: ScreenId) {
+  return isAdminScreen(id) || id === 'profile'
+}
+
 function shellFeature(screen: ScreenId, graphOpen: boolean): ShellFeature {
   if (graphOpen) return 'graph'
   if (isAdminScreen(screen)) return 'admin'
+  if (screen === 'profile') return 'profile'
   return 'terminal'
 }
 
@@ -498,11 +506,22 @@ export default function App() {
     case 'thanks':
       content = <ThanksScreen key="thanks" answers={answers} setMode={setMode} />
       break
+    case 'profile':
+      content = (
+        <ProfileScreen
+          key="profile"
+          answers={answers}
+          locations={answers.locations.map((l) => `${l.city}, ${l.country}`).join(' · ')}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+      break
   }
 
   const openTerminal = () => {
     setGraphOpen(false)
-    if (isAdminScreen(screen)) {
+    if (isShellScreen(screen)) {
       setScreen('welcome')
       setHistory([])
     }
@@ -515,6 +534,11 @@ export default function App() {
     if (!isAdminScreen(screen)) go('adminGate')
   }
 
+  const openProfile = () => {
+    setGraphOpen(false)
+    if (screen !== 'profile') go('profile')
+  }
+
   return (
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
@@ -522,6 +546,7 @@ export default function App() {
         onTerminal={openTerminal}
         onGraph={openGraph}
         onAdmin={openAdmin}
+        onProfile={openProfile}
       />
       <TerminalFrame section={SECTION[screen]} mode={mode}>
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>

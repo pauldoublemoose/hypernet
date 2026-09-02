@@ -1,6 +1,6 @@
 import { useUi } from '../ui'
 
-export type ShellFeature = 'terminal' | 'graph' | 'admin'
+export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile'
 
 type IconId =
   | 'terminal'
@@ -9,7 +9,7 @@ type IconId =
   | 'events'
   | 'horizons'
   | 'profile'
-  | 'skills'
+  | 'find'
   | 'chronicle'
   | 'admin'
   | 'theme'
@@ -62,15 +62,15 @@ const ICONS: DeskIcon[] = [
     id: 'profile',
     glyph: '◉',
     label: 'PROFILE',
-    locked: true,
-    tip: 'Profile — you in the network. Coming soon.',
+    locked: false,
+    tip: 'Profile — you in the network. Avatar, bio, skills, contact.',
   },
   {
-    id: 'skills',
-    glyph: '✱',
-    label: 'SKILLS',
+    id: 'find',
+    glyph: '※',
+    label: 'Find the others',
     locked: true,
-    tip: 'Skill search — find people by what they can do. Coming soon.',
+    tip: 'Find the others — search the network for people. Coming soon.',
   },
   {
     id: 'chronicle',
@@ -100,11 +100,13 @@ export function DesktopIcons({
   onTerminal,
   onGraph,
   onAdmin,
+  onProfile,
 }: {
   active: ShellFeature
   onTerminal: () => void
   onGraph: () => void
   onAdmin: () => void
+  onProfile: () => void
 }) {
   const { theme, cycleTheme } = useUi()
 
@@ -113,6 +115,7 @@ export function DesktopIcons({
     if (id === 'terminal') onTerminal()
     else if (id === 'graph') onGraph()
     else if (id === 'admin') onAdmin()
+    else if (id === 'profile') onProfile()
     else if (id === 'theme') cycleTheme()
   }
 
@@ -129,6 +132,7 @@ export function DesktopIcons({
             className={`desk-icon${item.locked ? ' is-locked' : ''}${on ? ' is-on' : ''}`}
             aria-current={on ? 'page' : undefined}
             aria-disabled={item.locked || undefined}
+            aria-label={item.tip}
             data-tip={tip}
             title={tip}
             onClick={() => activate(item.id, item.locked)}
