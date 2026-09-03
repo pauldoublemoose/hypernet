@@ -7,12 +7,12 @@ function rand(min: number, max: number) {
 
 /** Lightweight polychrome FX: beams at random intervals + static holo layers. */
 export function PolychromeFX() {
-  const { theme } = useUi()
+  const { theme, reduceMotion } = useUi()
   const laserRef = useRef<HTMLDivElement>(null)
   const scanRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (theme !== 'polychrome') return
+    if (theme !== 'polychrome' || reduceMotion) return
 
     let cancelled = false
     const timers: number[] = []
@@ -41,7 +41,7 @@ export function PolychromeFX() {
       cancelled = true
       timers.forEach((id) => window.clearTimeout(id))
     }
-  }, [theme])
+  }, [theme, reduceMotion])
 
   if (theme !== 'polychrome') return null
 
@@ -52,8 +52,12 @@ export function PolychromeFX() {
       <div className="poly-holo" aria-hidden />
       <div className="poly-shine" aria-hidden />
       {/* screen beams — fixed angles, random intervals */}
-      <div className="poly-laser" ref={laserRef} aria-hidden />
-      <div className="poly-scan" ref={scanRef} aria-hidden />
+      {!reduceMotion && (
+        <>
+          <div className="poly-laser" ref={laserRef} aria-hidden />
+          <div className="poly-scan" ref={scanRef} aria-hidden />
+        </>
+      )}
     </>
   )
 }

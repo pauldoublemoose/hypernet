@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { DesktopIcons, type ShellFeature } from './components/DesktopIcons'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
 import { AboutScreen } from './components/screens/AboutScreen'
 import { AdminGateScreen } from './components/screens/AdminGateScreen'
@@ -11,6 +12,15 @@ import { MultiScreen } from './components/screens/MultiScreen'
 import { ReviewScreen, type ReviewTarget } from './components/screens/ReviewScreen'
 import { SkillsScreen } from './components/screens/SkillsScreen'
 import { PhoneScreen } from './components/screens/PhoneScreen'
+import { ProfileScreen } from './components/screens/ProfileScreen'
+import { SettingsScreen } from './components/screens/SettingsScreen'
+import { EventsScreen } from './components/screens/EventsScreen'
+import { HorizonsScreen } from './components/screens/HorizonsScreen'
+import { MyHorizonsScreen } from './components/screens/MyHorizonsScreen'
+import { ContactsScreen } from './components/screens/ContactsScreen'
+import { TerminalScreen } from './components/screens/TerminalScreen'
+import { ensureDefaultHorizon } from './lib/horizonStore'
+import { loadProfile } from './lib/profileStore'
 import { TextScreen } from './components/screens/TextScreen'
 import { ThanksScreen } from './components/screens/ThanksScreen'
 import { WelcomeScreen } from './components/screens/WelcomeScreen'
@@ -63,6 +73,13 @@ type ScreenId =
   | 'thanks'
   | 'adminGate'
   | 'admin'
+  | 'profile'
+  | 'settings'
+  | 'events'
+  | 'horizons'
+  | 'myHorizons'
+  | 'contacts'
+  | 'terminal'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -87,6 +104,13 @@ const SECTION: Record<ScreenId, string> = {
   thanks: '6 :: COMPLETE',
   adminGate: 'A :: ACCESS',
   admin: 'A :: LEDGER',
+  profile: 'P :: NODE',
+  settings: 'S :: SETTINGS',
+  events: 'E :: EVENTS',
+  horizons: 'H :: HORIZONS',
+  myHorizons: 'MH :: MY HORIZONS',
+  contacts: 'C :: CONTACTS',
+  terminal: 'T :: TERMINAL',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -160,8 +184,25 @@ const CONTACT_FIELDS: Record<
   facebook: { question: 'FACEBOOK NAME:', key: 'facebook' },
 }
 
+function isAdminScreen(id: ScreenId) {
+  return id === 'admin' || id === 'adminGate'
+}
+
+function shellFeature(screen: ScreenId, graphOpen: boolean): ShellFeature {
+  if (graphOpen) return 'graph'
+  if (isAdminScreen(screen)) return 'admin'
+  if (screen === 'profile') return 'profile'
+  if (screen === 'settings') return 'settings'
+  if (screen === 'events') return 'events'
+  if (screen === 'horizons') return 'horizons'
+  if (screen === 'myHorizons') return 'my-horizons'
+  if (screen === 'contacts') return 'contacts'
+  if (screen === 'terminal') return 'terminal'
+  return 'terminal'
+}
+
 export default function App() {
-  const { theme, graphOpen, setGraphOpen } = useUi()
+  const { theme, graphOpen, setGraphOpen, expanded } = useUi()
   const [answers, setAnswers] = useState<Answers>(initialAnswers)
   // Rebuild when the overlay opens so admin ghost changes apply immediately.
   const graphData = useMemo(() => buildGraphData(answers), [answers, graphOpen])
@@ -272,6 +313,7 @@ export default function App() {
         <WelcomeScreen
           key="welcome"
           onSignup={() => go('preStatus')}
+          onSignIn={() => go('terminal')}
           onAbout={() => go('about')}
           onAdmin={() => go('adminGate')}
           setMode={setMode}
@@ -487,10 +529,103 @@ export default function App() {
     case 'thanks':
       content = <ThanksScreen key="thanks" answers={answers} setMode={setMode} />
       break
+    case 'profile':
+      content = (
+        <ProfileScreen
+          key="profile"
+          answers={answers}
+          locations={answers.locations.map((l) => `${l.city}, ${l.country}`).join(' · ')}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'settings':
+      content = <SettingsScreen key="settings" onBack={back} setMode={setMode} />
+      break
+    case 'events':
+      content = (
+        <EventsScreen key="events" answers={answers} onBack={back} />
+      )
+      break
+    case 'horizons':
+      content = (
+        <HorizonsScreen key="horizons" answers={answers} onBack={back} />
+      )
+      break
+    case 'myHorizons':
+      content = (
+        <MyHorizonsScreen key="myHorizons" answers={answers} onBack={back} />
+      )
+      break
+    case 'contacts':
+      content = <ContactsScreen key="contacts" onBack={back} />
+      break
+    case 'terminal':
+      content = (
+        <TerminalScreen key="terminal" onBack={back} setMode={setMode} />
+      )
+      break
+  }
+
+  const openTerminal = () => {
+    setGraphOpen(false)
+    if (screen !== 'terminal') go('terminal')
+  }
+
+  const openGraph = () => setGraphOpen(true)
+
+  const openAdmin = () => {
+    setGraphOpen(false)
+    if (!isAdminScreen(screen)) go('adminGate')
+  }
+
+  const openProfile = () => {
+    setGraphOpen(false)
+    if (screen !== 'profile') go('profile')
+  }
+
+  const openSettings = () => {
+    setGraphOpen(false)
+    if (screen !== 'settings') go('settings')
+  }
+
+  const openEvents = () => {
+    setGraphOpen(false)
+    if (screen !== 'events') go('events')
+  }
+
+  const openHorizons = () => {
+    setGraphOpen(false)
+    if (screen !== 'horizons') go('horizons')
+  }
+
+  const openMyHorizons = () => {
+    setGraphOpen(false)
+    const name = loadProfile(answers).displayName || answers.fullName || 'You'
+    ensureDefaultHorizon(name)
+    if (screen !== 'myHorizons') go('myHorizons')
+  }
+
+  const openContacts = () => {
+    setGraphOpen(false)
+    if (screen !== 'contacts') go('contacts')
   }
 
   return (
-    <div className="app" data-theme={theme}>
+    <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
+      <DesktopIcons
+        active={shellFeature(screen, graphOpen)}
+        onTerminal={openTerminal}
+        onGraph={openGraph}
+        onAdmin={openAdmin}
+        onProfile={openProfile}
+        onSettings={openSettings}
+        onEvents={openEvents}
+        onHorizons={openHorizons}
+        onMyHorizons={openMyHorizons}
+        onContacts={openContacts}
+      />
       <TerminalFrame section={SECTION[screen]} mode={mode}>
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
           {content}
