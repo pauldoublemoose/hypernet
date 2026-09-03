@@ -50,30 +50,36 @@ export function TerminalFrame({
         <div className="term-header">
           <span>HYPERNET v0.1 // PRE-ALPHA TERMINAL</span>
           <span className="header-right">
-            <button
-              type="button"
-              className="theme-btn"
-              onClick={cycleTheme}
-              title="Switch color mode (WHITE / BLACK / POLYCHROME)"
-            >
-              [{theme.toUpperCase()}]
-            </button>
-            <button
-              type="button"
-              className={`theme-btn${graphOpen ? ' on' : ''}`}
-              onClick={toggleGraph}
-              title={graphOpen ? 'Return to form' : 'Open network graph'}
-            >
-              [GRAPH]
-            </button>
+            {!statusCenter && (
+              <>
+                <button
+                  type="button"
+                  className="theme-btn"
+                  onClick={cycleTheme}
+                  title="Switch color mode (WHITE / BLACK / POLYCHROME)"
+                >
+                  [{theme.toUpperCase()}]
+                </button>
+                <button
+                  type="button"
+                  className={`theme-btn${graphOpen ? ' on' : ''}`}
+                  onClick={toggleGraph}
+                  title={graphOpen ? 'Return to form' : 'Open network graph'}
+                >
+                  [GRAPH]
+                </button>
+              </>
+            )}
             <span className="dim">[ {graphOpen ? '6 :: NETWORK' : section} ]</span>
           </span>
         </div>
         <div className="term-body">{children}</div>
         <div className={`term-status${navUsed || graphOpen ? '' : ' attn'}`}>
-          <span className={`mode-chip ${mode === 'TXT' && !graphOpen ? 'txt' : ''}`}>
-            {graphOpen ? '◆ NET' : mode === 'NAV' ? '◆ NAV' : '▮ TXT'}
-          </span>
+          {(graphOpen || !statusCenter) && (
+            <span className={`mode-chip ${mode === 'TXT' && !graphOpen ? 'txt' : ''}`}>
+              {graphOpen ? '◆ NET' : mode === 'NAV' ? '◆ NAV' : '▮ TXT'}
+            </span>
+          )}
           {!graphOpen && statusCenter ? (
             statusCenter
           ) : (

@@ -91,12 +91,6 @@ export function TerminalScreen({
 
   return (
     <div className="screen hz-screen">
-      <div className="title">T :: TERMINAL</div>
-      <p className="dim hz-lead">
-        Tabs live in the bottom status bar — Help, chat, network pulse, product log, and About. Esc /
-        Backspace to leave.
-      </p>
-
       {tab === 'help' && (
         <>
           <h2 className="hz-heading">How to use Hypernet</h2>
@@ -224,11 +218,6 @@ export function TerminalScreen({
         </>
       )}
 
-      <div className="profile-actions">
-        <button type="button" className="btn dim" onClick={onBack}>
-          Back
-        </button>
-      </div>
     </div>
   )
 }
