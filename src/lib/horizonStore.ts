@@ -3,9 +3,11 @@
 import {
   areFriendsBetween,
   ensureSeedFriendshipGraph,
+  getPerson,
   selfId,
   viewerOnAnyList,
 } from './contactsStore'
+import { getGroup, isGroupAdmin } from './groupsStore'
 
 export type EventRole = 'guest' | 'co-creator' | 'sponsor' | 'admin'
 export type AttendStatus = 'interested' | 'going'
@@ -21,6 +23,11 @@ export interface HyperEvent {
   createdAt: string
   /** Profile ids that own the event. Creator (`self`) always included. */
   ownerIds: string[]
+  /**
+   * Group ids that co-own / host the event (camp-style).
+   * Separate from `ownerIds` so profile ids stay unprefixed; migrate-friendly for later Supabase.
+   */
+  ownerGroupIds: string[]
   privacy: EventPrivacy
   /** When privacy === 'contacts', one or more contact list ids. */
   privacyListIds: string[]
@@ -37,6 +44,8 @@ export interface Horizon {
   ownerName: string
   eventIds: string[]
   createdAt: string
+  /** When set, this Horizon is owned by a Thin Group (admin-published). */
+  ownerGroupId?: string
 }
 
 export interface Attendance {
@@ -105,6 +114,9 @@ export function normalizeEvent(raw: Partial<HyperEvent> & Pick<HyperEvent, 'id' 
     hostName: raw.hostName ?? 'You',
     createdAt: raw.createdAt ?? new Date().toISOString(),
     ownerIds: raw.ownerIds?.length ? [...raw.ownerIds] : [selfId()],
+    ownerGroupIds: Array.isArray(raw.ownerGroupIds)
+      ? [...new Set(raw.ownerGroupIds.filter(Boolean))]
+      : [],
     privacy,
     privacyListIds: Array.isArray(raw.privacyListIds) ? [...raw.privacyListIds] : [],
   }
@@ -127,6 +139,7 @@ export function loadEvents(): HyperEvent[] {
   const needsWrite = raw.some(
     (e) =>
       !e?.ownerIds?.length ||
+      !Array.isArray(e.ownerGroupIds) ||
       e.privacy == null ||
       !Array.isArray(e.privacyListIds) ||
       (typeof e.privacy === 'string' && legacyPrivacy.has(e.privacy)),
@@ -179,6 +192,25 @@ export function ensureDefaultHorizon(ownerName: string): Horizon {
   return def
 }
 
+function cleanOwnerGroupIds(ids: string[] | undefined): string[] {
+  return [...new Set((ids ?? []).filter(Boolean))]
+}
+
+export function isEventOwner(event: HyperEvent, viewerId: string = selfId()): boolean {
+  const e = normalizeEvent(event)
+  if (e.ownerIds.includes(viewerId)) return true
+  return e.ownerGroupIds.some((gid) => isGroupAdmin(gid, viewerId))
+}
+
+export function eventOwnerLabels(event: HyperEvent): string {
+  const e = normalizeEvent(event)
+  const people = e.ownerIds.map((id) =>
+    id === selfId() ? 'You' : (getPerson(id)?.displayName ?? id),
+  )
+  const groups = e.ownerGroupIds.map((id) => getGroup(id)?.name ?? id)
+  return [...people, ...groups].join(', ')
+}
+
 export function createEvent(input: {
   title: string
   date: string
@@ -186,6 +218,7 @@ export function createEvent(input: {
   externalUrl: string
   hostName: string
   ownerIds?: string[]
+  ownerGroupIds?: string[]
   privacy?: EventPrivacy
   privacyListIds?: string[]
 }): HyperEvent {
@@ -201,6 +234,7 @@ export function createEvent(input: {
     hostName: input.hostName.trim() || 'You',
     createdAt: new Date().toISOString(),
     ownerIds: ensureCreatorOwner(input.ownerIds ?? [selfId()]),
+    ownerGroupIds: cleanOwnerGroupIds(input.ownerGroupIds),
     privacy,
     privacyListIds,
   }
@@ -215,7 +249,15 @@ export function updateEvent(
   patch: Partial<
     Pick<
       HyperEvent,
-      'title' | 'date' | 'description' | 'externalUrl' | 'hostName' | 'ownerIds' | 'privacy' | 'privacyListIds'
+      | 'title'
+      | 'date'
+      | 'description'
+      | 'externalUrl'
+      | 'hostName'
+      | 'ownerIds'
+      | 'ownerGroupIds'
+      | 'privacy'
+      | 'privacyListIds'
     >
   >,
 ): HyperEvent | undefined {
@@ -232,6 +274,7 @@ export function updateEvent(
     externalUrl: patch.externalUrl != null ? patch.externalUrl.trim() : prev.externalUrl,
     hostName: patch.hostName != null ? (patch.hostName.trim() || prev.hostName) : prev.hostName,
     ownerIds: ensureCreatorOwner(patch.ownerIds ?? prev.ownerIds),
+    ownerGroupIds: cleanOwnerGroupIds(patch.ownerGroupIds ?? prev.ownerGroupIds),
     privacy,
     privacyListIds:
       privacy === 'contacts'
@@ -257,7 +300,7 @@ export function getEvent(id: string): HyperEvent | undefined {
 export function canViewerSeeEvent(event: HyperEvent, viewerId: string = selfId()): boolean {
   ensureSeedFriendshipGraph()
   const e = normalizeEvent(event)
-  if (e.ownerIds.includes(viewerId)) return true
+  if (isEventOwner(e, viewerId)) return true
   switch (e.privacy) {
     case 'everyone':
       return true
@@ -282,16 +325,20 @@ export function createHorizon(input: {
   description: string
   ownerName: string
   isPublished: boolean
+  ownerGroupId?: string
 }): Horizon {
+  const ownerGroupId = input.ownerGroupId?.trim() || undefined
+  const groupName = ownerGroupId ? getGroup(ownerGroupId)?.name : undefined
   const horizon: Horizon = {
     id: uid('hz'),
     name: input.name.trim(),
     description: input.description.trim(),
     isPersonalDefault: false,
     isPublished: input.isPublished,
-    ownerName: input.ownerName.trim() || 'You',
+    ownerName: groupName || input.ownerName.trim() || 'You',
     eventIds: [],
     createdAt: new Date().toISOString(),
+    ownerGroupId,
   }
   const horizons = loadHorizons()
   horizons.push(horizon)
@@ -348,6 +395,14 @@ export function eventsForHorizon(horizon: Horizon): HyperEvent[] {
 
 export function publishedHorizons(): Horizon[] {
   return loadHorizons().filter((h) => h.isPublished && !h.isPersonalDefault)
+}
+
+export function eventsHostedByGroup(groupId: string): HyperEvent[] {
+  return visibleEvents().filter((e) => e.ownerGroupIds.includes(groupId))
+}
+
+export function horizonsOwnedByGroup(groupId: string): Horizon[] {
+  return loadHorizons().filter((h) => h.ownerGroupId === groupId)
 }
 
 export function myHorizons(): Horizon[] {

@@ -8,6 +8,7 @@ import {
   loadHorizons,
   type Horizon,
 } from '../../lib/horizonStore'
+import { groupsIAdmin } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
 
@@ -28,6 +29,8 @@ export function HorizonsScreen({
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [ownerGroupId, setOwnerGroupId] = useState('')
+  const adminGroups = groupsIAdmin()
 
   useKeys((e) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -45,7 +48,7 @@ export function HorizonsScreen({
     return (
       <div className="screen hz-screen">
         <div className="title">H :: PUBLISH HORIZON</div>
-        <p className="dim hz-lead">A shared calendar others can follow · profile-owned</p>
+        <p className="dim hz-lead">A shared calendar others can follow · profile or a group you admin</p>
         <label className="hz-field">
           <span>Name</span>
           <input className="profile-input" value={name} onChange={(e) => setName(e.target.value)} />
@@ -54,16 +57,36 @@ export function HorizonsScreen({
           <span>Description</span>
           <textarea className="profile-input profile-textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
         </label>
+        {adminGroups.length > 0 ? (
+          <label className="hz-field">
+            <span>Owner</span>
+            <select className="profile-input" value={ownerGroupId} onChange={(e) => setOwnerGroupId(e.target.value)}>
+              <option value="">Your profile</option>
+              {adminGroups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name} (group)
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <div className="profile-actions">
           <button
             type="button"
             className="btn"
             disabled={!name.trim()}
             onClick={() => {
-              const h = createHorizon({ name, description, ownerName, isPublished: true })
+              const h = createHorizon({
+                name,
+                description,
+                ownerName,
+                isPublished: true,
+                ownerGroupId: ownerGroupId || undefined,
+              })
               setCreating(false)
               setName('')
               setDescription('')
+              setOwnerGroupId('')
               setTick((n) => n + 1)
               setViewId(h.id)
             }}
@@ -84,7 +107,10 @@ export function HorizonsScreen({
       <div className="screen hz-screen">
         <div className="title">H :: HORIZON</div>
         <h2 className="hz-heading">{viewing.name}</h2>
-        <p className="hz-meta dim">by {viewing.ownerName} · published</p>
+        <p className="hz-meta dim">
+          by {viewing.ownerName}
+          {viewing.ownerGroupId ? ' · group' : ''} · published
+        </p>
         {viewing.description ? <p className="profile-view-text">{viewing.description}</p> : null}
         <h3 className="profile-section-title">Events on this Horizon</h3>
         {evs.length === 0 ? (

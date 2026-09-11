@@ -19,10 +19,20 @@ const GLOBAL_UPDATES = [
   { when: '12m ago', text: 'New event published: Deep Listening Lab · Stockholm.' },
   { when: '1h ago', text: 'Horizon “Baltic Circuit” added three dates.' },
   { when: 'yesterday', text: '@nova and @ember are now Friends.' },
+  { when: 'just now', text: 'Thin Groups unlocked — browse the directory or create a camp.' },
   { when: '2d ago', text: 'New Group pending (locked) — camps unlock later.' },
 ]
 
 const UPDATE_LOG = [
+  {
+    version: 'v0.1.5',
+    date: '2026-09',
+    notes: [
+      'Thin Groups: directory, create, join public, admin edit.',
+      'Event owners can include a group you admin (ownerGroupIds).',
+      'Group pages list hosted events; admins can publish a group Horizon.',
+    ],
+  },
   {
     version: 'v0.1.4',
     date: '2026-09',
@@ -121,7 +131,7 @@ export function TerminalScreen({
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Group</span>
-              <span className="dim">A camp, crew, or collective hub (coming soon).</span>
+              <span className="dim">A camp, crew, or collective — directory, join, admin, host events.</span>
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Events</span>

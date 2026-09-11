@@ -2,8 +2,10 @@ import { useMemo, useState } from 'react'
 import { useKeys } from '../../hooks'
 import {
   createEvent,
+  eventOwnerLabels,
   formatEventDate,
   getAttendance,
+  isEventOwner,
   loadHorizons,
   setAttendance,
   addEventToHorizon,
@@ -19,12 +21,12 @@ import {
   areFriends,
   ensureDefaultLists,
   ensureSeedFriendshipGraph,
-  getPerson,
   loadPeople,
   selfId,
   type ContactList,
   type ContactPerson,
 } from '../../lib/contactsStore'
+import { groupsIAdmin, type HyperGroup } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
 
@@ -69,6 +71,10 @@ export function EventsScreen({
     void tick
     return ensureDefaultLists()
   }, [tick])
+  const adminGroups = useMemo(() => {
+    void tick
+    return groupsIAdmin()
+  }, [tick])
 
   const [viewId, setViewId] = useState<string | null>(initialEventId ?? null)
   const [creating, setCreating] = useState(false)
@@ -78,6 +84,7 @@ export function EventsScreen({
   const [description, setDescription] = useState('')
   const [externalUrl, setExternalUrl] = useState('')
   const [ownerIds, setOwnerIds] = useState<string[]>([selfId()])
+  const [ownerGroupIds, setOwnerGroupIds] = useState<string[]>([])
   const [privacy, setPrivacy] = useState<EventPrivacy>('everyone')
   const [privacyListIds, setPrivacyListIds] = useState<string[]>([])
   const [role, setRole] = useState<EventRole>('guest')
@@ -99,7 +106,7 @@ export function EventsScreen({
   const viewing = viewId ? events.find((e) => e.id === viewId) : undefined
   const attend = viewing ? getAttendance(viewing.id) : undefined
   const horizons = loadHorizons().filter((h) => !h.isPersonalDefault)
-  const isOwner = viewing ? viewing.ownerIds.includes(selfId()) : false
+  const isOwner = viewing ? isEventOwner(viewing) : false
 
   const resetForm = () => {
     setTitle('')
@@ -107,6 +114,7 @@ export function EventsScreen({
     setDescription('')
     setExternalUrl('')
     setOwnerIds([selfId()])
+    setOwnerGroupIds([])
     setPrivacy('everyone')
     setPrivacyListIds([])
   }
@@ -122,6 +130,7 @@ export function EventsScreen({
     setDescription(ev.description)
     setExternalUrl(ev.externalUrl)
     setOwnerIds(ev.ownerIds.length ? [...ev.ownerIds] : [selfId()])
+    setOwnerGroupIds([...(ev.ownerGroupIds ?? [])])
     setPrivacy(ev.privacy)
     setPrivacyListIds([...ev.privacyListIds])
     setEditing(true)
@@ -130,6 +139,10 @@ export function EventsScreen({
   const toggleOwner = (id: string) => {
     if (id === selfId()) return
     setOwnerIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  const toggleOwnerGroup = (id: string) => {
+    setOwnerGroupIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
 
   const togglePrivacyList = (id: string) => {
@@ -145,6 +158,7 @@ export function EventsScreen({
       externalUrl,
       hostName,
       ownerIds,
+      ownerGroupIds,
       privacy,
       privacyListIds: privacy === 'contacts' ? privacyListIds : [],
     })
@@ -162,6 +176,7 @@ export function EventsScreen({
       description,
       externalUrl,
       ownerIds,
+      ownerGroupIds,
       privacy,
       privacyListIds: privacy === 'contacts' ? privacyListIds : [],
     })
@@ -207,7 +222,7 @@ export function EventsScreen({
 
       <section className="hz-panel">
         <h3 className="profile-section-title">Owners</h3>
-        <p className="dim hz-lead">You are always an owner. Add co-owners from Friends (seed people OK for demo).</p>
+        <p className="dim hz-lead">You are always an owner. Add people, or a group you admin as co-host.</p>
         <div className="hz-checks">
           <label className="hz-check">
             <input type="checkbox" checked disabled readOnly />
@@ -228,8 +243,27 @@ export function EventsScreen({
           ))}
         </div>
         <p className="dim hz-lead" style={{ marginTop: 8 }}>
-          Groups as owners — locked for now (coming later).
+          Groups you admin (stored as ownerGroupIds)
         </p>
+        <div className="hz-checks">
+          {adminGroups.length === 0 ? (
+            <p className="dim">No groups you admin yet — create one under My Groups</p>
+          ) : (
+            adminGroups.map((g: HyperGroup) => (
+              <label key={g.id} className="hz-check">
+                <input
+                  type="checkbox"
+                  checked={ownerGroupIds.includes(g.id)}
+                  onChange={() => toggleOwnerGroup(g.id)}
+                />
+                <span>
+                  {g.name}
+                  <span className="dim"> — group host</span>
+                </span>
+              </label>
+            ))
+          )}
+        </div>
       </section>
 
       <section className="hz-panel">
@@ -312,9 +346,7 @@ export function EventsScreen({
   }
 
   if (viewing) {
-    const ownerNames = viewing.ownerIds
-      .map((id) => (id === selfId() ? 'You' : getPerson(id)?.displayName ?? id))
-      .join(', ')
+    const ownerNames = eventOwnerLabels(viewing)
     const listNames =
       viewing.privacy === 'contacts'
         ? lists

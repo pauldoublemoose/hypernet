@@ -9,6 +9,7 @@ import {
   loadHorizons,
   type Horizon,
 } from '../../lib/horizonStore'
+import { groupsIAdmin } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
 
@@ -31,6 +32,8 @@ export function MyHorizonsScreen({
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [publish, setPublish] = useState(true)
+  const [ownerGroupId, setOwnerGroupId] = useState('')
+  const adminGroups = groupsIAdmin()
 
   useKeys((e) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -56,6 +59,19 @@ export function MyHorizonsScreen({
           <span>Description</span>
           <textarea className="profile-input profile-textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
         </label>
+        {adminGroups.length > 0 ? (
+          <label className="hz-field">
+            <span>Owner</span>
+            <select className="profile-input" value={ownerGroupId} onChange={(e) => setOwnerGroupId(e.target.value)}>
+              <option value="">Your profile</option>
+              {adminGroups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name} (group)
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <label className="hz-check">
           <input type="checkbox" checked={publish} onChange={(e) => setPublish(e.target.checked)} />
           Publish (show under HORIZONS)
@@ -66,10 +82,17 @@ export function MyHorizonsScreen({
             className="btn"
             disabled={!name.trim()}
             onClick={() => {
-              const h = createHorizon({ name, description, ownerName, isPublished: publish })
+              const h = createHorizon({
+                name,
+                description,
+                ownerName,
+                isPublished: publish,
+                ownerGroupId: ownerGroupId || undefined,
+              })
               setCreating(false)
               setName('')
               setDescription('')
+              setOwnerGroupId('')
               setTick((n) => n + 1)
               setViewId(h.id)
             }}
@@ -96,6 +119,7 @@ export function MyHorizonsScreen({
             : viewing.isPublished
               ? 'Published'
               : 'Draft (not on public HORIZONS)'}
+          {viewing.ownerGroupId ? ` · group ${viewing.ownerName}` : ''}
         </p>
         {viewing.description ? <p className="profile-view-text">{viewing.description}</p> : null}
         <h3 className="profile-section-title">Events</h3>

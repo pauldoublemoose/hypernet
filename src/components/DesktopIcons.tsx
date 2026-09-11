@@ -1,4 +1,15 @@
-export type ShellFeature = 'terminal' | 'graph' | 'admin' | 'profile' | 'settings' | 'events' | 'horizons' | 'my-horizons' | 'contacts'
+export type ShellFeature =
+  | 'terminal'
+  | 'graph'
+  | 'admin'
+  | 'profile'
+  | 'settings'
+  | 'events'
+  | 'horizons'
+  | 'my-horizons'
+  | 'contacts'
+  | 'groups'
+  | 'my-group'
 
 type IconId =
   | 'terminal'
@@ -35,8 +46,8 @@ const LEFT_ICONS: DeskIcon[] = [
     id: 'groups',
     glyph: '▦',
     label: 'My Groups',
-    locked: true,
-    tip: 'My Groups — a camp, crew, or collective. Coming soon.',
+    locked: false,
+    tip: 'My Groups — directory of camps and crews.',
   },
   {
     id: 'horizons',
@@ -94,8 +105,8 @@ const RIGHT_TOP: DeskIcon[] = [
     id: 'my-group',
     glyph: '▤',
     label: 'My Groups',
-    locked: true,
-    tip: 'My Groups — your camp or crew hub. Coming soon.',
+    locked: false,
+    tip: 'My Groups — camps you join or admin. Create a group here.',
   },
   {
     id: 'my-horizons',
@@ -166,6 +177,8 @@ export function DesktopIcons({
   onHorizons,
   onMyHorizons,
   onContacts,
+  onGroups,
+  onMyGroups,
 }: {
   active: ShellFeature
   onTerminal?: () => void
@@ -177,6 +190,8 @@ export function DesktopIcons({
   onHorizons: () => void
   onMyHorizons: () => void
   onContacts: () => void
+  onGroups: () => void
+  onMyGroups: () => void
 }) {
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
@@ -189,6 +204,8 @@ export function DesktopIcons({
     else if (id === 'horizons') onHorizons()
     else if (id === 'my-horizons') onMyHorizons()
     else if (id === 'contacts') onContacts()
+    else if (id === 'groups') onGroups()
+    else if (id === 'my-group') onMyGroups()
   }
 
   return (
