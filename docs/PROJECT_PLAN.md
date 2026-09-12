@@ -21,7 +21,7 @@ It is **not** a consumption feed like Facebook. It is a **recruitment and discov
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Node**      | A person in the network (their profile). Used during onboarding: *"Create your node."*                                                                                                                                        |
 | **Profile**   | A person's page — avatar, bio, skills, Chronicle. Synonymous with *node* in user-facing copy.                                                                                                                                 |
-| **Group**     | An organization or collective (e.g. a camp, crew, label). Has admins **and members**, its own page, hosted events, and horizons.                                                                                              |
+| **Cluster**   | An organization or collective (e.g. a camp, crew, label). Has admins **and members**, its own page, hosted events, and horizons. User-facing name is Cluster (never “group”).                                              |
 | **Link**      | A connection between two nodes on the graph. Exact link rules for large events are **TBD** (see §7.4) — avoid all-to-all edges for big events.                                                                                |
 | **Chronicle** | A profile section listing events a person has participated in, with their role. Built from “going” attendance after the event date, or manual past entries.                                                                    |
 | **Horizon**   | A publishable, subscribable collection of events (like a playlist/calendar). Owned by a profile or group. Multiple admins; contribution setting: *Admins only* or *Open*. Every profile also gets a **private default Horizon** (personal “liked / starred” list). |
@@ -36,14 +36,14 @@ It is **not** a consumption feed like Facebook. It is a **recruitment and discov
 | **Node**      | You in the network.                                               |
 | **Horizon**   | A shared calendar — create one, add events, let others subscribe. |
 | **Chronicle** | Your event history — what you've joined and the role you played.  |
-| **Group**     | A camp, crew, or collective — run by people, with its own page.   |
+| **Cluster**   | A camp, crew, or collective — run by people, with its own page.   |
 
 
-**Profile vs. Group vs. contact list**
+**Profile vs. Cluster vs. contact list**
 
-- A **profile** represents a person; a **group** represents an organization. Both can publish events and horizons.
-- A **contact list** is a private, user-defined list of people for invites and visibility — not the same as a group.
-- **Group members** belong to the camp/collective; **group admins** manage the page. Distinct from contact lists.
+- A **profile** represents a person; a **cluster** represents an organization. Both can publish events and horizons.
+- A **contact list** is a private, user-defined list of people for invites and visibility — not the same as a cluster. Lists stay secret; clusters are shared.
+- **Cluster members** belong to the camp/collective; **cluster admins** manage the page. Distinct from contact lists. Never nest lists inside Clusters UI.
 
 **Horizon status indicators** *(group directory and similar lists; colors invert with light/dark theme)*
 
@@ -419,6 +419,7 @@ This keeps you in the design loop without needing to write CSS.
 | 5   | Retribalise AI flow — license/API approach                           | Eng           | Phase 5+  |
 | 6   | Spotify integration — API terms for Premium playback                 | Eng           | Phase 5+  |
 | 7   | Event pages UI needs an upgrade (Sebastian) — card image placeholders landed; full event-detail redesign is parked | Product | No |
+| 8   | First-time tips with Don’t show again — e.g. first open of Contact Lists and first Cluster create: “Lists stay secret / Clusters are shared.” Do not build the tips UI yet. | Product | No |
 
 
 **Resolved (keep for context)**

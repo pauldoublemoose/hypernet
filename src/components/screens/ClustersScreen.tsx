@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useKeys } from '../../hooks'
 import {
-  createGroup,
-  getGroup,
-  groupsIBelongTo,
-  isGroupAdmin,
-  isGroupMember,
-  joinGroup,
+  createCluster,
+  getCluster,
+  clustersIBelongTo,
+  isClusterAdmin,
+  isClusterMember,
+  joinCluster,
+  leaveCluster,
   personLabel,
-  updateGroup,
+  updateCluster,
   visibilityLabel,
-  visibleGroups,
-  type GroupVisibility,
-  type HyperGroup,
+  visibleClusters,
+  type Cluster,
+  type ClusterVisibility,
 } from '../../lib/groupsStore'
 import {
   createHorizon,
@@ -22,26 +23,29 @@ import {
   type Horizon,
   type HyperEvent,
 } from '../../lib/horizonStore'
-import { CardThumb } from '../CardThumb'
+import { CardThumb, MemberStack } from '../CardThumb'
 
-export type GroupsTab = 'directory' | 'mine'
+export type ClustersTab = 'directory' | 'mine'
 
-export function GroupsScreen({
+const CLUSTER_HELPER =
+  'A shared space. Everyone in the cluster can see they’re members together.'
+
+export function ClustersScreen({
   onBack,
   initialTab = 'directory',
 }: {
   onBack: () => void
-  initialTab?: GroupsTab
+  initialTab?: ClustersTab
 }) {
   const [tick, setTick] = useState(0)
-  const [tab, setTab] = useState<GroupsTab>(initialTab)
+  const [tab, setTab] = useState<ClustersTab>(initialTab)
   const [viewId, setViewId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState(false)
   const [creatingHorizon, setCreatingHorizon] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [visibility, setVisibility] = useState<GroupVisibility>('public')
+  const [visibility, setVisibility] = useState<ClusterVisibility>('public')
   const [imageUrl, setImageUrl] = useState('')
   const [hzName, setHzName] = useState('')
   const [hzDescription, setHzDescription] = useState('')
@@ -50,11 +54,11 @@ export function GroupsScreen({
 
   const directory = useMemo(() => {
     void tick
-    return visibleGroups()
+    return visibleClusters()
   }, [tick])
   const mine = useMemo(() => {
     void tick
-    return groupsIBelongTo()
+    return clustersIBelongTo()
   }, [tick])
 
   useEffect(() => {
@@ -78,11 +82,12 @@ export function GroupsScreen({
     else onBack()
   })
 
-  const viewing = viewId ? getGroup(viewId) : undefined
+  const viewing = viewId ? getCluster(viewId) : undefined
   const hosted = viewing ? eventsHostedByGroup(viewing.id) : []
-  const groupHorizons = viewing ? horizonsOwnedByGroup(viewing.id) : []
-  const admin = viewing ? isGroupAdmin(viewing.id) : false
-  const member = viewing ? isGroupMember(viewing.id) : false
+  const clusterHorizons = viewing ? horizonsOwnedByGroup(viewing.id) : []
+  const admin = viewing ? isClusterAdmin(viewing.id) : false
+  const member = viewing ? isClusterMember(viewing.id) : false
+  const soleAdmin = viewing ? viewing.adminIds.length === 1 && admin : false
 
   const resetForm = () => {
     setName('')
@@ -96,27 +101,27 @@ export function GroupsScreen({
     setCreating(true)
   }
 
-  const openEdit = (g: HyperGroup) => {
-    setName(g.name)
-    setDescription(g.description)
-    setVisibility(g.visibility)
-    setImageUrl(g.imageUrl ?? '')
+  const openEdit = (c: Cluster) => {
+    setName(c.name)
+    setDescription(c.description)
+    setVisibility(c.visibility)
+    setImageUrl(c.imageUrl ?? '')
     setEditing(true)
   }
 
   const submitCreate = () => {
     if (!name.trim()) return
-    const g = createGroup({ name, description, visibility, imageUrl })
+    const c = createCluster({ name, description, visibility, imageUrl })
     setCreating(false)
     resetForm()
     refresh()
     setTab('mine')
-    setViewId(g.id)
+    setViewId(c.id)
   }
 
   const submitEdit = () => {
     if (!viewing || !name.trim()) return
-    const next = updateGroup(viewing.id, { name, description, visibility, imageUrl })
+    const next = updateCluster(viewing.id, { name, description, visibility, imageUrl })
     setEditing(false)
     refresh()
     if (next) setViewId(next.id)
@@ -135,6 +140,17 @@ export function GroupsScreen({
     setHzName('')
     setHzDescription('')
     refresh()
+  }
+
+  const doJoin = (id: string) => {
+    joinCluster(id)
+    refresh()
+  }
+
+  const doLeave = (cluster: Cluster) => {
+    leaveCluster(cluster.id)
+    refresh()
+    if (cluster.visibility === 'private') setViewId(null)
   }
 
   const formBody = () => (
@@ -158,7 +174,7 @@ export function GroupsScreen({
           <label className="hz-check">
             <input
               type="radio"
-              name="group-visibility"
+              name="cluster-visibility"
               checked={visibility === 'public'}
               onChange={() => setVisibility('public')}
             />
@@ -169,7 +185,7 @@ export function GroupsScreen({
           <label className="hz-check">
             <input
               type="radio"
-              name="group-visibility"
+              name="cluster-visibility"
               checked={visibility === 'private'}
               onChange={() => setVisibility('private')}
             />
@@ -191,25 +207,55 @@ export function GroupsScreen({
     </>
   )
 
-  const groupRow = (g: HyperGroup) => (
-    <li key={g.id}>
-      <button type="button" className="hz-list-item has-thumb" onClick={() => setViewId(g.id)}>
-        <CardThumb src={g.imageUrl} label={g.name} glyph="▦" />
-        <span className="hz-list-copy">
-          <span className="hz-list-title">{g.name}</span>
-          <span className="dim">
-            {g.memberIds.length} members · {visibilityLabel(g.visibility)}
-          </span>
-        </span>
-      </button>
-    </li>
-  )
+  const clusterCard = (c: Cluster) => {
+    const isMember = isClusterMember(c.id)
+    const isAdmin = isClusterAdmin(c.id)
+    const lastAdmin = isAdmin && c.adminIds.length === 1
+    const canJoin = c.visibility === 'public' && !isMember
+    const canLeave = isMember && !lastAdmin
+    return (
+      <li key={c.id}>
+        <div className="cluster-card">
+          <button type="button" className="cluster-card-main" onClick={() => setViewId(c.id)}>
+            <CardThumb src={c.imageUrl} label={c.name} glyph="▦" />
+            <span className="cluster-card-body">
+              <span className="hz-list-title">{c.name}</span>
+              <MemberStack ids={c.memberIds} />
+              <span className="dim">
+                Shared with {c.memberIds.length} {c.memberIds.length === 1 ? 'person' : 'people'}
+                {' · '}
+                {visibilityLabel(c.visibility)}
+              </span>
+            </span>
+          </button>
+          <div className="cluster-card-actions">
+            {canJoin ? (
+              <button
+                type="button"
+                className="btn"
+                onClick={() => doJoin(c.id)}
+              >
+                Join
+              </button>
+            ) : null}
+            {canLeave ? (
+              <button type="button" className="btn dim" onClick={() => doLeave(c)}>
+                Leave
+              </button>
+            ) : null}
+            {lastAdmin ? <span className="dim">you admin</span> : null}
+          </div>
+        </div>
+      </li>
+    )
+  }
 
   if (creating) {
     return (
       <div className="screen hz-screen">
-        <div className="title">G :: NEW GROUP</div>
-        <p className="dim hz-lead">You become admin and member. Thin camp / crew page — not a full social graph.</p>
+        <div className="title">CL :: NEW CLUSTER</div>
+        <p className="dim hz-lead">{CLUSTER_HELPER}</p>
+        <p className="dim hz-lead">You become admin and member. Thin camp / crew page — not a private contact list.</p>
         {formBody()}
         <div className="profile-actions">
           <button type="button" className="btn" onClick={submitCreate} disabled={!name.trim()}>
@@ -226,7 +272,7 @@ export function GroupsScreen({
   if (editing && viewing) {
     return (
       <div className="screen hz-screen">
-        <div className="title">G :: EDIT GROUP</div>
+        <div className="title">CL :: EDIT CLUSTER</div>
         <p className="dim hz-lead">Admins can update name, description, and visibility.</p>
         {formBody()}
         <div className="profile-actions">
@@ -244,7 +290,7 @@ export function GroupsScreen({
   if (creatingHorizon && viewing) {
     return (
       <div className="screen hz-screen">
-        <div className="title">G :: GROUP HORIZON</div>
+        <div className="title">CL :: CLUSTER HORIZON</div>
         <p className="dim hz-lead">Publish a calendar owned by {viewing.name}.</p>
         <label className="hz-field">
           <span>Name</span>
@@ -274,15 +320,21 @@ export function GroupsScreen({
   if (viewing) {
     return (
       <div className="screen hz-screen">
-        <div className="title">G :: GROUP</div>
+        <div className="title">CL :: CLUSTER</div>
         <div className="hz-card-head">
           <CardThumb src={viewing.imageUrl} label={viewing.name} glyph="▦" />
-          <h2 className="hz-heading">{viewing.name}</h2>
+          <div>
+            <h2 className="hz-heading">{viewing.name}</h2>
+            <MemberStack ids={viewing.memberIds} />
+          </div>
         </div>
         <p className="hz-meta dim">
-          {visibilityLabel(viewing.visibility)} · {viewing.memberIds.length} members
+          Shared with {viewing.memberIds.length} {viewing.memberIds.length === 1 ? 'person' : 'people'}
+          {' · '}
+          {visibilityLabel(viewing.visibility)}
           {admin ? ' · you admin' : member ? ' · you member' : ''}
         </p>
+        <p className="dim hz-lead">{CLUSTER_HELPER}</p>
         {viewing.imageUrl ? (
           <p className="hz-meta dim">
             Image stub:{' '}
@@ -299,15 +351,16 @@ export function GroupsScreen({
 
         {viewing.visibility === 'public' && !member ? (
           <div className="btn-row" style={{ marginTop: 8 }}>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => {
-                joinGroup(viewing.id)
-                refresh()
-              }}
-            >
+            <button type="button" className="btn" onClick={() => doJoin(viewing.id)}>
               Join
+            </button>
+          </div>
+        ) : null}
+
+        {member && !soleAdmin ? (
+          <div className="btn-row" style={{ marginTop: 8 }}>
+            <button type="button" className="btn dim" onClick={() => doLeave(viewing)}>
+              Leave
             </button>
           </div>
         ) : null}
@@ -315,10 +368,10 @@ export function GroupsScreen({
         {admin ? (
           <div className="btn-row" style={{ marginTop: 8 }}>
             <button type="button" className="btn dim" onClick={() => openEdit(viewing)}>
-              Edit group
+              Edit cluster
             </button>
             <button type="button" className="btn dim" onClick={() => setCreatingHorizon(true)}>
-              Publish group Horizon
+              Publish cluster Horizon
             </button>
           </div>
         ) : null}
@@ -349,9 +402,9 @@ export function GroupsScreen({
 
         <section className="hz-panel">
           <h3 className="profile-section-title">Hosted events</h3>
-          <p className="dim hz-lead">Events that list this group as an owner / host.</p>
+          <p className="dim hz-lead">Events that list this cluster as an owner / host.</p>
           {hosted.length === 0 ? (
-            <p className="dim">None yet — assign this group as an event owner if you admin it.</p>
+            <p className="dim">None yet — assign this cluster as an event owner if you admin it.</p>
           ) : (
             <ul className="hz-list">
               {hosted.map((e: HyperEvent) => (
@@ -368,12 +421,12 @@ export function GroupsScreen({
         </section>
 
         <section className="hz-panel">
-          <h3 className="profile-section-title">Group Horizons</h3>
-          {groupHorizons.length === 0 ? (
-            <p className="dim">No group-owned Horizon yet.</p>
+          <h3 className="profile-section-title">Cluster Horizons</h3>
+          {clusterHorizons.length === 0 ? (
+            <p className="dim">No cluster-owned Horizon yet.</p>
           ) : (
             <ul className="hz-list">
-              {groupHorizons.map((h: Horizon) => (
+              {clusterHorizons.map((h: Horizon) => (
                 <li key={h.id} className="hz-list-static">
                   <span className="hz-list-title">{h.name}</span>
                   <span className="dim">
@@ -397,9 +450,11 @@ export function GroupsScreen({
 
   return (
     <div className="screen hz-screen">
-      <div className="title">G :: GROUPS</div>
+      <div className="title">{tab === 'mine' ? 'CL :: MY CLUSTERS' : 'CL :: CLUSTERS'}</div>
+      <p className="dim hz-lead">{CLUSTER_HELPER}</p>
       <p className="dim hz-lead">
-        Thin camps / crews. Directory to browse, My Groups to create and admin. Join is open on public groups.
+        Directory to browse. My Clusters to create and admin. Join is open on public clusters.
+        Private contact lists live under My Contacts — not here.
       </p>
 
       <div className="btn-row hz-tabs">
@@ -415,16 +470,19 @@ export function GroupsScreen({
           className={`privacy-btn${tab === 'mine' ? ' is-on' : ''}`}
           onClick={() => setTab('mine')}
         >
-          My Groups
+          My Clusters
         </button>
       </div>
 
       {tab === 'directory' && (
         <>
           {directory.length === 0 ? (
-            <p className="profile-empty dim">No groups in the directory yet</p>
+            <p className="profile-empty dim">
+              No clusters in the directory yet. Clusters are shared spaces — everyone in one can see
+              they’re members together.
+            </p>
           ) : (
-            <ul className="hz-list">{directory.map(groupRow)}</ul>
+            <ul className="hz-list cluster-card-list">{directory.map(clusterCard)}</ul>
           )}
         </>
       )}
@@ -433,13 +491,16 @@ export function GroupsScreen({
         <>
           <div className="profile-actions">
             <button type="button" className="btn" onClick={openCreate}>
-              Create group
+              Create cluster
             </button>
           </div>
           {mine.length === 0 ? (
-            <p className="profile-empty dim">You have not joined or created a group yet</p>
+            <p className="profile-empty dim">
+              You have not joined or created a cluster yet. A cluster is a shared space, not a
+              private list.
+            </p>
           ) : (
-            <ul className="hz-list">{mine.map(groupRow)}</ul>
+            <ul className="hz-list cluster-card-list">{mine.map(clusterCard)}</ul>
           )}
         </>
       )}

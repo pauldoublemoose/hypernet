@@ -9,7 +9,7 @@ import {
   loadHorizons,
   type Horizon,
 } from '../../lib/horizonStore'
-import { groupsIAdmin } from '../../lib/groupsStore'
+import { clustersIAdmin } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
 import { CardThumb } from '../CardThumb'
@@ -34,7 +34,7 @@ export function MyHorizonsScreen({
   const [description, setDescription] = useState('')
   const [publish, setPublish] = useState(true)
   const [ownerGroupId, setOwnerGroupId] = useState('')
-  const adminGroups = groupsIAdmin()
+  const adminClusters = clustersIAdmin()
 
   useKeys((e) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -60,14 +60,14 @@ export function MyHorizonsScreen({
           <span>Description</span>
           <textarea className="profile-input profile-textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
         </label>
-        {adminGroups.length > 0 ? (
+        {adminClusters.length > 0 ? (
           <label className="hz-field">
             <span>Owner</span>
             <select className="profile-input" value={ownerGroupId} onChange={(e) => setOwnerGroupId(e.target.value)}>
               <option value="">Your profile</option>
-              {adminGroups.map((g) => (
+              {adminClusters.map((g) => (
                 <option key={g.id} value={g.id}>
-                  {g.name} (group)
+                  {g.name} (cluster)
                 </option>
               ))}
             </select>
@@ -120,7 +120,7 @@ export function MyHorizonsScreen({
             : viewing.isPublished
               ? 'Published'
               : 'Draft (not on public HORIZONS)'}
-          {viewing.ownerGroupId ? ` · group ${viewing.ownerName}` : ''}
+          {viewing.ownerGroupId ? ` · cluster hosted · ${viewing.ownerName}` : ''}
         </p>
         {viewing.description ? <p className="profile-view-text">{viewing.description}</p> : null}
         <h3 className="profile-section-title">Events</h3>

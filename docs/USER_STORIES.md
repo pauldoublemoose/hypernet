@@ -623,6 +623,22 @@ PHASE 3 — Future
 
 ---
 
+## Backlog (do not build yet)
+
+### US-B.1 — First-time tips (Don’t show again) `P1` 🔲
+
+**As a** first-time user,  
+**I want** a one-shot tip the first time I open Contact Lists and the first time I create a Cluster,  
+**So that** I don’t confuse a private list with a shared cluster.
+
+**Acceptance criteria**
+- [ ] First open of Contact Lists: “Lists stay secret.”
+- [ ] First Cluster create: “Clusters are shared.”
+- [ ] Each tip has Don’t show again
+- [ ] Not in the current polish pass — docs-only until scheduled
+
+---
+
 ## Definition of Done (All Stories)
 
 A user story is **done** when:
@@ -635,4 +651,4 @@ A user story is **done** when:
 
 ---
 
-*Last updated: Aug 2026 — derived from product vision voice notes.*
+*Last updated: Sep 2026. User-facing “Group” is now Cluster. Event detail UI upgrade and first-time tips are parked.*

@@ -1,11 +1,13 @@
 /**
- * Thin Groups — localStorage MVP.
- * Shaped for a later Supabase migration (stable ids, admin + member rows).
+ * Thin Clusters — localStorage MVP.
+ * Storage key stays `hypernet_groups` so existing local data migrates.
+ * User-facing name is Cluster; HyperGroup remains the persisted shape.
  */
 
 import { getPerson, selfId } from './contactsStore'
 
 export type GroupVisibility = 'public' | 'private'
+export type ClusterVisibility = GroupVisibility
 
 export interface HyperGroup {
   id: string
@@ -18,6 +20,9 @@ export interface HyperGroup {
   /** Optional image stub — URL only, no upload pipeline. */
   imageUrl?: string
 }
+
+/** User-facing name for HyperGroup. Same persisted rows. */
+export type Cluster = HyperGroup
 
 const GROUPS_KEY = 'hypernet_groups'
 
@@ -141,7 +146,7 @@ export function createGroup(input: {
   const me = selfId()
   const group = normalizeGroup({
     id: uid('grp'),
-    name: input.name.trim() || 'Untitled group',
+    name: input.name.trim() || 'Untitled cluster',
     description: input.description.trim(),
     visibility: input.visibility === 'private' ? 'private' : 'public',
     adminIds: [me],
@@ -177,7 +182,7 @@ export function updateGroup(
   return next
 }
 
-/** Open join for public groups (P1 join policies not implemented). */
+/** Open join for public clusters (P1 join policies not implemented). */
 export function joinGroup(id: string, personId: string = selfId()): HyperGroup | undefined {
   const groups = loadGroups()
   const idx = groups.findIndex((g) => g.id === id)
@@ -194,6 +199,26 @@ export function joinGroup(id: string, personId: string = selfId()): HyperGroup |
   return next
 }
 
+/** Leave a cluster. The last admin cannot leave (would orphan the page). */
+export function leaveCluster(id: string, personId: string = selfId()): HyperGroup | undefined {
+  const clusters = loadGroups()
+  const idx = clusters.findIndex((c) => c.id === id)
+  if (idx < 0) return undefined
+  const c = clusters[idx]
+  const isAdmin = c.adminIds.includes(personId)
+  const isMember = c.memberIds.includes(personId)
+  if (!isAdmin && !isMember) return c
+  if (isAdmin && c.adminIds.length === 1) return c
+  const next = normalizeGroup({
+    ...c,
+    adminIds: c.adminIds.filter((a) => a !== personId),
+    memberIds: c.memberIds.filter((m) => m !== personId),
+  })
+  clusters[idx] = next
+  saveGroups(clusters)
+  return next
+}
+
 export function personLabel(id: string): string {
   if (id === selfId()) return 'You'
   return getPerson(id)?.displayName ?? id
@@ -202,3 +227,14 @@ export function personLabel(id: string): string {
 export function visibilityLabel(v: GroupVisibility): string {
   return v === 'private' ? 'private' : 'public'
 }
+
+export const getCluster = getGroup
+export const loadClusters = loadGroups
+export const visibleClusters = visibleGroups
+export const clustersIAdmin = groupsIAdmin
+export const clustersIBelongTo = groupsIBelongTo
+export const isClusterAdmin = isGroupAdmin
+export const isClusterMember = isGroupMember
+export const createCluster = createGroup
+export const updateCluster = updateGroup
+export const joinCluster = joinGroup

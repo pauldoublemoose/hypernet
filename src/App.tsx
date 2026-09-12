@@ -18,7 +18,7 @@ import { EventsScreen } from './components/screens/EventsScreen'
 import { HorizonsScreen } from './components/screens/HorizonsScreen'
 import { MyHorizonsScreen } from './components/screens/MyHorizonsScreen'
 import { ContactsScreen } from './components/screens/ContactsScreen'
-import { GroupsScreen, type GroupsTab } from './components/screens/GroupsScreen'
+import { ClustersScreen, type ClustersTab } from './components/screens/ClustersScreen'
 import { TerminalScreen } from './components/screens/TerminalScreen'
 import { ensureDefaultHorizon } from './lib/horizonStore'
 import { loadProfile } from './lib/profileStore'
@@ -80,7 +80,7 @@ type ScreenId =
   | 'horizons'
   | 'myHorizons'
   | 'contacts'
-  | 'groups'
+  | 'clusters'
   | 'terminal'
 
 const SECTION: Record<ScreenId, string> = {
@@ -112,7 +112,7 @@ const SECTION: Record<ScreenId, string> = {
   horizons: 'H :: HORIZONS',
   myHorizons: 'MH :: MY HORIZONS',
   contacts: 'C :: CONTACTS',
-  groups: 'G :: GROUPS',
+  clusters: 'CL :: CLUSTERS',
   terminal: 'T :: TERMINAL',
 }
 
@@ -191,7 +191,7 @@ function isAdminScreen(id: ScreenId) {
   return id === 'admin' || id === 'adminGate'
 }
 
-function shellFeature(screen: ScreenId, graphOpen: boolean, groupsFocus: GroupsTab): ShellFeature {
+function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: ClustersTab): ShellFeature {
   if (graphOpen) return 'graph'
   if (isAdminScreen(screen)) return 'admin'
   if (screen === 'profile') return 'profile'
@@ -200,7 +200,7 @@ function shellFeature(screen: ScreenId, graphOpen: boolean, groupsFocus: GroupsT
   if (screen === 'horizons') return 'horizons'
   if (screen === 'myHorizons') return 'my-horizons'
   if (screen === 'contacts') return 'contacts'
-  if (screen === 'groups') return groupsFocus === 'mine' ? 'my-group' : 'groups'
+  if (screen === 'clusters') return clustersFocus === 'mine' ? 'my-cluster' : 'clusters'
   if (screen === 'terminal') return 'terminal'
   return 'terminal'
 }
@@ -216,7 +216,7 @@ export default function App() {
   const [editingFromReview, setEditingFromReview] = useState(false)
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
   const [remoteLocations, setRemoteLocations] = useState<RemoteLocationOption[]>([])
-  const [groupsFocus, setGroupsFocus] = useState<GroupsTab>('directory')
+  const [clustersFocus, setClustersFocus] = useState<ClustersTab>('directory')
 
   useEffect(() => {
     fetchSkillOptions().then(setRemoteSkills)
@@ -566,8 +566,8 @@ export default function App() {
     case 'contacts':
       content = <ContactsScreen key="contacts" onBack={back} />
       break
-    case 'groups':
-      content = <GroupsScreen key={`groups-${groupsFocus}`} onBack={back} initialTab={groupsFocus} />
+    case 'clusters':
+      content = <ClustersScreen key={`clusters-${clustersFocus}`} onBack={back} initialTab={clustersFocus} />
       break
     case 'terminal':
       content = (
@@ -620,16 +620,16 @@ export default function App() {
     if (screen !== 'contacts') go('contacts')
   }
 
-  const openGroups = (focus: GroupsTab) => {
+  const openClusters = (focus: ClustersTab) => {
     setGraphOpen(false)
-    setGroupsFocus(focus)
-    if (screen !== 'groups') go('groups')
+    setClustersFocus(focus)
+    if (screen !== 'clusters') go('clusters')
   }
 
   return (
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
-        active={shellFeature(screen, graphOpen, groupsFocus)}
+        active={shellFeature(screen, graphOpen, clustersFocus)}
         onTerminal={openTerminal}
         onGraph={openGraph}
         onAdmin={openAdmin}
@@ -639,10 +639,19 @@ export default function App() {
         onHorizons={openHorizons}
         onMyHorizons={openMyHorizons}
         onContacts={openContacts}
-        onGroups={() => openGroups('directory')}
-        onMyGroups={() => openGroups('mine')}
+        onClusters={() => openClusters('directory')}
+        onMyClusters={() => openClusters('mine')}
       />
-      <TerminalFrame section={SECTION[screen]} mode={mode}>
+      <TerminalFrame
+        section={
+          screen === 'clusters'
+            ? clustersFocus === 'mine'
+              ? 'CL :: MY CLUSTERS'
+              : 'CL :: CLUSTERS'
+            : SECTION[screen]
+        }
+        mode={mode}
+      >
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
           {content}
         </div>

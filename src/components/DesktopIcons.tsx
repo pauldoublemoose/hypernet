@@ -10,14 +10,14 @@ export type ShellFeature =
   | 'horizons'
   | 'my-horizons'
   | 'contacts'
-  | 'groups'
-  | 'my-group'
+  | 'clusters'
+  | 'my-cluster'
   | 'theme'
 
 type IconId =
   | 'terminal'
   | 'graph'
-  | 'groups'
+  | 'clusters'
   | 'events'
   | 'horizons'
   | 'profile'
@@ -25,7 +25,7 @@ type IconId =
   | 'chronicle'
   | 'admin'
   | 'settings'
-  | 'my-group'
+  | 'my-cluster'
   | 'my-horizons'
   | 'contacts'
   | 'theme'
@@ -47,11 +47,11 @@ const LEFT_ICONS: DeskIcon[] = [
     tip: 'Terminal — Help, Global Chat, Updates, Update log, About.',
   },
   {
-    id: 'groups',
+    id: 'clusters',
     glyph: '▦',
-    label: 'My Groups',
+    label: 'CLUSTERS',
     locked: false,
-    tip: 'My Groups — directory of camps and crews.',
+    tip: 'Clusters — public directory of shared camps and crews.',
   },
   {
     id: 'horizons',
@@ -106,11 +106,11 @@ const RIGHT_TOP: DeskIcon[] = [
     tip: 'My Contacts — contact lists, Follow, and Friend requests.',
   },
   {
-    id: 'my-group',
+    id: 'my-cluster',
     glyph: '▤',
-    label: 'My Groups',
+    label: 'My Clusters',
     locked: false,
-    tip: 'My Groups — camps you join or admin. Create a group here.',
+    tip: 'My Clusters — camps you join or admin. Create a cluster here.',
   },
   {
     id: 'my-horizons',
@@ -189,8 +189,8 @@ export function DesktopIcons({
   onHorizons,
   onMyHorizons,
   onContacts,
-  onGroups,
-  onMyGroups,
+  onClusters,
+  onMyClusters,
 }: {
   active: ShellFeature
   onTerminal?: () => void
@@ -202,8 +202,8 @@ export function DesktopIcons({
   onHorizons: () => void
   onMyHorizons: () => void
   onContacts: () => void
-  onGroups: () => void
-  onMyGroups: () => void
+  onClusters: () => void
+  onMyClusters: () => void
 }) {
   const { theme, cycleTheme } = useUi()
   const rightTop = RIGHT_TOP.map((item) =>
@@ -225,8 +225,8 @@ export function DesktopIcons({
     else if (id === 'horizons') onHorizons()
     else if (id === 'my-horizons') onMyHorizons()
     else if (id === 'contacts') onContacts()
-    else if (id === 'groups') onGroups()
-    else if (id === 'my-group') onMyGroups()
+    else if (id === 'clusters') onClusters()
+    else if (id === 'my-cluster') onMyClusters()
     else if (id === 'theme') cycleTheme()
   }
 

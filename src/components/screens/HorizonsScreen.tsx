@@ -8,7 +8,7 @@ import {
   loadHorizons,
   type Horizon,
 } from '../../lib/horizonStore'
-import { groupsIAdmin } from '../../lib/groupsStore'
+import { clustersIAdmin } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
 import { CardThumb } from '../CardThumb'
@@ -31,7 +31,7 @@ export function HorizonsScreen({
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [ownerGroupId, setOwnerGroupId] = useState('')
-  const adminGroups = groupsIAdmin()
+  const adminClusters = clustersIAdmin()
 
   useKeys((e) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -49,7 +49,7 @@ export function HorizonsScreen({
     return (
       <div className="screen hz-screen">
         <div className="title">H :: PUBLISH HORIZON</div>
-        <p className="dim hz-lead">A shared calendar others can follow · profile or a group you admin</p>
+        <p className="dim hz-lead">A shared calendar others can follow · profile or a cluster you admin</p>
         <label className="hz-field">
           <span>Name</span>
           <input className="profile-input" value={name} onChange={(e) => setName(e.target.value)} />
@@ -58,14 +58,14 @@ export function HorizonsScreen({
           <span>Description</span>
           <textarea className="profile-input profile-textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
         </label>
-        {adminGroups.length > 0 ? (
+        {adminClusters.length > 0 ? (
           <label className="hz-field">
             <span>Owner</span>
             <select className="profile-input" value={ownerGroupId} onChange={(e) => setOwnerGroupId(e.target.value)}>
               <option value="">Your profile</option>
-              {adminGroups.map((g) => (
+              {adminClusters.map((g) => (
                 <option key={g.id} value={g.id}>
-                  {g.name} (group)
+                  {g.name} (cluster)
                 </option>
               ))}
             </select>
@@ -110,7 +110,7 @@ export function HorizonsScreen({
         <h2 className="hz-heading">{viewing.name}</h2>
         <p className="hz-meta dim">
           by {viewing.ownerName}
-          {viewing.ownerGroupId ? ' · group' : ''} · published
+          {viewing.ownerGroupId ? ' · cluster hosted' : ''} · published
         </p>
         {viewing.description ? <p className="profile-view-text">{viewing.description}</p> : null}
         <h3 className="profile-section-title">Events on this Horizon</h3>

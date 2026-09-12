@@ -2225,6 +2225,86 @@ html[data-reduce-motion='on'] .terminal {
   margin: 0;
 }
 
+.card-thumb.is-sm {
+  width: 22px;
+  height: 22px;
+}
+
+.card-thumb.is-sm .card-thumb-ph {
+  font-size: 9px;
+  letter-spacing: 0;
+}
+
+.member-stack {
+  display: flex;
+  align-items: center;
+}
+
+.member-stack .card-thumb {
+  margin-left: -6px;
+}
+
+.member-stack .card-thumb:first-child {
+  margin-left: 0;
+}
+
+.member-stack-more {
+  margin-left: 4px;
+  font-size: 12px;
+  color: var(--fg-dim);
+  letter-spacing: 0.5px;
+}
+
+.cluster-card-list {
+  gap: 8px;
+}
+
+.cluster-card {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px dotted var(--border);
+}
+
+.cluster-card:hover,
+.cluster-card:focus-within {
+  border-style: solid;
+}
+
+.cluster-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.cluster-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cluster-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
 .card-thumb {
   flex: 0 0 auto;
   width: 40px;

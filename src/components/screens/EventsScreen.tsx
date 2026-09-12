@@ -26,7 +26,7 @@ import {
   type ContactList,
   type ContactPerson,
 } from '../../lib/contactsStore'
-import { groupsIAdmin, type HyperGroup } from '../../lib/groupsStore'
+import { clustersIAdmin, type Cluster } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
 import { CardThumb } from '../CardThumb'
@@ -74,7 +74,7 @@ export function EventsScreen({
   }, [tick])
   const adminGroups = useMemo(() => {
     void tick
-    return groupsIAdmin()
+    return clustersIAdmin()
   }, [tick])
 
   const [viewId, setViewId] = useState<string | null>(initialEventId ?? null)
@@ -223,7 +223,7 @@ export function EventsScreen({
 
       <section className="hz-panel">
         <h3 className="profile-section-title">Owners</h3>
-        <p className="dim hz-lead">You are always an owner. Add people, or a group you admin as co-host.</p>
+        <p className="dim hz-lead">You are always an owner. Add people, or a cluster you admin as co-host.</p>
         <div className="hz-checks">
           <label className="hz-check">
             <input type="checkbox" checked disabled readOnly />
@@ -244,13 +244,13 @@ export function EventsScreen({
           ))}
         </div>
         <p className="dim hz-lead" style={{ marginTop: 8 }}>
-          Groups you admin (stored as ownerGroupIds)
+          Owner clusters you admin
         </p>
         <div className="hz-checks">
           {adminGroups.length === 0 ? (
-            <p className="dim">No groups you admin yet — create one under My Groups</p>
+            <p className="dim">No clusters you admin yet — create one under My Clusters</p>
           ) : (
-            adminGroups.map((g: HyperGroup) => (
+            adminGroups.map((g: Cluster) => (
               <label key={g.id} className="hz-check">
                 <input
                   type="checkbox"
@@ -259,7 +259,7 @@ export function EventsScreen({
                 />
                 <span>
                   {g.name}
-                  <span className="dim"> — group host</span>
+                  <span className="dim"> — cluster host</span>
                 </span>
               </label>
             ))

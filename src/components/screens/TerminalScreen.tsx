@@ -19,8 +19,8 @@ const GLOBAL_UPDATES = [
   { when: '12m ago', text: 'New event published: Deep Listening Lab · Stockholm.' },
   { when: '1h ago', text: 'Horizon “Baltic Circuit” added three dates.' },
   { when: 'yesterday', text: '@nova and @ember are now Friends.' },
-  { when: 'just now', text: 'Thin Groups unlocked — browse the directory or create a camp.' },
-  { when: '2d ago', text: 'New Group pending (locked) — camps unlock later.' },
+  { when: 'just now', text: 'Clusters unlocked — browse the directory or create a camp.' },
+  { when: '2d ago', text: 'New Cluster pending (locked) — camps unlock later.' },
 ]
 
 const UPDATE_LOG = [
@@ -30,18 +30,20 @@ const UPDATE_LOG = [
     notes: [
       'Theme lives on the right desktop strip — click to cycle WHITE / BLACK / POLYCHROME. Chrome header no longer toggles theme.',
       'Contact lists: + opens a search popup to add someone from the directory.',
-      'Friend requests stay on the card after Accept / Decline — undo, and + Add to List anytime.',
-      'People / Groups / Events cards show an image box (placeholder until upload).',
+      'Friend requests stay on the card after Accept / Decline — undo, and + Add to a private list anytime.',
+      'People / Clusters / Events cards show an image box (placeholder until upload).',
+      'Camps/crews are Clusters. Left CLUSTERS = directory; right My Clusters = yours.',
       'Backlog: Event pages UI needs an upgrade (Sebastian) — not in this pass.',
+      'Backlog: first-time tips with Don’t show again (lists stay secret / clusters are shared).',
     ],
   },
   {
     version: 'v0.1.5',
     date: '2026-09',
     notes: [
-      'Thin Groups: directory, create, join public, admin edit.',
-      'Event owners can include a group you admin (ownerGroupIds).',
-      'Group pages list hosted events; admins can publish a group Horizon.',
+      'Thin Clusters: directory, create, join public, admin edit.',
+      'Event owners can include a cluster you admin.',
+      'Cluster pages list hosted events; admins can publish a cluster Horizon.',
     ],
   },
   {
@@ -117,9 +119,9 @@ export function TerminalScreen({
           <h2 className="hz-heading">How to use Hypernet</h2>
           <p className="profile-view-text">
             Sign Up builds your Node. Sign In opens Terminal. Desktop icons on the left are discovery
-            (shared places); icons on the right are yours (MY NODE, contacts, calendars, Theme,
-            settings). Theme cycles WHITE / BLACK / POLYCHROME. Locked icons show a tip and stay
-            closed until unlocked.
+            (CLUSTERS directory, events, horizons); icons on the right are yours (MY NODE, contacts,
+            My Clusters, calendars, Theme, settings). Theme cycles WHITE / BLACK / POLYCHROME. Locked
+            icons show a tip and stay closed until unlocked.
           </p>
           <p className="profile-view-text">
             Switch sections with the tabs in the bottom status bar: Help (this page), Global Chat,
@@ -142,8 +144,10 @@ export function TerminalScreen({
               <span className="dim">Your personal event history and roles (coming soon).</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Group</span>
-              <span className="dim">A camp, crew, or collective — directory, join, admin, host events.</span>
+              <span className="hz-list-title">Cluster</span>
+              <span className="dim">
+                A shared camp, crew, or collective — everyone in it can see they’re members together.
+              </span>
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Events</span>
@@ -151,7 +155,9 @@ export function TerminalScreen({
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Contacts / Follow / Friend</span>
-              <span className="dim">Follow is asymmetric; Friend needs a request and accept.</span>
+              <span className="dim">
+                Follow is asymmetric; Friend needs a request and accept. Lists stay private to you.
+              </span>
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Privacy</span>

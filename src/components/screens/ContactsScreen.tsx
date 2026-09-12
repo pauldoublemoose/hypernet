@@ -189,8 +189,8 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
         </section>
 
         <section className="hz-panel">
-          <h3 className="profile-section-title">Add to contact lists</h3>
-          <p className="dim hz-lead">Pick one or more contact lists for this person</p>
+          <h3 className="profile-section-title">Add to a private list</h3>
+          <p className="dim hz-lead">Private to you — this is not a cluster invite.</p>
           <div className="hz-checks">
             {lists.map((l) => (
               <label key={l.id} className="hz-check">
@@ -220,7 +220,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
                 refresh()
               }}
             >
-              Save contact lists
+              Save private lists
             </button>
           </div>
         </section>
@@ -277,8 +277,11 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
 
       {tab === 'lists' && (
         <>
+          <p className="dim hz-lead">
+            Private to you. Organize people however you want — nobody else sees your lists.
+          </p>
           <label className="hz-field">
-            <span>New contact list</span>
+            <span>New private list</span>
             <input className="profile-input" value={newListName} onChange={(e) => setNewListName(e.target.value)} placeholder="e.g. Sound team" />
           </label>
           <div className="btn-row">
@@ -292,7 +295,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
                 refresh()
               }}
             >
-              Create contact list
+              Create private list
             </button>
           </div>
           <ul className="hz-list" style={{ marginTop: 12 }}>
@@ -304,8 +307,8 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
                   <button
                     type="button"
                     className="list-plus-btn"
-                    aria-label={`Add someone to ${l.name}`}
-                    title={`Add someone to ${l.name}`}
+                    aria-label={`Add someone to private list ${l.name}`}
+                    title={`Add to a private list: ${l.name}`}
                     onClick={() => {
                       setAddSearch('')
                       setAddToListId(l.id)
@@ -317,13 +320,18 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
               </li>
             ))}
           </ul>
-          <p className="dim hz-lead">+ adds a person from your contacts directory. Or open a person under People.</p>
+          {lists.length === 0 ? (
+            <p className="profile-empty dim">
+              No private lists yet. Lists stay secret — nobody else sees them.
+            </p>
+          ) : null}
+          <p className="dim hz-lead">+ adds a person from your contacts to a private list. Not a cluster invite.</p>
         </>
       )}
 
       {tab === 'requests' && (
         <>
-          <p className="dim hz-lead">Incoming friend requests — accept, decline, undo, or add to a list first.</p>
+          <p className="dim hz-lead">Incoming friend requests — accept, decline, undo, or add to a private list first.</p>
           <div className="btn-row" style={{ marginBottom: 8 }}>
             <button
               type="button"
@@ -365,8 +373,8 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
 
       {activeList && (
         <CrtPopup
-          title={`Add to ${activeList.name}`}
-          lead="Search your contacts directory and tap a name to add them now."
+          title={`Add to a private list · ${activeList.name}`}
+          lead="Private to you — this is not a cluster invite. Tap a name to add them now."
           onClose={closePopups}
         >
           <label className="hz-field">
@@ -411,8 +419,8 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
 
       {reqPerson && (
         <CrtPopup
-          title={`Add ${reqPerson.displayName} to a list`}
-          lead="Works before or after you accept / decline."
+          title={`Add ${reqPerson.displayName} to a private list`}
+          lead="Private to you — not a cluster invite. Works before or after you accept / decline."
           onClose={closePopups}
         >
           <ul className="hz-list crt-popup-list">
@@ -516,7 +524,7 @@ function RequestCard({
           )}
         </div>
         <button type="button" className="btn" onClick={onAddToList}>
-          + Add to List
+          + Add to a private list
         </button>
       </div>
     </li>
