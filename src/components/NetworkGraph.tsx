@@ -21,6 +21,99 @@ const BASE_REACH = 168
 const LINK_DIST = 210
 const LIGHT_DIST = 54
 
+/** Same stops as `.poly-edge` / polychrome titles — hero is always polychrome. */
+const POLY_STOPS = ['#ff0040', '#ffdd00', '#00ff80', '#00cfff', '#7b00ff', '#ff0040'] as const
+
+function prefersReduceMotion() {
+  return document.documentElement.dataset.reduceMotion === 'on'
+}
+
+function fillPolyStops(grad: CanvasGradient) {
+  const n = POLY_STOPS.length - 1
+  for (let i = 0; i <= n; i++) {
+    grad.addColorStop(i / n, POLY_STOPS[i])
+  }
+}
+
+function heroConic(ctx: CanvasRenderingContext2D, x: number, y: number, t: number) {
+  const start = prefersReduceMotion() ? 0 : (t * Math.PI * 0.7) % (Math.PI * 2)
+  const grad = ctx.createConicGradient(start, x, y)
+  fillPolyStops(grad)
+  return grad
+}
+
+function drawHeroNode(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  k: number,
+  t: number,
+) {
+  const reduce = prefersReduceMotion()
+  const pulse = reduce ? 1 : 1 + 0.08 * Math.sin(t * 3.2)
+  const glowR = 22 * pulse
+
+  ctx.save()
+  ctx.globalAlpha = 1
+
+  const glow = ctx.createRadialGradient(x, y, 4, x, y, glowR)
+  glow.addColorStop(0, 'rgba(0, 255, 213, 0.55)')
+  glow.addColorStop(0.35, 'rgba(255, 0, 180, 0.28)')
+  glow.addColorStop(0.7, 'rgba(123, 0, 255, 0.12)')
+  glow.addColorStop(1, 'rgba(255, 0, 64, 0)')
+  ctx.fillStyle = glow
+  ctx.beginPath()
+  ctx.arc(x, y, glowR, 0, Math.PI * 2)
+  ctx.fill()
+
+  ctx.beginPath()
+  ctx.arc(x, y, 15 * pulse, 0, Math.PI * 2)
+  ctx.strokeStyle = heroConic(ctx, x, y, t)
+  ctx.globalAlpha = 0.85
+  ctx.lineWidth = 2.1 / k
+  ctx.stroke()
+  ctx.globalAlpha = 1
+
+  ctx.beginPath()
+  ctx.moveTo(x, y - 11)
+  ctx.lineTo(x + 9, y)
+  ctx.lineTo(x, y + 11)
+  ctx.lineTo(x - 9, y)
+  ctx.closePath()
+  ctx.fillStyle = heroConic(ctx, x, y, t + 0.35)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)'
+  ctx.lineWidth = 0.7 / k
+  ctx.stroke()
+
+  ctx.save()
+  ctx.clip()
+  const hatch = reduce ? 0 : (t * 14) % 4
+  ctx.globalAlpha = 0.18
+  ctx.fillStyle = '#ffffff'
+  for (let i = -12; i <= 12; i += 2) {
+    ctx.fillRect(x - 10, y + i + hatch - 12, 20, 1 / k)
+  }
+  if (!reduce) {
+    const shineX = x - 14 + ((t * 28) % 28)
+    const shine = ctx.createLinearGradient(shineX, y, shineX + 10, y)
+    shine.addColorStop(0, 'rgba(255,255,255,0)')
+    shine.addColorStop(0.5, 'rgba(255,255,255,0.7)')
+    shine.addColorStop(1, 'rgba(180,230,255,0)')
+    ctx.globalAlpha = 0.55
+    ctx.fillStyle = shine
+    ctx.fillRect(x - 10, y - 12, 20, 24)
+  }
+  ctx.restore()
+
+  ctx.globalAlpha = 0.95
+  ctx.fillStyle = heroConic(ctx, x + 10, y - 10, t)
+  ctx.font = `${12 / k}px ui-monospace, monospace`
+  ctx.fillText('YOU', x + 12, y - 10)
+  ctx.globalAlpha = 1
+  ctx.restore()
+}
+
 function readThemeColor(el: Element | null, name: string, fallback: string) {
   if (!el) return fallback
   const v = getComputedStyle(el).getPropertyValue(name).trim()
@@ -208,21 +301,7 @@ export function NetworkGraph({
       if (!s) continue
       const hot = hover?.id === n.id || n.isSelf
       if (n.isSelf) {
-        ctx.beginPath()
-        ctx.moveTo(s.nx, s.ny - 10)
-        ctx.lineTo(s.nx + 8, s.ny)
-        ctx.lineTo(s.nx, s.ny + 10)
-        ctx.lineTo(s.nx - 8, s.ny)
-        ctx.closePath()
-        ctx.fillStyle = fg
-        ctx.globalAlpha = 1
-        ctx.fill()
-        ctx.beginPath()
-        ctx.arc(s.nx, s.ny, 14, 0, Math.PI * 2)
-        ctx.strokeStyle = fg
-        ctx.globalAlpha = 0.35
-        ctx.lineWidth = 1.2 / k
-        ctx.stroke()
+        drawHeroNode(ctx, s.nx, s.ny, k, performance.now() / 1000)
         continue
       }
       ctx.beginPath()

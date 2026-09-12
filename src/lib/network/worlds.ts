@@ -1,9 +1,10 @@
 /**
- * Event-worlds for the ego-centric Network Graph MVP.
+ * Event-worlds for the ego-centric Network Graph MVP (2D forever).
  * Helicopter / force-layout helpers in buildGraph.ts stay parked.
  *
  * Locked brief (2026-09-12): World picker + local walk. Stubs OK for the
  * private surf dial and rich data. Do not invent FoF × co-attendee matrices.
+ * 3D is struck — not parked. Ego-centric 2D unless Sebastian reopens it.
  */
 
 import {

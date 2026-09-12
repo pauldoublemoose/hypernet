@@ -412,7 +412,8 @@
 
 ## Epic 6: Network Graph / event-worlds
 
-> **Locked (2026-09-12):** Not one global helicopter graph. Ego-centric 2D explorer — your node as avatar; drop into a World (often an event twin) and mingle locally. Privacy = reach. See PROJECT_PLAN.md §7.4.
+> **Locked (2026-09-12):** Not one global helicopter graph. Ego-centric 2D explorer — your node as avatar; drop into a World (often an event twin) and mingle locally. Privacy = reach. See PROJECT_PLAN.md §7.4.  
+> **3D is struck (2026-09-12):** Permanently removed from this product line — not parked for later. Ego-centric 2D forever unless Sebastian reopens. Do not backlog 3D.
 
 ### US-5.0 — Pick a World `P0` 🟡
 
@@ -446,6 +447,7 @@
 - [ ] No edges out of dim/locked nodes
 - [ ] Edges among visible nodes may show dimmed; proximity can light links
 - [ ] Theme-aware CRT/retro chrome
+- [ ] Self / hero node renders **polychrome** (rainbow/CRT multi-color, match `PolychromeFX`) so it is obviously the avatar; other nodes stay theme-normal
 - [ ] Not a global helicopter force graph as the primary experience
 
 ---
@@ -519,11 +521,10 @@
 ### US-5.6 — Parked graph surfaces `P2` 🔲
 
 **As a** product owner,  
-**I want** 3D, Gravity designer, Arrange-by-as-primary, and a million-node global view parked,  
-**So that** the MVP stays a walkable World.
+**I want** Gravity designer, Arrange-by-as-primary, and a million-node global view parked,  
+**So that** the MVP stays a walkable 2D World.
 
 **Acceptance criteria**
-- [ ] Do not ship true 3D
 - [ ] Do not ship a multi-layer dropdown farm or Gravity designer
 - [ ] Do not make Arrange by the primary control
 - [ ] Do not ship a full million-node global helicopter view
@@ -703,4 +704,4 @@ A user story is **done** when:
 
 ---
 
-*Last updated: 2026-09-12. Network Graph / event-worlds brief folded into Epic 6. Looking for chips still out. User-facing “Group” is Cluster. Event detail UI and first-time tips parked.*
+*Last updated: 2026-09-12. 3D struck (not parked). Hero node polychrome. Looking for chips still out. User-facing “Group” is Cluster. Event detail UI and first-time tips parked.*

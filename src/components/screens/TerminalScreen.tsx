@@ -14,6 +14,15 @@ const TABS: { id: Tab; label: string }[] = [
 
 const UPDATE_LOG = [
   {
+    version: 'v0.1.9',
+    date: '2026-09',
+    notes: [
+      'Network Graph hero / ego node is polychrome (rainbow/CRT) so you can spot yourself. Other nodes stay theme-normal.',
+      '3D is struck from the product line — ego-centric 2D forever unless Sebastian reopens it. Not parked for later.',
+      'Looking for chips still out.',
+    ],
+  },
+  {
     version: 'v0.1.8',
     date: '2026-09',
     notes: [
