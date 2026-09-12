@@ -29,6 +29,7 @@ import {
 import { groupsIAdmin, type HyperGroup } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
+import { CardThumb } from '../CardThumb'
 
 const ROLES: EventRole[] = ['guest', 'co-creator', 'sponsor', 'admin']
 
@@ -358,7 +359,10 @@ export function EventsScreen({
     return (
       <div className="screen hz-screen">
         <div className="title">E :: EVENT</div>
-        <h2 className="hz-heading">{viewing.title}</h2>
+        <div className="hz-card-head">
+          <CardThumb src={viewing.imageUrl} label={viewing.title} glyph="▣" />
+          <h2 className="hz-heading">{viewing.title}</h2>
+        </div>
         <p className="hz-meta dim">
           {formatEventDate(viewing.date)} · host {viewing.hostName}
         </p>
@@ -469,10 +473,13 @@ export function EventsScreen({
         <ul className="hz-list">
           {events.map((e: HyperEvent) => (
             <li key={e.id}>
-              <button type="button" className="hz-list-item" onClick={() => setViewId(e.id)}>
-                <span className="hz-list-title">{e.title}</span>
-                <span className="dim">
-                  {formatEventDate(e.date)} · {privacyLabel(e.privacy)}
+              <button type="button" className="hz-list-item has-thumb" onClick={() => setViewId(e.id)}>
+                <CardThumb src={e.imageUrl} label={e.title} glyph="▣" />
+                <span className="hz-list-copy">
+                  <span className="hz-list-title">{e.title}</span>
+                  <span className="dim">
+                    {formatEventDate(e.date)} · {privacyLabel(e.privacy)}
+                  </span>
                 </span>
               </button>
             </li>

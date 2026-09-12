@@ -1,3 +1,5 @@
+import { useUi } from '../ui'
+
 export type ShellFeature =
   | 'terminal'
   | 'graph'
@@ -10,6 +12,7 @@ export type ShellFeature =
   | 'contacts'
   | 'groups'
   | 'my-group'
+  | 'theme'
 
 type IconId =
   | 'terminal'
@@ -25,6 +28,7 @@ type IconId =
   | 'my-group'
   | 'my-horizons'
   | 'contacts'
+  | 'theme'
 
 type DeskIcon = {
   id: IconId
@@ -115,6 +119,13 @@ const RIGHT_TOP: DeskIcon[] = [
     locked: false,
     tip: 'My horizons — your default list and calendars you create.',
   },
+  {
+    id: 'theme',
+    glyph: '◐',
+    label: 'Theme',
+    locked: false,
+    tip: 'Theme — cycle WHITE / BLACK / POLYCHROME.',
+  },
 ]
 
 const RIGHT_BOTTOM: DeskIcon[] = [
@@ -154,6 +165,7 @@ function IconButton({
       aria-disabled={item.locked || undefined}
       aria-label={item.tip}
       data-tip={item.tip}
+      data-theme-cycle={item.id === 'theme' ? 'true' : undefined}
       title={item.tip}
       onClick={() => onActivate(item.id, item.locked)}
     >
@@ -193,6 +205,15 @@ export function DesktopIcons({
   onGroups: () => void
   onMyGroups: () => void
 }) {
+  const { theme, cycleTheme } = useUi()
+  const rightTop = RIGHT_TOP.map((item) =>
+    item.id === 'theme'
+      ? {
+          ...item,
+          tip: `Theme — now ${theme.toUpperCase()}. Click to cycle WHITE / BLACK / POLYCHROME.`,
+        }
+      : item,
+  )
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
     if (id === 'terminal') onTerminal?.()
@@ -206,6 +227,7 @@ export function DesktopIcons({
     else if (id === 'contacts') onContacts()
     else if (id === 'groups') onGroups()
     else if (id === 'my-group') onMyGroups()
+    else if (id === 'theme') cycleTheme()
   }
 
   return (
@@ -217,7 +239,7 @@ export function DesktopIcons({
       </nav>
       <nav className="desktop-icons desktop-icons-right" aria-label="Hypernet mine">
         <div className="desk-stack desk-stack-top">
-          {RIGHT_TOP.map((item) => (
+          {rightTop.map((item) => (
             <IconButton key={item.id} item={item} active={active} tipSide="left" onActivate={activate} />
           ))}
         </div>

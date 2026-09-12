@@ -11,6 +11,7 @@ import {
 import { groupsIAdmin } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
+import { CardThumb } from '../CardThumb'
 
 export function HorizonsScreen({
   answers,
@@ -118,9 +119,12 @@ export function HorizonsScreen({
         ) : (
           <ul className="hz-list">
             {evs.map((e) => (
-              <li key={e.id} className="hz-list-static">
-                <span className="hz-list-title">{e.title}</span>
-                <span className="dim">{formatEventDate(e.date)}</span>
+              <li key={e.id} className="hz-list-static has-thumb">
+                <CardThumb src={e.imageUrl} label={e.title} glyph="▣" />
+                <span className="hz-list-copy">
+                  <span className="hz-list-title">{e.title}</span>
+                  <span className="dim">{formatEventDate(e.date)}</span>
+                </span>
               </li>
             ))}
           </ul>

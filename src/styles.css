@@ -2159,6 +2159,7 @@ html[data-reduce-motion='on'] .terminal {
 .hz-list-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   width: 100%;
   padding: 8px 10px;
@@ -2176,12 +2177,140 @@ html[data-reduce-motion='on'] .terminal {
   outline: none;
 }
 
+.hz-list-item:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .hz-list-static {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   padding: 8px 10px;
   border: 1px dotted var(--border);
+}
+
+.hz-list-item.has-thumb,
+.hz-list-static.has-thumb {
+  justify-content: flex-start;
+}
+
+.hz-list-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.hz-list-row {
+  align-items: center;
+}
+
+.hz-list-row-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hz-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hz-card-head .hz-heading {
+  margin: 0;
+}
+
+.card-thumb {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-thumb-ph {
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--fg-dim);
+}
+
+.list-plus-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.list-plus-btn:hover,
+.list-plus-btn:focus-visible {
+  border-style: solid;
+  outline: none;
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.req-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.req-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.req-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.crt-popup {
+  align-items: stretch;
+  max-width: min(440px, calc(100vw - 32px));
+  width: 100%;
+  max-height: min(72vh, 560px);
+}
+
+.crt-popup-lead {
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.crt-popup-body {
+  overflow: auto;
+  min-height: 0;
+}
+
+.crt-popup-list {
+  margin-top: 8px;
+  max-height: 280px;
 }
 
 .hz-list-title {

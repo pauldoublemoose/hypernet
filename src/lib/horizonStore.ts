@@ -31,6 +31,8 @@ export interface HyperEvent {
   privacy: EventPrivacy
   /** When privacy === 'contacts', one or more contact list ids. */
   privacyListIds: string[]
+  /** Optional image stub — URL only. Cards show a placeholder when empty. */
+  imageUrl?: string
 }
 
 export interface Horizon {
@@ -119,6 +121,7 @@ export function normalizeEvent(raw: Partial<HyperEvent> & Pick<HyperEvent, 'id' 
       : [],
     privacy,
     privacyListIds: Array.isArray(raw.privacyListIds) ? [...raw.privacyListIds] : [],
+    imageUrl: raw.imageUrl?.trim() || undefined,
   }
 }
 

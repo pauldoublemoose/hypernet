@@ -12,6 +12,7 @@ import {
 import { groupsIAdmin } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
+import { CardThumb } from '../CardThumb'
 
 export function MyHorizonsScreen({
   answers,
@@ -130,12 +131,15 @@ export function MyHorizonsScreen({
             {evs.map((e) => {
               const a = getAttendance(e.id)
               return (
-                <li key={e.id} className="hz-list-static">
-                  <span className="hz-list-title">{e.title}</span>
-                  <span className="dim">
-                    {formatEventDate(e.date)}
-                    {a ? ` · ${a.status}` : ''}
-                    {a?.role ? `/${a.role}` : ''}
+                <li key={e.id} className="hz-list-static has-thumb">
+                  <CardThumb src={e.imageUrl} label={e.title} glyph="▣" />
+                  <span className="hz-list-copy">
+                    <span className="hz-list-title">{e.title}</span>
+                    <span className="dim">
+                      {formatEventDate(e.date)}
+                      {a ? ` · ${a.status}` : ''}
+                      {a?.role ? `/${a.role}` : ''}
+                    </span>
                   </span>
                 </li>
               )

@@ -13,6 +13,8 @@ export interface ContactPerson {
   displayName: string
   handle: string
   bio?: string
+  /** Optional avatar stub — URL or data URL. Placeholder if empty. */
+  imageUrl?: string
 }
 
 export interface ContactList {
@@ -226,6 +228,18 @@ export function pendingIncoming(): FriendRequest[] {
   return loadFriendRequests().filter((r) => r.toId === SELF_ID && r.status === 'pending')
 }
 
+/** Incoming inbox — pending plus resolved, so cards can undo instead of vanishing. */
+export function incomingInbox(): FriendRequest[] {
+  const rank = (s: FriendRequestStatus) => (s === 'pending' ? 0 : s === 'accepted' ? 1 : 2)
+  return loadFriendRequests()
+    .filter((r) => r.toId === SELF_ID)
+    .sort((a, b) => {
+      const d = rank(a.status) - rank(b.status)
+      if (d !== 0) return d
+      return (b.resolvedAt ?? b.createdAt).localeCompare(a.resolvedAt ?? a.createdAt)
+    })
+}
+
 /** Friend = request → accept. */
 export function sendFriendRequest(personId: string) {
   if (personId === SELF_ID || areFriends(personId) || pendingOutgoing(personId)) return
@@ -267,6 +281,36 @@ export function declineFriendRequest(requestId: string) {
   if (!req || req.status !== 'pending') return
   req.status = 'declined'
   req.resolvedAt = new Date().toISOString()
+  saveFriendRequests(rows)
+}
+
+function otherParty(req: FriendRequest): string {
+  return req.fromId === SELF_ID ? req.toId : req.fromId
+}
+
+/** Reopen a pending request and drop the friendship edge. */
+export function undoAcceptFriendRequest(requestId: string) {
+  const rows = loadFriendRequests()
+  const req = rows.find((r) => r.id === requestId)
+  if (!req || req.status !== 'accepted') return
+  req.status = 'pending'
+  delete req.resolvedAt
+  saveFriendRequests(rows)
+  const other = otherParty(req)
+  saveFriendships(
+    loadFriendships().filter(
+      (f) => !((f.aId === SELF_ID && f.bId === other) || (f.bId === SELF_ID && f.aId === other)),
+    ),
+  )
+}
+
+/** Clear a decline and put the request back in the pending inbox. */
+export function undoDeclineFriendRequest(requestId: string) {
+  const rows = loadFriendRequests()
+  const req = rows.find((r) => r.id === requestId)
+  if (!req || req.status !== 'declined') return
+  req.status = 'pending'
+  delete req.resolvedAt
   saveFriendRequests(rows)
 }
 

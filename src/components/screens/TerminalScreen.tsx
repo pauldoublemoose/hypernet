@@ -25,6 +25,17 @@ const GLOBAL_UPDATES = [
 
 const UPDATE_LOG = [
   {
+    version: 'v0.1.6',
+    date: '2026-09',
+    notes: [
+      'Theme lives on the right desktop strip — click to cycle WHITE / BLACK / POLYCHROME. Chrome header no longer toggles theme.',
+      'Contact lists: + opens a search popup to add someone from the directory.',
+      'Friend requests stay on the card after Accept / Decline — undo, and + Add to List anytime.',
+      'People / Groups / Events cards show an image box (placeholder until upload).',
+      'Backlog: Event pages UI needs an upgrade (Sebastian) — not in this pass.',
+    ],
+  },
+  {
     version: 'v0.1.5',
     date: '2026-09',
     notes: [
@@ -106,8 +117,9 @@ export function TerminalScreen({
           <h2 className="hz-heading">How to use Hypernet</h2>
           <p className="profile-view-text">
             Sign Up builds your Node. Sign In opens Terminal. Desktop icons on the left are discovery
-            (shared places); icons on the right are yours (MY NODE, contacts, calendars, settings).
-            Locked icons show a tip and stay closed until unlocked.
+            (shared places); icons on the right are yours (MY NODE, contacts, calendars, Theme,
+            settings). Theme cycles WHITE / BLACK / POLYCHROME. Locked icons show a tip and stay
+            closed until unlocked.
           </p>
           <p className="profile-view-text">
             Switch sections with the tabs in the bottom status bar: Help (this page), Global Chat,

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useKeys } from '../../hooks'
 import {
   acceptFriendRequest,
+  addPersonToLists,
   saveLists,
   areFriends,
   createList,
@@ -9,6 +10,7 @@ import {
   ensureDefaultLists,
   followPerson,
   getPerson,
+  incomingInbox,
   isFollowing,
   listsForPerson,
   loadPeople,
@@ -17,10 +19,15 @@ import {
   relationshipLabel,
   sendFriendRequest,
   simulateIncomingRequest,
+  undoAcceptFriendRequest,
+  undoDeclineFriendRequest,
   unfollowPerson,
   type ContactList,
   type ContactPerson,
+  type FriendRequest,
 } from '../../lib/contactsStore'
+import { CardThumb } from '../CardThumb'
+import { CrtPopup } from '../CrtPopup'
 
 type Tab = 'people' | 'lists' | 'requests'
 
@@ -31,6 +38,9 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
   const [listIds, setListIds] = useState<string[]>([])
   const [newListName, setNewListName] = useState('')
   const [q, setQ] = useState('')
+  const [addToListId, setAddToListId] = useState<string | null>(null)
+  const [addSearch, setAddSearch] = useState('')
+  const [addReqFromId, setAddReqFromId] = useState<string | null>(null)
 
   const refresh = () => setTick((n) => n + 1)
 
@@ -42,10 +52,16 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
     void tick
     return ensureDefaultLists()
   }, [tick])
-  const incoming = useMemo(() => {
+  const incomingPending = useMemo(() => {
     void tick
     return pendingIncoming()
   }, [tick])
+  const inbox = useMemo(() => {
+    void tick
+    return incomingInbox()
+  }, [tick])
+
+  const popupOpen = Boolean(addToListId || addReqFromId)
 
   useKeys((e) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -53,9 +69,19 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
     if ((tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') && e.isTrusted && e.key === 'Backspace')
       return
     e.preventDefault()
+    if (popupOpen) {
+      closePopups()
+      return
+    }
     if (selectedId) setSelectedId(null)
     else onBack()
   })
+
+  const closePopups = () => {
+    setAddToListId(null)
+    setAddSearch('')
+    setAddReqFromId(null)
+  }
 
   const filtered = people.filter((p) => {
     const s = q.trim().toLowerCase()
@@ -78,6 +104,19 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
     setListIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
 
+  const addToListNow = (listId: string, personId: string) => {
+    addPersonToLists(personId, [listId])
+    refresh()
+  }
+
+  const pickerPeople = people.filter((p) => {
+    const s = addSearch.trim().toLowerCase()
+    if (!s) return true
+    return p.displayName.toLowerCase().includes(s) || p.handle.toLowerCase().includes(s)
+  })
+
+  const activeList = addToListId ? lists.find((l) => l.id === addToListId) : undefined
+  const reqPerson = addReqFromId ? getPerson(addReqFromId) : undefined
 
   if (selected) {
     const following = isFollowing(selected.id)
@@ -86,8 +125,13 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
     return (
       <div className="screen hz-screen">
         <div className="title">C :: CONTACT</div>
-        <h2 className="hz-heading">{selected.displayName}</h2>
-        <p className="hz-meta dim">@{selected.handle}</p>
+        <div className="hz-card-head">
+          <CardThumb src={selected.imageUrl} label={selected.displayName} />
+          <div>
+            <h2 className="hz-heading">{selected.displayName}</h2>
+            <p className="hz-meta dim">@{selected.handle}</p>
+          </div>
+        </div>
         {selected.bio ? <p className="profile-view-text">{selected.bio}</p> : null}
         <p className="hz-status">{relationshipLabel(selected.id) || 'No link yet'}</p>
 
@@ -205,7 +249,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
           Contact lists
         </button>
         <button type="button" className={`privacy-btn${tab === 'requests' ? ' is-on' : ''}`} onClick={() => setTab('requests')}>
-          Requests{incoming.length ? ` (${incoming.length})` : ''}
+          Requests{incomingPending.length ? ` (${incomingPending.length})` : ''}
         </button>
       </div>
 
@@ -218,9 +262,12 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
           <ul className="hz-list">
             {filtered.map((p: ContactPerson) => (
               <li key={p.id}>
-                <button type="button" className="hz-list-item" onClick={() => openPerson(p.id)}>
-                  <span className="hz-list-title">{p.displayName}</span>
-                  <span className="dim">{relationshipLabel(p.id) || `@${p.handle}`}</span>
+                <button type="button" className="hz-list-item has-thumb" onClick={() => openPerson(p.id)}>
+                  <CardThumb src={p.imageUrl} label={p.displayName} />
+                  <span className="hz-list-copy">
+                    <span className="hz-list-title">{p.displayName}</span>
+                    <span className="dim">{relationshipLabel(p.id) || `@${p.handle}`}</span>
+                  </span>
                 </button>
               </li>
             ))}
@@ -250,19 +297,33 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
           </div>
           <ul className="hz-list" style={{ marginTop: 12 }}>
             {lists.map((l: ContactList) => (
-              <li key={l.id} className="hz-list-static">
+              <li key={l.id} className="hz-list-static hz-list-row">
                 <span className="hz-list-title">{l.name}</span>
-                <span className="dim">{l.memberIds.length} people</span>
+                <span className="hz-list-row-end">
+                  <span className="dim">{l.memberIds.length} people</span>
+                  <button
+                    type="button"
+                    className="list-plus-btn"
+                    aria-label={`Add someone to ${l.name}`}
+                    title={`Add someone to ${l.name}`}
+                    onClick={() => {
+                      setAddSearch('')
+                      setAddToListId(l.id)
+                    }}
+                  >
+                    +
+                  </button>
+                </span>
               </li>
             ))}
           </ul>
-          <p className="dim hz-lead">Open a person under People to assign contact lists.</p>
+          <p className="dim hz-lead">+ adds a person from your contacts directory. Or open a person under People.</p>
         </>
       )}
 
       {tab === 'requests' && (
         <>
-          <p className="dim hz-lead">Incoming friend requests (accept / decline)</p>
+          <p className="dim hz-lead">Incoming friend requests — accept, decline, undo, or add to a list first.</p>
           <div className="btn-row" style={{ marginBottom: 8 }}>
             <button
               type="button"
@@ -279,43 +340,18 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
               Demo: simulate incoming request
             </button>
           </div>
-          {incoming.length === 0 ? (
-            <p className="profile-empty dim">No pending requests</p>
+          {inbox.length === 0 ? (
+            <p className="profile-empty dim">No incoming requests</p>
           ) : (
             <ul className="hz-list">
-              {incoming.map((r) => {
-                const from = getPerson(r.fromId)
-                return (
-                  <li key={r.id} className="hz-list-static" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span className="hz-list-title">{from?.displayName ?? r.fromId}</span>
-                      <span className="dim">wants to be friends</span>
-                    </div>
-                    <div className="btn-row">
-                      <button
-                        type="button"
-                        className="btn"
-                        onClick={() => {
-                          acceptFriendRequest(r.id)
-                          refresh()
-                        }}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        type="button"
-                        className="btn dim"
-                        onClick={() => {
-                          declineFriendRequest(r.id)
-                          refresh()
-                        }}
-                      >
-                        Decline
-                      </button>
-                    </div>
-                  </li>
-                )
-              })}
+              {inbox.map((r) => (
+                <RequestCard
+                  key={r.id}
+                  request={r}
+                  onRefresh={refresh}
+                  onAddToList={() => setAddReqFromId(r.fromId)}
+                />
+              ))}
             </ul>
           )}
         </>
@@ -326,6 +362,163 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
           Back
         </button>
       </div>
+
+      {activeList && (
+        <CrtPopup
+          title={`Add to ${activeList.name}`}
+          lead="Search your contacts directory and tap a name to add them now."
+          onClose={closePopups}
+        >
+          <label className="hz-field">
+            <span>Search</span>
+            <input
+              className="profile-input"
+              value={addSearch}
+              onChange={(e) => setAddSearch(e.target.value)}
+              placeholder="Name or handle"
+              autoFocus
+            />
+          </label>
+          <ul className="hz-list crt-popup-list">
+            {pickerPeople.length === 0 ? (
+              <li className="hz-list-static">
+                <span className="dim">No matches</span>
+              </li>
+            ) : (
+              pickerPeople.map((p) => {
+                const onList = activeList.memberIds.includes(p.id)
+                return (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      className="hz-list-item has-thumb"
+                      disabled={onList}
+                      onClick={() => addToListNow(activeList.id, p.id)}
+                    >
+                      <CardThumb src={p.imageUrl} label={p.displayName} />
+                      <span className="hz-list-copy">
+                        <span className="hz-list-title">{p.displayName}</span>
+                        <span className="dim">{onList ? 'already on list' : `@${p.handle}`}</span>
+                      </span>
+                    </button>
+                  </li>
+                )
+              })
+            )}
+          </ul>
+        </CrtPopup>
+      )}
+
+      {reqPerson && (
+        <CrtPopup
+          title={`Add ${reqPerson.displayName} to a list`}
+          lead="Works before or after you accept / decline."
+          onClose={closePopups}
+        >
+          <ul className="hz-list crt-popup-list">
+            {lists.map((l) => {
+              const onList = l.memberIds.includes(reqPerson.id)
+              return (
+                <li key={l.id}>
+                  <button
+                    type="button"
+                    className="hz-list-item"
+                    disabled={onList}
+                    onClick={() => addToListNow(l.id, reqPerson.id)}
+                  >
+                    <span className="hz-list-title">{l.name}</span>
+                    <span className="dim">{onList ? 'already on list' : `${l.memberIds.length} people`}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </CrtPopup>
+      )}
     </div>
+  )
+}
+
+function RequestCard({
+  request,
+  onRefresh,
+  onAddToList,
+}: {
+  request: FriendRequest
+  onRefresh: () => void
+  onAddToList: () => void
+}) {
+  const from = getPerson(request.fromId)
+  const name = from?.displayName ?? request.fromId
+  const pending = request.status === 'pending'
+  const accepted = request.status === 'accepted'
+  const declined = request.status === 'declined'
+  const status = pending ? 'wants to be friends' : accepted ? 'Accepted · friends' : 'Declined'
+
+  return (
+    <li className="hz-list-static req-card">
+      <div className="req-card-top">
+        <CardThumb src={from?.imageUrl} label={name} />
+        <span className="hz-list-copy">
+          <span className="hz-list-title">{name}</span>
+          <span className="dim">{status}</span>
+        </span>
+      </div>
+      <div className="req-card-actions">
+        <div className="btn-row">
+          {pending && (
+            <>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  acceptFriendRequest(request.id)
+                  onRefresh()
+                }}
+              >
+                Accept
+              </button>
+              <button
+                type="button"
+                className="btn dim"
+                onClick={() => {
+                  declineFriendRequest(request.id)
+                  onRefresh()
+                }}
+              >
+                Decline
+              </button>
+            </>
+          )}
+          {accepted && (
+            <button
+              type="button"
+              className="btn dim"
+              onClick={() => {
+                undoAcceptFriendRequest(request.id)
+                onRefresh()
+              }}
+            >
+              Undo accept
+            </button>
+          )}
+          {declined && (
+            <button
+              type="button"
+              className="btn dim"
+              onClick={() => {
+                undoDeclineFriendRequest(request.id)
+                onRefresh()
+              }}
+            >
+              Undo decline
+            </button>
+          )}
+        </div>
+        <button type="button" className="btn" onClick={onAddToList}>
+          + Add to List
+        </button>
+      </div>
+    </li>
   )
 }

@@ -418,6 +418,7 @@ This keeps you in the design loop without needing to write CSS.
 | 4   | Naming for personal default Horizon (e.g. "Starred", "My Horizon")   | Product       | Phase 2   |
 | 5   | Retribalise AI flow — license/API approach                           | Eng           | Phase 5+  |
 | 6   | Spotify integration — API terms for Premium playback                 | Eng           | Phase 5+  |
+| 7   | Event pages UI needs an upgrade (Sebastian) — card image placeholders landed; full event-detail redesign is parked | Product | No |
 
 
 **Resolved (keep for context)**
@@ -449,4 +450,4 @@ This keeps you in the design loop without needing to write CSS.
 
 ---
 
-*Last updated: Aug 2026 — derived from product vision voice notes.*
+*Last updated: Sep 2026 — derived from product vision voice notes. Event detail pages still need a UI upgrade (Sebastian, parked).*

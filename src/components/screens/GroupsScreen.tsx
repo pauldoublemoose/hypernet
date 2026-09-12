@@ -22,6 +22,7 @@ import {
   type Horizon,
   type HyperEvent,
 } from '../../lib/horizonStore'
+import { CardThumb } from '../CardThumb'
 
 export type GroupsTab = 'directory' | 'mine'
 
@@ -192,10 +193,13 @@ export function GroupsScreen({
 
   const groupRow = (g: HyperGroup) => (
     <li key={g.id}>
-      <button type="button" className="hz-list-item" onClick={() => setViewId(g.id)}>
-        <span className="hz-list-title">{g.name}</span>
-        <span className="dim">
-          {g.memberIds.length} members · {visibilityLabel(g.visibility)}
+      <button type="button" className="hz-list-item has-thumb" onClick={() => setViewId(g.id)}>
+        <CardThumb src={g.imageUrl} label={g.name} glyph="▦" />
+        <span className="hz-list-copy">
+          <span className="hz-list-title">{g.name}</span>
+          <span className="dim">
+            {g.memberIds.length} members · {visibilityLabel(g.visibility)}
+          </span>
         </span>
       </button>
     </li>
@@ -271,7 +275,10 @@ export function GroupsScreen({
     return (
       <div className="screen hz-screen">
         <div className="title">G :: GROUP</div>
-        <h2 className="hz-heading">{viewing.name}</h2>
+        <div className="hz-card-head">
+          <CardThumb src={viewing.imageUrl} label={viewing.name} glyph="▦" />
+          <h2 className="hz-heading">{viewing.name}</h2>
+        </div>
         <p className="hz-meta dim">
           {visibilityLabel(viewing.visibility)} · {viewing.memberIds.length} members
           {admin ? ' · you admin' : member ? ' · you member' : ''}
@@ -348,9 +355,12 @@ export function GroupsScreen({
           ) : (
             <ul className="hz-list">
               {hosted.map((e: HyperEvent) => (
-                <li key={e.id} className="hz-list-static">
-                  <span className="hz-list-title">{e.title}</span>
-                  <span className="dim">{formatEventDate(e.date)}</span>
+                <li key={e.id} className="hz-list-static has-thumb">
+                  <CardThumb src={e.imageUrl} label={e.title} glyph="▣" />
+                  <span className="hz-list-copy">
+                    <span className="hz-list-title">{e.title}</span>
+                    <span className="dim">{formatEventDate(e.date)}</span>
+                  </span>
                 </li>
               ))}
             </ul>
