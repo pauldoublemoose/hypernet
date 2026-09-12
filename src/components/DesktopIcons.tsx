@@ -2,7 +2,10 @@ import { useUi } from '../ui'
 
 export type ShellFeature =
   | 'terminal'
+  | 'announcements'
+  | 'global-chat'
   | 'graph'
+  | 'notes'
   | 'admin'
   | 'profile'
   | 'settings'
@@ -12,16 +15,19 @@ export type ShellFeature =
   | 'contacts'
   | 'clusters'
   | 'my-cluster'
+  | 'notifications'
+  | 'my-chats'
   | 'theme'
 
 type IconId =
-  | 'terminal'
+  | 'announcements'
+  | 'global-chat'
   | 'graph'
+  | 'notes'
   | 'clusters'
   | 'events'
   | 'horizons'
   | 'profile'
-  | 'find'
   | 'chronicle'
   | 'admin'
   | 'settings'
@@ -29,6 +35,8 @@ type IconId =
   | 'my-horizons'
   | 'contacts'
   | 'theme'
+  | 'notifications'
+  | 'my-chats'
 
 type DeskIcon = {
   id: IconId
@@ -38,49 +46,59 @@ type DeskIcon = {
   tip: string
 }
 
-const LEFT_ICONS: DeskIcon[] = [
+const LEFT_TOP: DeskIcon[] = [
   {
-    id: 'terminal',
+    id: 'announcements',
+    glyph: '⌁',
+    label: 'Global Announcements',
+    locked: false,
+    tip: 'Global Announcements — network message board / updates feed.',
+  },
+  {
+    id: 'global-chat',
     glyph: '▮',
-    label: 'Terminal',
+    label: 'Global Chat',
     locked: false,
-    tip: 'Terminal — Help, Global Chat, Updates, Update log, About.',
-  },
-  {
-    id: 'clusters',
-    glyph: '▦',
-    label: 'CLUSTERS',
-    locked: false,
-    tip: 'Clusters — public directory of shared camps and crews.',
-  },
-  {
-    id: 'horizons',
-    glyph: '◎',
-    label: 'HORIZONS',
-    locked: false,
-    tip: 'Horizons — published shared calendars.',
+    tip: 'Global Chat — network-wide chat (stub).',
   },
   {
     id: 'graph',
     glyph: '◈',
-    label: 'NET',
+    label: 'Network Graph',
     locked: false,
-    tip: 'Network graph — the community as nodes',
+    tip: 'Network Graph — the community as nodes',
   },
   {
-    id: 'find',
+    id: 'notes',
     glyph: '※',
-    label: 'Find the others',
-    locked: true,
-    tip: 'Find the others — search the network for people. Coming soon.',
+    label: 'Discover Notes',
+    locked: false,
+    tip: 'Discover Notes — search the network for people and notes. Placeholder.',
   },
   {
     id: 'events',
     glyph: '▣',
-    label: 'EVENTS',
+    label: 'Discover Events',
     locked: false,
-    tip: 'Events — create gatherings and mark Interested / Going.',
+    tip: 'Discover Events — create gatherings and mark Interested / Going.',
   },
+  {
+    id: 'horizons',
+    glyph: '◎',
+    label: 'Discover Horizons',
+    locked: false,
+    tip: 'Discover Horizons — published shared calendars.',
+  },
+  {
+    id: 'clusters',
+    glyph: '▦',
+    label: 'Discover Clusters',
+    locked: false,
+    tip: 'Discover Clusters — public directory of shared camps and crews.',
+  },
+]
+
+const LEFT_BOTTOM: DeskIcon[] = [
   {
     id: 'chronicle',
     glyph: '☰',
@@ -91,6 +109,20 @@ const LEFT_ICONS: DeskIcon[] = [
 ]
 
 const RIGHT_TOP: DeskIcon[] = [
+  {
+    id: 'notifications',
+    glyph: '◷',
+    label: 'My Notifications',
+    locked: false,
+    tip: 'My Notifications — personal alerts (stub).',
+  },
+  {
+    id: 'my-chats',
+    glyph: '◇',
+    label: 'My Chats',
+    locked: false,
+    tip: 'My Chats — your private threads (stub).',
+  },
   {
     id: 'profile',
     glyph: '◉',
@@ -119,6 +151,9 @@ const RIGHT_TOP: DeskIcon[] = [
     locked: false,
     tip: 'My horizons — your default list and calendars you create.',
   },
+]
+
+const RIGHT_BOTTOM: DeskIcon[] = [
   {
     id: 'theme',
     glyph: '◐',
@@ -126,9 +161,6 @@ const RIGHT_TOP: DeskIcon[] = [
     locked: false,
     tip: 'Theme — cycle WHITE / BLACK / POLYCHROME.',
   },
-]
-
-const RIGHT_BOTTOM: DeskIcon[] = [
   {
     id: 'admin',
     glyph: '◆',
@@ -180,8 +212,10 @@ function IconButton({
 
 export function DesktopIcons({
   active,
-  onTerminal,
+  onAnnouncements,
+  onGlobalChat,
   onGraph,
+  onNotes,
   onAdmin,
   onProfile,
   onSettings,
@@ -191,10 +225,14 @@ export function DesktopIcons({
   onContacts,
   onClusters,
   onMyClusters,
+  onNotifications,
+  onMyChats,
 }: {
   active: ShellFeature
-  onTerminal?: () => void
+  onAnnouncements: () => void
+  onGlobalChat: () => void
   onGraph: () => void
+  onNotes: () => void
   onAdmin: () => void
   onProfile: () => void
   onSettings: () => void
@@ -204,9 +242,11 @@ export function DesktopIcons({
   onContacts: () => void
   onClusters: () => void
   onMyClusters: () => void
+  onNotifications: () => void
+  onMyChats: () => void
 }) {
   const { theme, cycleTheme } = useUi()
-  const rightTop = RIGHT_TOP.map((item) =>
+  const rightBottom = RIGHT_BOTTOM.map((item) =>
     item.id === 'theme'
       ? {
           ...item,
@@ -216,8 +256,10 @@ export function DesktopIcons({
   )
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
-    if (id === 'terminal') onTerminal?.()
+    if (id === 'announcements') onAnnouncements()
+    else if (id === 'global-chat') onGlobalChat()
     else if (id === 'graph') onGraph()
+    else if (id === 'notes') onNotes()
     else if (id === 'admin') onAdmin()
     else if (id === 'profile') onProfile()
     else if (id === 'settings') onSettings()
@@ -227,25 +269,35 @@ export function DesktopIcons({
     else if (id === 'contacts') onContacts()
     else if (id === 'clusters') onClusters()
     else if (id === 'my-cluster') onMyClusters()
+    else if (id === 'notifications') onNotifications()
+    else if (id === 'my-chats') onMyChats()
     else if (id === 'theme') cycleTheme()
   }
 
   return (
     <>
       <nav className="desktop-icons desktop-icons-left" aria-label="Hypernet discovery">
-        {LEFT_ICONS.map((item) => (
-          <IconButton key={item.id} item={item} active={active} tipSide="right" onActivate={activate} />
-        ))}
+        <div className="desk-stack desk-stack-top">
+          {LEFT_TOP.map((item) => (
+            <IconButton key={item.id} item={item} active={active} tipSide="right" onActivate={activate} />
+          ))}
+        </div>
+        <div className="desk-stack-spacer" aria-hidden />
+        <div className="desk-stack desk-stack-bottom">
+          {LEFT_BOTTOM.map((item) => (
+            <IconButton key={item.id} item={item} active={active} tipSide="right" onActivate={activate} />
+          ))}
+        </div>
       </nav>
       <nav className="desktop-icons desktop-icons-right" aria-label="Hypernet mine">
         <div className="desk-stack desk-stack-top">
-          {rightTop.map((item) => (
+          {RIGHT_TOP.map((item) => (
             <IconButton key={item.id} item={item} active={active} tipSide="left" onActivate={activate} />
           ))}
         </div>
         <div className="desk-stack-spacer" aria-hidden />
         <div className="desk-stack desk-stack-bottom">
-          {RIGHT_BOTTOM.map((item) => (
+          {rightBottom.map((item) => (
             <IconButton key={item.id} item={item} active={active} tipSide="left" onActivate={activate} />
           ))}
         </div>

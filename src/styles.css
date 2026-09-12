@@ -254,6 +254,24 @@ body {
   gap: 12px;
 }
 
+.section-badge {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.section-badge:hover,
+.section-badge:focus-visible {
+  color: var(--fg);
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .theme-btn {
   font: inherit;
   font-size: 17px;
@@ -432,19 +450,21 @@ body {
   overflow: visible;
 }
 
-.desktop-icons-left {
-  grid-column: 1;
+.desktop-icons-left,
+.desktop-icons-right {
   height: 100%;
   min-height: 0;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.desktop-icons-left {
+  grid-column: 1;
 }
 
 .desktop-icons-right {
   grid-column: 3;
-  height: 100%;
-  min-height: 0;
   padding: 16px 8px 12px 4px;
-  align-items: center;
-  justify-content: flex-start;
 }
 
 .desk-stack {
@@ -471,9 +491,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   width: 88px;
-  padding: 6px 4px 4px;
+  padding: 3px 3px 2px;
   font: inherit;
   color: var(--desk-icon);
   background: none;
@@ -502,18 +522,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 32px;
-  font-size: 26px;
+  width: 32px;
+  height: 26px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .desk-label {
   max-width: 100%;
   padding: 0 2px;
-  font-size: 12px;
-  letter-spacing: 0.5px;
-  line-height: 1.15;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  line-height: 1.1;
   text-align: center;
   overflow: hidden;
   display: -webkit-box;
