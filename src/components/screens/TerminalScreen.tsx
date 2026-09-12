@@ -14,10 +14,19 @@ const TABS: { id: Tab; label: string }[] = [
 
 const UPDATE_LOG = [
   {
+    version: 'v0.1.8',
+    date: '2026-09',
+    notes: [
+      'Desktop icons: two columns on the left (global | Find) and two on the right (mine collections | mine identity). Not one tall stack per side.',
+      'Find replaces Discover everywhere. Find Nodes is the correct name (never Find Notes / Discover Notes).',
+      'LOG stays locked under the Find column. Theme / Admin / SETTINGS stay bottom-right.',
+    ],
+  },
+  {
     version: 'v0.1.7',
     date: '2026-09',
     notes: [
-      'Desktop reorg (Sebastian Preview 2026-09-12): left discovery is Global Announcements, Global Chat, Network Graph, Discover Notes / Events / Horizons / Clusters. LOG stays locked at the bottom. Terminal icon removed from the strip.',
+      'Desktop reorg (Sebastian Preview 2026-09-12): left discovery is Global Announcements, Global Chat, Network Graph, Find Nodes / Events / Horizons / Clusters. LOG stays locked at the bottom. Terminal icon removed from the strip.',
       'Right mine: My Notifications and My Chats stubs on top; Theme moved to bottom-right with Admin and SETTINGS.',
       'Global Chat and Global Updates left the Terminal tab bar — they are left-strip screens now. Sign In still lands on Terminal / Help; reopen via the header section badge.',
     ],
@@ -118,10 +127,10 @@ export function TerminalScreen({
           <p className="profile-view-text">
             Sign Up builds your Node. Sign In opens this Terminal (Help). There is no Terminal icon
             on the desktop — reopen Help from the header section badge, e.g. [ T :: TERMINAL ].
-            Left strip is discovery (top → bottom): Global Announcements, Global Chat, Network
-            Graph, Discover Notes, Discover Events, Discover Horizons, Discover Clusters. LOG stays
-            locked at the bottom. Right strip is yours: My Notifications, My Chats, MY NODE, My
-            Contacts, My Clusters, MY HORIZONS. Theme, Admin, and SETTINGS sit bottom-right. Theme
+            Left side is two columns: outer Global Announcements, Global Chat, Network Graph; inner
+            Find Nodes, Find Events, Find Horizons, Find Clusters. LOG stays locked under Find.
+            Right side is two columns: inner My Clusters and MY HORIZONS; outer My Notifications,
+            My Chats, MY NODE, My Contacts. Theme, Admin, and SETTINGS sit bottom-right. Theme
             cycles WHITE / BLACK / POLYCHROME. Locked icons show a tip and stay closed until
             unlocked.
           </p>
@@ -138,7 +147,7 @@ export function TerminalScreen({
               <span className="dim">You in the network — avatar, bio, skills, contact.</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Horizon / Discover Horizons / MY HORIZONS</span>
+              <span className="hz-list-title">Horizon / Find Horizons / MY HORIZONS</span>
               <span className="dim">A shared calendar of events you can follow or publish.</span>
             </li>
             <li className="hz-list-static">
@@ -146,18 +155,18 @@ export function TerminalScreen({
               <span className="dim">Your personal event history and roles (coming soon).</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Cluster / Discover Clusters / My Clusters</span>
+              <span className="hz-list-title">Cluster / Find Clusters / My Clusters</span>
               <span className="dim">
                 A shared camp, crew, or collective — everyone in it can see they’re members together.
               </span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Discover Events</span>
+              <span className="hz-list-title">Find Events</span>
               <span className="dim">Gatherings you create or mark Interested / Going.</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Discover Notes</span>
-              <span className="dim">Search the network for people and notes (placeholder).</span>
+              <span className="hz-list-title">Find Nodes</span>
+              <span className="dim">Search the network for people and nodes (placeholder).</span>
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Global Announcements / Global Chat</span>
@@ -180,7 +189,8 @@ export function TerminalScreen({
             <li className="hz-list-static">
               <span className="hz-list-title">Desktop icons</span>
               <span className="dim">
-                Left = discovery · right top = mine · bottom-right = Theme / Admin / SETTINGS.
+                Left = two Find/global columns · right = two mine columns · bottom-right = Theme /
+                Admin / SETTINGS.
               </span>
             </li>
           </ul>

@@ -46,7 +46,8 @@ type DeskIcon = {
   tip: string
 }
 
-const LEFT_TOP: DeskIcon[] = [
+/** Far-left strip: public / network-wide. */
+const LEFT_OUTER: DeskIcon[] = [
   {
     id: 'announcements',
     glyph: '⌁',
@@ -68,33 +69,37 @@ const LEFT_TOP: DeskIcon[] = [
     locked: false,
     tip: 'Network Graph — the community as nodes',
   },
+]
+
+/** Left-inner strip: Find (public directory) + locked LOG. */
+const LEFT_INNER: DeskIcon[] = [
   {
     id: 'notes',
     glyph: '※',
-    label: 'Discover Notes',
+    label: 'Find Nodes',
     locked: false,
-    tip: 'Discover Notes — search the network for people and notes. Placeholder.',
+    tip: 'Find Nodes — search the network for people and nodes. Placeholder.',
   },
   {
     id: 'events',
     glyph: '▣',
-    label: 'Discover Events',
+    label: 'Find Events',
     locked: false,
-    tip: 'Discover Events — create gatherings and mark Interested / Going.',
+    tip: 'Find Events — create gatherings and mark Interested / Going.',
   },
   {
     id: 'horizons',
     glyph: '◎',
-    label: 'Discover Horizons',
+    label: 'Find Horizons',
     locked: false,
-    tip: 'Discover Horizons — published shared calendars.',
+    tip: 'Find Horizons — published shared calendars.',
   },
   {
     id: 'clusters',
     glyph: '▦',
-    label: 'Discover Clusters',
+    label: 'Find Clusters',
     locked: false,
-    tip: 'Discover Clusters — public directory of shared camps and crews.',
+    tip: 'Find Clusters — public directory of shared camps and crews.',
   },
 ]
 
@@ -108,7 +113,8 @@ const LEFT_BOTTOM: DeskIcon[] = [
   },
 ]
 
-const RIGHT_TOP: DeskIcon[] = [
+/** Far-right strip: identity / inbox. */
+const RIGHT_OUTER: DeskIcon[] = [
   {
     id: 'notifications',
     glyph: '◷',
@@ -137,6 +143,10 @@ const RIGHT_TOP: DeskIcon[] = [
     locked: false,
     tip: 'My Contacts — contact lists, Follow, and Friend requests.',
   },
+]
+
+/** Right-inner strip: collections you own. */
+const RIGHT_INNER: DeskIcon[] = [
   {
     id: 'my-cluster',
     glyph: '▤',
@@ -210,6 +220,28 @@ function IconButton({
   )
 }
 
+function IconCol({
+  items,
+  active,
+  tipSide,
+  onActivate,
+  extraClass,
+}: {
+  items: DeskIcon[]
+  active: ShellFeature
+  tipSide: 'left' | 'right'
+  onActivate: (id: IconId, locked: boolean) => void
+  extraClass?: string
+}) {
+  return (
+    <div className={`desk-col${extraClass ? ` ${extraClass}` : ''}`}>
+      {items.map((item) => (
+        <IconButton key={item.id} item={item} active={active} tipSide={tipSide} onActivate={onActivate} />
+      ))}
+    </div>
+  )
+}
+
 export function DesktopIcons({
   active,
   onAnnouncements,
@@ -277,29 +309,23 @@ export function DesktopIcons({
   return (
     <>
       <nav className="desktop-icons desktop-icons-left" aria-label="Hypernet discovery">
-        <div className="desk-stack desk-stack-top">
-          {LEFT_TOP.map((item) => (
-            <IconButton key={item.id} item={item} active={active} tipSide="right" onActivate={activate} />
-          ))}
+        <div className="desk-cols desk-cols-top">
+          <IconCol items={LEFT_OUTER} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-outer" />
+          <IconCol items={LEFT_INNER} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-inner" />
         </div>
         <div className="desk-stack-spacer" aria-hidden />
-        <div className="desk-stack desk-stack-bottom">
-          {LEFT_BOTTOM.map((item) => (
-            <IconButton key={item.id} item={item} active={active} tipSide="right" onActivate={activate} />
-          ))}
+        <div className="desk-cols desk-cols-bottom">
+          <IconCol items={LEFT_BOTTOM} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-dock" />
         </div>
       </nav>
       <nav className="desktop-icons desktop-icons-right" aria-label="Hypernet mine">
-        <div className="desk-stack desk-stack-top">
-          {RIGHT_TOP.map((item) => (
-            <IconButton key={item.id} item={item} active={active} tipSide="left" onActivate={activate} />
-          ))}
+        <div className="desk-cols desk-cols-top">
+          <IconCol items={RIGHT_INNER} active={active} tipSide="left" onActivate={activate} extraClass="desk-col-inner" />
+          <IconCol items={RIGHT_OUTER} active={active} tipSide="left" onActivate={activate} extraClass="desk-col-outer" />
         </div>
         <div className="desk-stack-spacer" aria-hidden />
-        <div className="desk-stack desk-stack-bottom">
-          {rightBottom.map((item) => (
-            <IconButton key={item.id} item={item} active={active} tipSide="left" onActivate={activate} />
-          ))}
+        <div className="desk-cols desk-cols-bottom">
+          <IconCol items={rightBottom} active={active} tipSide="left" onActivate={activate} extraClass="desk-col-dock" />
         </div>
       </nav>
     </>

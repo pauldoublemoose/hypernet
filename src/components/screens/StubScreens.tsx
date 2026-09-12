@@ -88,8 +88,8 @@ export function GlobalChatScreen({ onBack }: { onBack: () => void }) {
 export function DiscoverNotesScreen({ onBack }: { onBack: () => void }) {
   return (
     <StubPane
-      title="Discover Notes"
-      lead="Search the network for people and notes. Placeholder — was Find the others."
+      title="Find Nodes"
+      lead="Search the network for people and nodes. Placeholder — was Find the others."
       onBack={onBack}
     >
       <section className="hz-panel">
@@ -98,14 +98,14 @@ export function DiscoverNotesScreen({ onBack }: { onBack: () => void }) {
           <input
             className="profile-input"
             disabled
-            placeholder="Discover Notes coming soon"
+            placeholder="Find Nodes coming soon"
             value=""
             readOnly
           />
         </label>
         <ul className="hz-list">
           <li className="hz-list-static">
-            <span className="dim">No notes yet — coming soon.</span>
+            <span className="dim">No nodes yet — coming soon.</span>
           </li>
         </ul>
       </section>
