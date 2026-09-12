@@ -24,7 +24,7 @@ const NEAR_REACH = 88
 const ALL_REACH = 8000
 const LINK_DIST = 210
 const LIGHT_DIST = 54
-const NODE_R = 6.5
+const NODE_R = 8
 const HERO_R = 10.4
 
 type GravityMode = 'none' | 'event' | 'friends'
@@ -122,6 +122,50 @@ function readThemeColor(el: Element | null, name: string, fallback: string) {
   if (!el) return fallback
   const v = getComputedStyle(el).getPropertyValue(name).trim()
   return v || fallback
+}
+
+const avatarImgCache = new Map<string, HTMLImageElement | 'err'>()
+
+function avatarImage(url: string | undefined, onReady: () => void): HTMLImageElement | null {
+  if (!url) return null
+  const cached = avatarImgCache.get(url)
+  if (cached === 'err') return null
+  if (cached) return cached.complete && cached.naturalWidth > 0 ? cached : null
+  const img = new Image()
+  img.onload = () => onReady()
+  img.onerror = () => {
+    avatarImgCache.set(url, 'err')
+  }
+  img.src = url
+  avatarImgCache.set(url, img)
+  return null
+}
+
+function drawCirclePhoto(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  img: HTMLImageElement,
+  k: number,
+  stroke: string,
+) {
+  ctx.save()
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.clip()
+  const iw = img.naturalWidth
+  const ih = img.naturalHeight
+  const scale = Math.max((r * 2) / iw, (r * 2) / ih)
+  const dw = iw * scale
+  const dh = ih * scale
+  ctx.drawImage(img, x - dw / 2, y - dh / 2, dw, dh)
+  ctx.restore()
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.strokeStyle = stroke
+  ctx.lineWidth = 1.15 / k
+  ctx.stroke()
 }
 
 function distPointSeg(
@@ -339,9 +383,14 @@ export function NetworkGraph({
       ctx.beginPath()
       ctx.arc(s.nx, s.ny, NODE_R, 0, Math.PI * 2)
       if (s.full) {
-        ctx.fillStyle = fg
+        const pic = avatarImage(n.imageUrl, draw)
         ctx.globalAlpha = hot ? 1 : 0.92
-        ctx.fill()
+        if (pic) {
+          drawCirclePhoto(ctx, s.nx, s.ny, NODE_R, pic, k, fg)
+        } else {
+          ctx.fillStyle = fg
+          ctx.fill()
+        }
       } else {
         ctx.strokeStyle = fgDim
         ctx.globalAlpha = 0.28
@@ -461,6 +510,9 @@ export function NetworkGraph({
   }, [worldId])
 
   useEffect(() => {
+    for (const n of people) {
+      if (n.imageUrl) avatarImage(n.imageUrl, draw)
+    }
     draw()
   }, [people, linksOn, panel, gravity, visibility])
 

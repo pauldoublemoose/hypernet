@@ -27,6 +27,7 @@ import {
   type EventPrivacy,
   type HyperEvent,
 } from '../horizonStore'
+import { resolveAvatarUrl } from '../defaultAvatars'
 import { SEED_NODES } from './seed'
 
 export type WorldKind = 'open' | 'private'
@@ -362,7 +363,7 @@ function catalogPerson(
       displayName: contact.displayName,
       bio: contact.bio ?? '',
       skills: [],
-      imageUrl: contact.imageUrl,
+      imageUrl: resolveAvatarUrl(id, contact.imageUrl),
     }
   }
   const seed = SEED_NODES.find((n) => n.id === id)
@@ -371,6 +372,7 @@ function catalogPerson(
       displayName: seed.name,
       bio: '',
       skills: seed.skills,
+      imageUrl: resolveAvatarUrl(id),
     }
   }
   return undefined
@@ -395,7 +397,7 @@ export function inhabitantsForWorld(
         y: 0,
         isSelf: true,
         allowed: true,
-        imageUrl: selfAvatarUrl || undefined,
+        imageUrl: selfAvatarUrl.trim() || undefined,
       })
       continue
     }
@@ -411,7 +413,7 @@ export function inhabitantsForWorld(
       y: pos.y,
       isSelf: false,
       allowed: isNodeAllowed(world, id),
-      imageUrl: info.imageUrl,
+      imageUrl: resolveAvatarUrl(id, info.imageUrl),
     })
   }
   return out

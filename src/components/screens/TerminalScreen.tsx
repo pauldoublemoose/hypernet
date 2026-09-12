@@ -18,7 +18,7 @@ const UPDATE_LOG = [
     date: '2026-09',
     notes: [
       'Desktop icons sit on a uniform grid (same icon + label cell). A/B/C/D columns stay locked.',
-      'Network Graph: pick a World from cards first. Gravity, Visibility, and Links show only after you drop in. Walk/thrust is faster. Hero is a plain polychrome circle + shine (not faceted). Person cards use circular profile-pic placeholders.',
+      'Network Graph: pick a World from cards first. Gravity, Visibility, and Links show only after you drop in. Walk/thrust is faster. Hero is a plain polychrome circle + shine (not faceted). Person cards and in-reach graph nodes use circular pics from public/default-avatars; placeholder only if a file is missing.',
       'Looking for chips still out. 3D stays struck.',
     ],
   },

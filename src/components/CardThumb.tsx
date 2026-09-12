@@ -1,4 +1,5 @@
 import { getPerson, selfId } from '../lib/contactsStore'
+import { resolveAvatarUrl } from '../lib/defaultAvatars'
 
 /** Image box for directory / list cards. Placeholder if no src. People use circle. */
 export function CardThumb({
@@ -40,7 +41,15 @@ export function MemberStack({ ids, max = 4 }: { ids: string[]; max?: number }) {
       {shown.map((id) => {
         const p = getPerson(id)
         const label = id === selfId() ? 'You' : (p?.displayName ?? id)
-        return <CardThumb key={id} src={p?.imageUrl} label={label} size="sm" shape="circle" />
+        return (
+          <CardThumb
+            key={id}
+            src={resolveAvatarUrl(id, p?.imageUrl)}
+            label={label}
+            size="sm"
+            shape="circle"
+          />
+        )
       })}
       {extra > 0 ? <span className="member-stack-more">+{extra}</span> : null}
     </span>
