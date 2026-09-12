@@ -489,9 +489,11 @@ export function NetworkGraph({
             <div className="net-tip-meta">
               {panel.isSelf ? 'YOU · avatar' : panel.bio || 'Node in this World'}
             </div>
-            {!panel.isSelf && panel.skills.length > 0 && (
-              <div className="net-tip-meta">{panel.skills.slice(0, 3).join(' · ')}</div>
-            )}
+            {!panel.isSelf &&
+              panel.skills.length > 0 &&
+              panel.skills.join(' · ') !== panel.bio && (
+                <div className="net-tip-meta">{panel.skills.slice(0, 3).join(' · ')}</div>
+              )}
             <div className="world-panel-actions">
               {panel.isSelf && onOpenSelfProfile && (
                 <button type="button" className="net-toggle on" onClick={onOpenSelfProfile}>
