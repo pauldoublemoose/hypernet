@@ -17,9 +17,8 @@ const UPDATE_LOG = [
     version: 'v0.1.8',
     date: '2026-09',
     notes: [
-      'Desktop icons: two columns on the left (global | Find) and two on the right (mine collections | mine identity). Not one tall stack per side.',
+      'Desktop icons (Sebastian locked map): LEFT A near window = Global Announcements / Global Chat / Network Graph; LEFT B outer = Find Nodes / Events / Horizons / Clusters + locked LOG. RIGHT C near window = My Notifications / My Chats; RIGHT D outer = MY NODE / My Contacts / My Clusters / MY HORIZONS. Theme / Admin / SETTINGS last, bottom-right.',
       'Find replaces Discover everywhere. Find Nodes is the correct name (never Find Notes / Discover Notes).',
-      'LOG stays locked under the Find column. Theme / Admin / SETTINGS stay bottom-right.',
     ],
   },
   {
@@ -127,12 +126,12 @@ export function TerminalScreen({
           <p className="profile-view-text">
             Sign Up builds your Node. Sign In opens this Terminal (Help). There is no Terminal icon
             on the desktop — reopen Help from the header section badge, e.g. [ T :: TERMINAL ].
-            Left side is two columns: outer Global Announcements, Global Chat, Network Graph; inner
-            Find Nodes, Find Events, Find Horizons, Find Clusters. LOG stays locked under Find.
-            Right side is two columns: inner My Clusters and MY HORIZONS; outer My Notifications,
-            My Chats, MY NODE, My Contacts. Theme, Admin, and SETTINGS sit bottom-right. Theme
-            cycles WHITE / BLACK / POLYCHROME. Locked icons show a tip and stay closed until
-            unlocked.
+            Left side is two columns: near the window — Global Announcements, Global Chat, Network
+            Graph; outer Find — Find Nodes, Find Events, Find Horizons, Find Clusters. LOG stays
+            locked under Find. Right side is two columns: near the window — My Notifications, My
+            Chats; outer — MY NODE, My Contacts, My Clusters, MY HORIZONS. Theme, Admin, and
+            SETTINGS sit bottom-right (SETTINGS last). Theme cycles WHITE / BLACK / POLYCHROME.
+            Locked icons show a tip and stay closed until unlocked.
           </p>
           <p className="profile-view-text">
             Switch Terminal sections with the tabs in the bottom status bar: Help (this page), the
@@ -189,8 +188,8 @@ export function TerminalScreen({
             <li className="hz-list-static">
               <span className="hz-list-title">Desktop icons</span>
               <span className="dim">
-                Left = two Find/global columns · right = two mine columns · bottom-right = Theme /
-                Admin / SETTINGS.
+                Left A (global, near window) + left B (Find, outer) · right C (inbox, near window) +
+                right D (mine, outer) · bottom-right = Theme / Admin / SETTINGS.
               </span>
             </li>
           </ul>
