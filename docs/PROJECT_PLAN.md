@@ -426,7 +426,7 @@ The codebase already has:
 
 **Do not introduce new visual patterns** until the core screens feel consistent. Prefer full-viewport layouts over cramped terminal panes.
 
-**Near-term shell (pre-alpha):** Compact CRT window stays the default, sitting on a desktop backdrop. Feature icons live on that backdrop (not inside the chrome). Desktop users can expand the window from a corner control; the expanded window leaves the left (discovery) and right (mine) icon strips visible. Profile is a real page (local/stub data until auth lands). **Find the others** is the discovery icon (locked until search exists). A full Win95-style multi-window shell is deferred.
+**Near-term shell (pre-alpha):** Compact CRT window stays the default, sitting on a desktop backdrop. Feature icons live on that backdrop (not inside the chrome). Desktop users can expand the window from a corner control; the expanded window leaves the left (Find) and right (mine) icon strips visible. Profile is a real page (local/stub data until auth lands). Outer Find icons are **Find Nodes / Find Events / Find Horizons / Find Clusters** (Find Nodes is the people/node search placeholder). A full Win95-style multi-window shell is deferred. Do not call them Discover.
 
 ### Step 4: Product owner review gate
 
