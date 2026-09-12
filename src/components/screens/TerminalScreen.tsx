@@ -19,7 +19,7 @@ const UPDATE_LOG = [
     notes: [
       'Network Graph is an ego-centric World explorer: pick an event twin, walk as your avatar (WASD / thrust), click a node for a person panel. One shared-event link layer. Dim/locked = out of reach or Chronicle-hidden.',
       'Open/community twins (Borderland, Burning Man, Hyperstition) plus private Worlds you can enter (Friends of participants default, or Participants). Looking for chips still out.',
-      'Desktop icons (Sebastian locked map): LEFT A near window = Global Announcements / Global Chat / Network Graph; LEFT B outer = Find Nodes / Events / Horizons / Clusters + locked LOG. RIGHT C near window = My Notifications / My Chats; RIGHT D outer = MY NODE / My Contacts / My Clusters / MY HORIZONS. Theme / Admin / SETTINGS last, bottom-right.',
+      'Desktop icons (Sebastian locked map): LEFT A near window = Global Announcements / Global Chat / Network Graph; LEFT B outer = Find Nodes / Events / Horizons / Clusters. RIGHT C near window = My Notifications / My Chats; RIGHT D outer = MY NODE / My Chronicle / My Contacts / My Clusters / MY HORIZONS. Theme / Admin / SETTINGS last, bottom-right. LOG left icon removed — My Chronicle sits under MY NODE.',
       'Find replaces Discover everywhere. Find Nodes is the correct name (never Find Notes / Discover Notes).',
     ],
   },
@@ -129,10 +129,10 @@ export function TerminalScreen({
             Sign Up builds your Node. Sign In opens this Terminal (Help). There is no Terminal icon
             on the desktop — reopen Help from the header section badge, e.g. [ T :: TERMINAL ].
             Left side is two columns: near the window — Global Announcements, Global Chat, Network
-            Graph; outer Find — Find Nodes, Find Events, Find Horizons, Find Clusters. LOG stays
-            locked under Find. Network Graph opens a World picker — drop into an event twin and
-            walk; it is not a global helicopter map. Right side is two columns: near the window —
-            My Notifications, My Chats; outer — MY NODE, My Contacts, My Clusters, MY HORIZONS.
+            Graph; outer Find — Find Nodes, Find Events, Find Horizons, Find Clusters. Network Graph
+            opens a World picker — drop into an event twin and walk; it is not a global helicopter
+            map. Right side is two columns: near the window — My Notifications, My Chats; outer —
+            MY NODE, My Chronicle, My Contacts, My Clusters, MY HORIZONS.
             Theme, Admin, and SETTINGS sit bottom-right (SETTINGS last). Theme cycles WHITE / BLACK
             / POLYCHROME. Locked icons show a tip and stay closed until unlocked.
           </p>
@@ -153,8 +153,10 @@ export function TerminalScreen({
               <span className="dim">A shared calendar of events you can follow or publish.</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Chronicle / LOG</span>
-              <span className="dim">Your personal event history and roles (coming soon).</span>
+              <span className="hz-list-title">My Chronicle</span>
+              <span className="dim">
+                Personal event history, roles, and unconfirmed entries (Interested, past Horizons).
+              </span>
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Cluster / Find Clusters / My Clusters</span>

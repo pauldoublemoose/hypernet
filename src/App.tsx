@@ -22,6 +22,7 @@ import { ClustersScreen, type ClustersTab } from './components/screens/ClustersS
 import { TerminalScreen } from './components/screens/TerminalScreen'
 import {
   AnnouncementsScreen,
+  ChronicleScreen,
   DiscoverNotesScreen,
   GlobalChatScreen,
   MyChatsScreen,
@@ -93,6 +94,7 @@ type ScreenId =
   | 'notes'
   | 'notifications'
   | 'myChats'
+  | 'chronicle'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -130,6 +132,7 @@ const SECTION: Record<ScreenId, string> = {
   notes: 'FN :: NODES',
   notifications: 'N :: NOTIFICATIONS',
   myChats: 'MC :: MY CHATS',
+  chronicle: 'CH :: MY CHRONICLE',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -223,6 +226,7 @@ function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: Clust
   if (screen === 'notes') return 'notes'
   if (screen === 'notifications') return 'notifications'
   if (screen === 'myChats') return 'my-chats'
+  if (screen === 'chronicle') return 'chronicle'
   return 'terminal'
 }
 
@@ -608,6 +612,9 @@ export default function App() {
     case 'myChats':
       content = <MyChatsScreen key="myChats" onBack={back} />
       break
+    case 'chronicle':
+      content = <ChronicleScreen key="chronicle" onBack={back} />
+      break
   }
 
   const openTerminal = () => {
@@ -685,6 +692,11 @@ export default function App() {
     if (screen !== 'myChats') go('myChats')
   }
 
+  const openChronicle = () => {
+    setGraphOpen(false)
+    if (screen !== 'chronicle') go('chronicle')
+  }
+
   return (
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
@@ -704,6 +716,7 @@ export default function App() {
         onMyClusters={() => openClusters('mine')}
         onNotifications={openNotifications}
         onMyChats={openMyChats}
+        onChronicle={openChronicle}
       />
       <TerminalFrame
         section={

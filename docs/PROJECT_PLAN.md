@@ -36,7 +36,7 @@ It is **not** a consumption feed like Facebook. It is a **recruitment and discov
 | ------------- | ----------------------------------------------------------------- |
 | **Node**      | You in the network.                                               |
 | **Horizon**   | A shared calendar — create one, add events, let others subscribe. |
-| **Chronicle** | Your event history — what you've joined and the role you played.  |
+| **Chronicle** | Your event history — what you've joined and the role you played. Full My Chronicle = personal event history + roles + unconfirmed (Interested, past Horizons). |
 | **Cluster**   | A camp, crew, or collective — run by people, with its own page.   |
 | **World**     | A place you drop into on the graph — often an event twin.         |
 

@@ -130,6 +130,23 @@ export function NotificationsScreen({ onBack }: { onBack: () => void }) {
   )
 }
 
+export function ChronicleScreen({ onBack }: { onBack: () => void }) {
+  return (
+    <StubPane
+      title="My Chronicle"
+      lead="Personal event history, roles, and unconfirmed entries (Interested, past Horizons). Stub."
+      onBack={onBack}
+    >
+      <ul className="hz-list">
+        <li className="hz-list-static">
+          <span className="hz-list-title">No entries yet</span>
+          <span className="dim">Going roles and past events will land here. Interested stays unconfirmed.</span>
+        </li>
+      </ul>
+    </StubPane>
+  )
+}
+
 export function MyChatsScreen({ onBack }: { onBack: () => void }) {
   return (
     <StubPane

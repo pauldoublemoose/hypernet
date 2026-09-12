@@ -18,6 +18,7 @@ export type ShellFeature =
   | 'notifications'
   | 'my-chats'
   | 'theme'
+  | 'chronicle'
 
 type IconId =
   | 'announcements'
@@ -71,7 +72,7 @@ const LEFT_A: DeskIcon[] = [
   },
 ]
 
-/** LEFT B — outer Find strip. LOG stays locked at the bottom of this column. */
+/** LEFT B — outer Find strip. */
 const LEFT_B: DeskIcon[] = [
   {
     id: 'notes',
@@ -103,16 +104,6 @@ const LEFT_B: DeskIcon[] = [
   },
 ]
 
-const LEFT_B_DOCK: DeskIcon[] = [
-  {
-    id: 'chronicle',
-    glyph: '☰',
-    label: 'LOG',
-    locked: true,
-    tip: 'Chronicle — your event history and roles. Coming soon.',
-  },
-]
-
 /** RIGHT C — near the window: inbox. */
 const RIGHT_C: DeskIcon[] = [
   {
@@ -139,6 +130,13 @@ const RIGHT_D: DeskIcon[] = [
     label: 'MY NODE',
     locked: false,
     tip: 'My node — you in the network. Avatar, bio, skills, contact.',
+  },
+  {
+    id: 'chronicle',
+    glyph: '☰',
+    label: 'My Chronicle',
+    locked: false,
+    tip: 'My Chronicle — personal event history, roles, and unconfirmed entries. Stub.',
   },
   {
     id: 'contacts',
@@ -269,6 +267,7 @@ export function DesktopIcons({
   onMyClusters,
   onNotifications,
   onMyChats,
+  onChronicle,
 }: {
   active: ShellFeature
   onAnnouncements: () => void
@@ -286,6 +285,7 @@ export function DesktopIcons({
   onMyClusters: () => void
   onNotifications: () => void
   onMyChats: () => void
+  onChronicle: () => void
 }) {
   const { theme, cycleTheme } = useUi()
   const rightBottom = RIGHT_BOTTOM.map((item) =>
@@ -313,6 +313,7 @@ export function DesktopIcons({
     else if (id === 'my-cluster') onMyClusters()
     else if (id === 'notifications') onNotifications()
     else if (id === 'my-chats') onMyChats()
+    else if (id === 'chronicle') onChronicle()
     else if (id === 'theme') cycleTheme()
   }
 
@@ -320,14 +321,7 @@ export function DesktopIcons({
     <>
       <nav className="desktop-icons desktop-icons-left" aria-label="Hypernet discovery">
         <div className="desk-cols desk-cols-fill">
-          <IconCol
-            items={LEFT_B}
-            dock={LEFT_B_DOCK}
-            active={active}
-            tipSide="right"
-            onActivate={activate}
-            extraClass="desk-col-outer"
-          />
+          <IconCol items={LEFT_B} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-outer" />
           <IconCol items={LEFT_A} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-inner" />
         </div>
       </nav>
