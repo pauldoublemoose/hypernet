@@ -19,13 +19,15 @@ const UPDATE_LOG = [
     notes: [
       'Network Graph is an ego-centric World explorer: pick an event twin, walk as your avatar (WASD / thrust), click a node for a person panel. One shared-event link layer. Dim/locked = out of reach or Chronicle-hidden.',
       'Open/community twins (Borderland, Burning Man, Hyperstition) plus private Worlds you can enter (Friends of participants default, or Participants). Looking for chips still out.',
+      'Desktop icons (Sebastian locked map): LEFT A near window = Global Announcements / Global Chat / Network Graph; LEFT B outer = Find Nodes / Events / Horizons / Clusters + locked LOG. RIGHT C near window = My Notifications / My Chats; RIGHT D outer = MY NODE / My Contacts / My Clusters / MY HORIZONS. Theme / Admin / SETTINGS last, bottom-right.',
+      'Find replaces Discover everywhere. Find Nodes is the correct name (never Find Notes / Discover Notes).',
     ],
   },
   {
     version: 'v0.1.7',
     date: '2026-09',
     notes: [
-      'Desktop reorg (Sebastian Preview 2026-09-12): left discovery is Global Announcements, Global Chat, Network Graph, Discover Notes / Events / Horizons / Clusters. LOG stays locked at the bottom. Terminal icon removed from the strip.',
+      'Desktop reorg (Sebastian Preview 2026-09-12): left discovery is Global Announcements, Global Chat, Network Graph, Find Nodes / Events / Horizons / Clusters. LOG stays locked at the bottom. Terminal icon removed from the strip.',
       'Right mine: My Notifications and My Chats stubs on top; Theme moved to bottom-right with Admin and SETTINGS.',
       'Global Chat and Global Updates left the Terminal tab bar — they are left-strip screens now. Sign In still lands on Terminal / Help; reopen via the header section badge.',
     ],
@@ -126,13 +128,13 @@ export function TerminalScreen({
           <p className="profile-view-text">
             Sign Up builds your Node. Sign In opens this Terminal (Help). There is no Terminal icon
             on the desktop — reopen Help from the header section badge, e.g. [ T :: TERMINAL ].
-            Left strip is discovery (top → bottom): Global Announcements, Global Chat, Network
-            Graph, Discover Notes, Discover Events, Discover Horizons, Discover Clusters. LOG stays
-            locked at the bottom. Network Graph opens a World picker — drop into an event twin and
-            walk; it is not a global helicopter map. Right strip is yours: My Notifications, My
-            Chats, MY NODE, My Contacts, My Clusters, MY HORIZONS. Theme, Admin, and SETTINGS sit
-            bottom-right. Theme cycles WHITE / BLACK / POLYCHROME. Locked icons show a tip and stay
-            closed until unlocked.
+            Left side is two columns: near the window — Global Announcements, Global Chat, Network
+            Graph; outer Find — Find Nodes, Find Events, Find Horizons, Find Clusters. LOG stays
+            locked under Find. Network Graph opens a World picker — drop into an event twin and
+            walk; it is not a global helicopter map. Right side is two columns: near the window —
+            My Notifications, My Chats; outer — MY NODE, My Contacts, My Clusters, MY HORIZONS.
+            Theme, Admin, and SETTINGS sit bottom-right (SETTINGS last). Theme cycles WHITE / BLACK
+            / POLYCHROME. Locked icons show a tip and stay closed until unlocked.
           </p>
           <p className="profile-view-text">
             Switch Terminal sections with the tabs in the bottom status bar: Help (this page), the
@@ -147,7 +149,7 @@ export function TerminalScreen({
               <span className="dim">You in the network — avatar, bio, skills, contact.</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Horizon / Discover Horizons / MY HORIZONS</span>
+              <span className="hz-list-title">Horizon / Find Horizons / MY HORIZONS</span>
               <span className="dim">A shared calendar of events you can follow or publish.</span>
             </li>
             <li className="hz-list-static">
@@ -155,7 +157,7 @@ export function TerminalScreen({
               <span className="dim">Your personal event history and roles (coming soon).</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Cluster / Discover Clusters / My Clusters</span>
+              <span className="hz-list-title">Cluster / Find Clusters / My Clusters</span>
               <span className="dim">
                 A shared camp, crew, or collective — everyone in it can see they’re members together.
               </span>
@@ -167,12 +169,12 @@ export function TerminalScreen({
               </span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Discover Events</span>
+              <span className="hz-list-title">Find Events</span>
               <span className="dim">Gatherings you create or mark Interested / Going.</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Discover Notes</span>
-              <span className="dim">Search the network for people and notes (placeholder).</span>
+              <span className="hz-list-title">Find Nodes</span>
+              <span className="dim">Search the network for people and nodes (placeholder).</span>
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Global Announcements / Global Chat</span>
@@ -195,7 +197,8 @@ export function TerminalScreen({
             <li className="hz-list-static">
               <span className="hz-list-title">Desktop icons</span>
               <span className="dim">
-                Left = discovery · right top = mine · bottom-right = Theme / Admin / SETTINGS.
+                Left A (global, near window) + left B (Find, outer) · right C (inbox, near window) +
+                right D (mine, outer) · bottom-right = Theme / Admin / SETTINGS.
               </span>
             </li>
           </ul>

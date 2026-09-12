@@ -127,7 +127,7 @@ const SECTION: Record<ScreenId, string> = {
   terminal: 'T :: TERMINAL',
   announcements: 'GA :: ANNOUNCEMENTS',
   globalChat: 'GC :: GLOBAL CHAT',
-  notes: 'DN :: NOTES',
+  notes: 'FN :: NODES',
   notifications: 'N :: NOTIFICATIONS',
   myChats: 'MC :: MY CHATS',
 }
