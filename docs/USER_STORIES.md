@@ -87,7 +87,7 @@
 **So that** I know what I'm interacting with without leaving the flow.
 
 **Acceptance criteria**
-- [ ] Each major feature screen includes a one-line description at first point of use (see PROJECT_PLAN.md §1 one-liners)
+- [ ] Each major feature screen includes a one-line description at first point of use (see PROJECT_PLAN.md §1 one-liners, including World)
 - [ ] Same wording used everywhere for the same concept — no inconsistent paraphrasing
 - [ ] Explanations are inline or immediately adjacent — no separate docs page required
 - [ ] Onboarding is progressive: concepts introduced when relevant, not dumped upfront
@@ -410,60 +410,101 @@
 
 ---
 
-## Epic 6: Network Graph
+## Epic 6: Network Graph / event-worlds
 
-### US-5.1 — Explore the network graph `P0` 🔲
+> **Locked (2026-09-12):** Not one global helicopter graph. Ego-centric 2D explorer — your node as avatar; drop into a World (often an event twin) and mingle locally. Privacy = reach. See PROJECT_PLAN.md §7.4.  
+> **3D is struck (2026-09-12):** Permanently removed from this product line — not parked for later. Ego-centric 2D forever unless Sebastian reopens. Do not backlog 3D.
+
+### US-5.0 — Pick a World `P0` 🟡
 
 **As a** visitor,  
-**I want** to open a dedicated interactive graph view,  
-**So that** I can visually explore the Hypernet community.
+**I want** to choose an open/community event twin or a private World I am allowed into,  
+**So that** I drop into a local scene instead of a global map.
 
 **Acceptance criteria**
-- [ ] Full graph is a **dedicated screen** — not the post-login home (home may use an artistic motif)
-- [ ] Nodes represent people (profiles)
-- [ ] Graph uses Hypernet aesthetic (theme-aware)
-- [ ] Performs acceptably with 50+ nodes
-- [ ] Link topology for large events is **TBD** — do not implement all-to-all guest cliques (see PROJECT_PLAN.md §7.4)
+- [ ] Dedicated graph view (not post-login home) opens a **World picker**
+- [ ] Lists **open / community** demo events (public square; surf irrespective of attendance; no admin gate)
+- [ ] Lists **private** Worlds the local user is allowed to surf
+- [ ] Private dial (stub OK): Participants / Friends of participants (**default**) / Anyone — marketing visibility and who can surf
+- [ ] Dual privacy: event surf ≠ personal Chronicle / “I attended” privacy (stub OK)
+- [ ] Feels like picking a place to enter, not filtering a helicopter graph
+- [ ] Worlds present as **cards**, not rows/bars
+- [ ] Gravity / Visibility / Links stay **off** the pre-world picker — they appear only after you enter
+- [ ] Looking for chips stay **out**
 
 ---
 
-### US-5.2 — Filter graph connections `P0` 🔲
+### US-5.1 — Walk the World as my avatar `P0` 🟡
 
-**As a** user,  
-**I want** to toggle meaningful connections on the graph,  
-**So that** I can explore relationships without combinatorial explosion.
+**As a** visitor,  
+**I want** to move my node as an avatar inside the selected World,  
+**So that** I mingle locally and privacy is expressed as reach.
 
 **Acceptance criteria**
-- [ ] Filters available once link model is chosen (group co-membership and/or co-creator roles preferred over all guests)
-- [ ] Connected nodes animate with spring/elastic physics where links exist
-- [ ] Multiple filters can be toggled when supported by the model
+- [ ] Local avatar represents `self`
+- [ ] WASD / arrow keys walk; mouse-thrust toward cursor on empty ground
+- [ ] Camera is loosely tied to the avatar
+- [ ] Wheel zoom / reach
+- [ ] People out of reach or not allowed appear dim / locked
+- [ ] No edges out of dim/locked nodes
+- [ ] Edges among visible nodes may show dimmed; proximity can light links
+- [ ] Theme-aware CRT/retro chrome
+- [ ] Self / hero node renders **polychrome** (rainbow/CRT multi-color, match `PolychromeFX`) so it is obviously the avatar; other nodes stay theme-normal
+- [ ] Hero is a **plain circle**, slightly larger than other nodes, with a glowy Theme-like shine — no diamond / facets / geometry
+- [ ] Not a global helicopter force graph as the primary experience
 
 ---
 
-### US-5.3 — Interact with graph nodes `P0` 🔲
+### US-5.2 — Shared-event links `P0` 🟡
 
 **As a** user,  
-**I want** to drag, zoom, and click nodes on the graph,  
-**So that** I can explore profiles naturally.
+**I want** one shared-event link layer in the World I dropped into,  
+**So that** I see who shares this event without a combinatorial explosion.
 
 **Acceptance criteria**
-- [ ] Drag a node — it moves; connected nodes follow elastically
-- [ ] Zoom/hover on a node — summary tooltip (name, key skills)
-- [ ] Click or double-click a node — navigate to that person's profile
-- [ ] Pinch/zoom and pan on mobile
+- [ ] One toggleable shared-event layer (edges between people who share the selected World/event)
+- [ ] Draw locally (in-reach / proximity) — do **not** implement all-to-all guest cliques
+- [ ] Multi-layer dropdown farm and Gravity designer are **parked**
+- [ ] Exact FoF × co-attendee edge matrix inside a World is **open** (do not invent)
 
 ---
 
-### US-5.4 — Filter graph by city `P1` 🔲
+### US-5.3 — Open a person’s profile from a node `P0` 🟡
 
 **As a** user,  
-**I want** to toggle city-based connections on the graph,  
-**So that** I can see who is nearby geographically.
+**I want** to click another node and see that person’s profile,  
+**So that** walking the World leads to people, not just dots.
 
 **Acceptance criteria**
-- [ ] City/location filter draws links between nodes sharing a city
-- [ ] Can be combined with event filters
-- [ ] Location data comes from profile (already collected in pre-alpha signup)
+- [ ] Click a full (unlocked) node — open existing Profile or a lightweight person panel
+- [ ] Hover / nearby label shows a short name cue
+- [ ] Dim/locked nodes do not pretend to be fully visible profiles
+
+---
+
+### US-5.4 — City or Cluster as a World `P1` 🔲
+
+**As a** user,  
+**I want** to drop into a city or Cluster as a World later,  
+**So that** event twins are not the only domains.
+
+**Acceptance criteria**
+- [ ] Open — do not build yet (PROJECT_PLAN.md §7.4)
+- [ ] When it returns, it is a **World**, not a “Cluster by” layout control
+
+---
+
+### US-5.4b — Open community authorship `P1` 🔲
+
+**As a** community member,  
+**I want** large community events to be Hypernet-seeded and user-addable,  
+**So that** an event twin can exist without an admin gate to enter.
+
+**Acceptance criteria**
+- [ ] Open / community Worlds are publishable
+- [ ] Verification badge after admin review
+- [ ] Users may request description/changes or admin privileges
+- [ ] Not in the thin MVP walk — docs + stub Worlds only for now
 
 ---
 
@@ -477,6 +518,19 @@
 - [ ] First signup triggers rainbow/polychrome burst on the graph
 - [ ] Effect uses existing `PolychromeFX` system
 - [ ] Skippable; does not block signup completion
+
+---
+
+### US-5.6 — Parked graph surfaces `P2` 🔲
+
+**As a** product owner,  
+**I want** Gravity designer, Arrange-by-as-primary, and a million-node global view parked,  
+**So that** the MVP stays a walkable 2D World.
+
+**Acceptance criteria**
+- [ ] Do not ship a multi-layer dropdown farm or Gravity designer
+- [ ] Do not make Arrange by the primary control
+- [ ] Do not ship a full million-node global helicopter view
 
 ---
 
@@ -595,9 +649,10 @@ PHASE 1 — MVP Foundation
 ├── US-4.1b Admin a horizon             P0
 ├── US-4.1c Personal default Horizon    P0
 ├── US-4.2  Subscribe to horizon        P0
-├── US-5.1  Graph explore               P0
-├── US-5.2  Graph filters (TBD links)   P0
-├── US-5.3  Graph interaction           P0
+├── US-5.0  World picker                P0  🟡
+├── US-5.1  Walk the World              P0  🟡
+├── US-5.2  Shared-event links          P0  🟡
+├── US-5.3  Click node → profile        P0  🟡
 ├── US-7.1  Light/Dark theme            P0  🟡
 ├── US-7.2  Polychrome mode             P0  🟡
 └── US-7.3  Consistent UI               P0
@@ -608,7 +663,7 @@ PHASE 2 — Discovery & Lists
 ├── US-3.0e Group join policies         P1
 ├── US-3.2b Chronicle verification      P1
 ├── US-3.4  Invite contact lists        P1
-├── US-5.4  Graph city filter           P1
+├── US-5.4  City / Cluster as World     P1
 ├── US-6.1  Contact lists               P1
 └── US-2.2  Skills taxonomy             P1
 
@@ -617,9 +672,26 @@ PHASE 3 — Future
 ├── US-3.5  Tiered media access         P2
 ├── US-3.6  Ticketing                   P2
 ├── US-5.5  Polychrome signup           P2
+├── US-5.6  Parked graph surfaces       P2
 ├── US-8.1  Profile customization       P2
 └── US-8.2  Profile music               P2
 ```
+
+---
+
+## Backlog (do not build yet)
+
+### US-B.1 — First-time tips (Don’t show again) `P1` 🔲
+
+**As a** first-time user,  
+**I want** a one-shot tip the first time I open Contact Lists and the first time I create a Cluster,  
+**So that** I don’t confuse a private list with a shared cluster.
+
+**Acceptance criteria**
+- [ ] First open of Contact Lists: “Lists stay secret.”
+- [ ] First Cluster create: “Clusters are shared.”
+- [ ] Each tip has Don’t show again
+- [ ] Not in the current polish pass — docs-only until scheduled
 
 ---
 
@@ -635,4 +707,4 @@ A user story is **done** when:
 
 ---
 
-*Last updated: Aug 2026 — derived from product vision voice notes.*
+*Last updated: 2026-09-12. 3D struck (not parked). Hero is a polychrome circle + shine. World cards first; Gravity/Visibility/Links in-world only. Looking for chips still out. User-facing “Group” is Cluster. Event detail UI and first-time tips parked.*

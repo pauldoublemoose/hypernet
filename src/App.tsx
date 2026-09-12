@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { DesktopIcons, type ShellFeature } from './components/DesktopIcons'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
 import { AboutScreen } from './components/screens/AboutScreen'
 import { AdminGateScreen } from './components/screens/AdminGateScreen'
@@ -11,6 +12,24 @@ import { MultiScreen } from './components/screens/MultiScreen'
 import { ReviewScreen, type ReviewTarget } from './components/screens/ReviewScreen'
 import { SkillsScreen } from './components/screens/SkillsScreen'
 import { PhoneScreen } from './components/screens/PhoneScreen'
+import { ProfileScreen } from './components/screens/ProfileScreen'
+import { SettingsScreen } from './components/screens/SettingsScreen'
+import { EventsScreen } from './components/screens/EventsScreen'
+import { HorizonsScreen } from './components/screens/HorizonsScreen'
+import { MyHorizonsScreen } from './components/screens/MyHorizonsScreen'
+import { ContactsScreen } from './components/screens/ContactsScreen'
+import { ClustersScreen, type ClustersTab } from './components/screens/ClustersScreen'
+import { TerminalScreen } from './components/screens/TerminalScreen'
+import {
+  AnnouncementsScreen,
+  ChronicleScreen,
+  FindNodesScreen,
+  GlobalChatScreen,
+  MyChatsScreen,
+  NotificationsScreen,
+} from './components/screens/StubScreens'
+import { ensureDefaultHorizon } from './lib/horizonStore'
+import { loadProfile } from './lib/profileStore'
 import { TextScreen } from './components/screens/TextScreen'
 import { ThanksScreen } from './components/screens/ThanksScreen'
 import { WelcomeScreen } from './components/screens/WelcomeScreen'
@@ -36,7 +55,6 @@ import {
   type ContactChannel,
   type Status,
 } from './types'
-import { buildGraphData } from './lib/network/buildGraph'
 import { NetworkGraph } from './components/NetworkGraph'
 import { useUi } from './ui'
 
@@ -63,6 +81,20 @@ type ScreenId =
   | 'thanks'
   | 'adminGate'
   | 'admin'
+  | 'profile'
+  | 'settings'
+  | 'events'
+  | 'horizons'
+  | 'myHorizons'
+  | 'contacts'
+  | 'clusters'
+  | 'terminal'
+  | 'announcements'
+  | 'globalChat'
+  | 'notes'
+  | 'notifications'
+  | 'myChats'
+  | 'chronicle'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -87,6 +119,20 @@ const SECTION: Record<ScreenId, string> = {
   thanks: '6 :: COMPLETE',
   adminGate: 'A :: ACCESS',
   admin: 'A :: LEDGER',
+  profile: 'P :: NODE',
+  settings: 'S :: SETTINGS',
+  events: 'E :: EVENTS',
+  horizons: 'H :: HORIZONS',
+  myHorizons: 'MH :: MY HORIZONS',
+  contacts: 'C :: CONTACTS',
+  clusters: 'CL :: CLUSTERS',
+  terminal: 'T :: TERMINAL',
+  announcements: 'GA :: ANNOUNCEMENTS',
+  globalChat: 'GC :: GLOBAL CHAT',
+  notes: 'FN :: NODES',
+  notifications: 'N :: NOTIFICATIONS',
+  myChats: 'MC :: MY CHATS',
+  chronicle: 'CH :: MY CHRONICLE',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -160,17 +206,40 @@ const CONTACT_FIELDS: Record<
   facebook: { question: 'FACEBOOK NAME:', key: 'facebook' },
 }
 
+function isAdminScreen(id: ScreenId) {
+  return id === 'admin' || id === 'adminGate'
+}
+
+function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: ClustersTab): ShellFeature {
+  if (graphOpen) return 'graph'
+  if (isAdminScreen(screen)) return 'admin'
+  if (screen === 'profile') return 'profile'
+  if (screen === 'settings') return 'settings'
+  if (screen === 'events') return 'events'
+  if (screen === 'horizons') return 'horizons'
+  if (screen === 'myHorizons') return 'my-horizons'
+  if (screen === 'contacts') return 'contacts'
+  if (screen === 'clusters') return clustersFocus === 'mine' ? 'my-cluster' : 'clusters'
+  if (screen === 'terminal') return 'terminal'
+  if (screen === 'announcements') return 'announcements'
+  if (screen === 'globalChat') return 'global-chat'
+  if (screen === 'notes') return 'notes'
+  if (screen === 'notifications') return 'notifications'
+  if (screen === 'myChats') return 'my-chats'
+  if (screen === 'chronicle') return 'chronicle'
+  return 'terminal'
+}
+
 export default function App() {
-  const { theme, graphOpen, setGraphOpen } = useUi()
+  const { theme, graphOpen, setGraphOpen, expanded } = useUi()
   const [answers, setAnswers] = useState<Answers>(initialAnswers)
-  // Rebuild when the overlay opens so admin ghost changes apply immediately.
-  const graphData = useMemo(() => buildGraphData(answers), [answers, graphOpen])
   const [screen, setScreen] = useState<ScreenId>('welcome')
   const [history, setHistory] = useState<ScreenId[]>([])
   const [mode, setMode] = useState<InputMode>('NAV')
   const [editingFromReview, setEditingFromReview] = useState(false)
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
   const [remoteLocations, setRemoteLocations] = useState<RemoteLocationOption[]>([])
+  const [clustersFocus, setClustersFocus] = useState<ClustersTab>('directory')
 
   useEffect(() => {
     fetchSkillOptions().then(setRemoteSkills)
@@ -272,6 +341,7 @@ export default function App() {
         <WelcomeScreen
           key="welcome"
           onSignup={() => go('preStatus')}
+          onSignIn={() => go('terminal')}
           onAbout={() => go('about')}
           onAdmin={() => go('adminGate')}
           setMode={setMode}
@@ -487,19 +557,190 @@ export default function App() {
     case 'thanks':
       content = <ThanksScreen key="thanks" answers={answers} setMode={setMode} />
       break
+    case 'profile':
+      content = (
+        <ProfileScreen
+          key="profile"
+          answers={answers}
+          locations={answers.locations.map((l) => `${l.city}, ${l.country}`).join(' · ')}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'settings':
+      content = <SettingsScreen key="settings" onBack={back} setMode={setMode} />
+      break
+    case 'events':
+      content = (
+        <EventsScreen key="events" answers={answers} onBack={back} />
+      )
+      break
+    case 'horizons':
+      content = (
+        <HorizonsScreen key="horizons" answers={answers} onBack={back} />
+      )
+      break
+    case 'myHorizons':
+      content = (
+        <MyHorizonsScreen key="myHorizons" answers={answers} onBack={back} />
+      )
+      break
+    case 'contacts':
+      content = <ContactsScreen key="contacts" onBack={back} />
+      break
+    case 'clusters':
+      content = <ClustersScreen key={`clusters-${clustersFocus}`} onBack={back} initialTab={clustersFocus} />
+      break
+    case 'terminal':
+      content = (
+        <TerminalScreen key="terminal" onBack={back} setMode={setMode} />
+      )
+      break
+    case 'announcements':
+      content = <AnnouncementsScreen key="announcements" onBack={back} />
+      break
+    case 'globalChat':
+      content = <GlobalChatScreen key="globalChat" onBack={back} />
+      break
+    case 'notes':
+      content = <FindNodesScreen key="notes" onBack={back} />
+      break
+    case 'notifications':
+      content = <NotificationsScreen key="notifications" onBack={back} />
+      break
+    case 'myChats':
+      content = <MyChatsScreen key="myChats" onBack={back} />
+      break
+    case 'chronicle':
+      content = <ChronicleScreen key="chronicle" onBack={back} />
+      break
+  }
+
+  const openTerminal = () => {
+    setGraphOpen(false)
+    if (screen !== 'terminal') go('terminal')
+  }
+
+  const openGraph = () => setGraphOpen(true)
+
+  const openAdmin = () => {
+    setGraphOpen(false)
+    if (!isAdminScreen(screen)) go('adminGate')
+  }
+
+  const openProfile = () => {
+    setGraphOpen(false)
+    if (screen !== 'profile') go('profile')
+  }
+
+  const openSettings = () => {
+    setGraphOpen(false)
+    if (screen !== 'settings') go('settings')
+  }
+
+  const openEvents = () => {
+    setGraphOpen(false)
+    if (screen !== 'events') go('events')
+  }
+
+  const openHorizons = () => {
+    setGraphOpen(false)
+    if (screen !== 'horizons') go('horizons')
+  }
+
+  const openMyHorizons = () => {
+    setGraphOpen(false)
+    const name = loadProfile(answers).displayName || answers.fullName || 'You'
+    ensureDefaultHorizon(name)
+    if (screen !== 'myHorizons') go('myHorizons')
+  }
+
+  const openContacts = () => {
+    setGraphOpen(false)
+    if (screen !== 'contacts') go('contacts')
+  }
+
+  const openClusters = (focus: ClustersTab) => {
+    setGraphOpen(false)
+    setClustersFocus(focus)
+    if (screen !== 'clusters') go('clusters')
+  }
+
+  const openAnnouncements = () => {
+    setGraphOpen(false)
+    if (screen !== 'announcements') go('announcements')
+  }
+
+  const openGlobalChat = () => {
+    setGraphOpen(false)
+    if (screen !== 'globalChat') go('globalChat')
+  }
+
+  const openNotes = () => {
+    setGraphOpen(false)
+    if (screen !== 'notes') go('notes')
+  }
+
+  const openNotifications = () => {
+    setGraphOpen(false)
+    if (screen !== 'notifications') go('notifications')
+  }
+
+  const openMyChats = () => {
+    setGraphOpen(false)
+    if (screen !== 'myChats') go('myChats')
+  }
+
+  const openChronicle = () => {
+    setGraphOpen(false)
+    if (screen !== 'chronicle') go('chronicle')
   }
 
   return (
-    <div className="app" data-theme={theme}>
-      <TerminalFrame section={SECTION[screen]} mode={mode}>
+    <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
+      <DesktopIcons
+        active={shellFeature(screen, graphOpen, clustersFocus)}
+        onAnnouncements={openAnnouncements}
+        onGlobalChat={openGlobalChat}
+        onGraph={openGraph}
+        onNotes={openNotes}
+        onAdmin={openAdmin}
+        onProfile={openProfile}
+        onSettings={openSettings}
+        onEvents={openEvents}
+        onHorizons={openHorizons}
+        onMyHorizons={openMyHorizons}
+        onContacts={openContacts}
+        onClusters={() => openClusters('directory')}
+        onMyClusters={() => openClusters('mine')}
+        onNotifications={openNotifications}
+        onMyChats={openMyChats}
+        onChronicle={openChronicle}
+      />
+      <TerminalFrame
+        section={
+          screen === 'clusters'
+            ? clustersFocus === 'mine'
+              ? 'CL :: MY CLUSTERS'
+              : 'CL :: CLUSTERS'
+            : SECTION[screen]
+        }
+        mode={mode}
+        onOpenTerminal={openTerminal}
+      >
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
           {content}
         </div>
         {graphOpen && (
           <div className="screen net-screen graph-overlay">
-            <div className="title">6 :: NETWORK</div>
-            <div className="net-intro dim">PRE-ALPHA GRAPH · TOGGLE [GRAPH] TO RETURN</div>
-            <NetworkGraph data={graphData} newNodeId="you" preview />
+            <div className="title">N :: WORLD</div>
+            <div className="net-intro dim">DROP INTO A WORLD · WALK LOCALLY · [GRAPH] TO RETURN</div>
+            <NetworkGraph
+              selfName={loadProfile(answers).displayName || answers.fullName || 'You'}
+              selfAvatarUrl={loadProfile(answers).avatarDataUrl}
+              onOpenSelfProfile={openProfile}
+            />
           </div>
         )}
       </TerminalFrame>

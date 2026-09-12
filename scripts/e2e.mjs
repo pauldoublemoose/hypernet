@@ -29,10 +29,10 @@ const browser = await chromium.launch()
   await page.reload()
   await page.waitForSelector('text=HYPERNET v0.1')
 
-  // theme cycles WHITE -> BLACK -> POLYCHROME -> WHITE
-  const themeBtn = page.locator('.theme-btn')
+  // theme cycles WHITE -> BLACK -> POLYCHROME -> WHITE via right-column Theme icon
+  const themeBtn = page.locator('[data-theme-cycle="true"]')
   const appTheme = () => page.locator('.app').getAttribute('data-theme')
-  if ((await themeBtn.count()) !== 1) fail('theme toggle missing')
+  if ((await themeBtn.count()) !== 1) fail('Theme desktop icon missing')
   if ((await appTheme()) !== 'white') fail('initial theme should be white')
   await themeBtn.click()
   if ((await appTheme()) !== 'black') fail('theme should cycle to black')

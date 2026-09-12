@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { STAY_TUNED_TEXT, THANKS_TEXT } from '../../data/copy'
-import { buildGraphData } from '../../lib/network/buildGraph'
+import { WORLD_IDS } from '../../lib/network/worlds'
 import { submitSignup } from '../../lib/supabase'
 import type { Answers } from '../../types'
 import { useUi } from '../../ui'
@@ -21,11 +21,6 @@ export function ThanksScreen({
   const [offline, setOffline] = useState(false)
   const started = useRef(false)
   const { setEnterArmed } = useUi()
-
-  const graph = useMemo(
-    () => (stage === 'graph' ? buildGraphData(answers) : null),
-    [answers, stage],
-  )
 
   useLayoutEffect(() => {
     setMode('NAV')
@@ -48,12 +43,15 @@ export function ThanksScreen({
     return () => window.clearTimeout(id)
   }, [stage])
 
-  if (stage === 'graph' && graph) {
+  if (stage === 'graph') {
     return (
       <div className="screen net-screen">
-        <div className="title">6 :: NETWORK</div>
-        <div className="net-intro dim">YOUR NODE IS LIVE. WATCH IT JOIN THE PRE-ALPHA GRAPH.</div>
-        <NetworkGraph data={graph} newNodeId="you" />
+        <div className="title">N :: WORLD</div>
+        <div className="net-intro dim">YOUR NODE IS LIVE. DROP INTO A WORLD AND WALK.</div>
+        <NetworkGraph
+          selfName={answers.fullName || 'You'}
+          initialWorldId={WORLD_IDS.borderland}
+        />
         <div className="btn-row">
           <button className="btn dim" onClick={() => window.location.reload()}>
             [ RESET TERMINAL ]
