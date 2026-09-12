@@ -15,13 +15,19 @@ type Stage = 'tx' | 'added' | 'thanks' | 'stay' | 'fade' | 'graph'
 export function ThanksScreen({
   answers,
   setMode,
+  alreadySubmitted = false,
+  onSubmitted,
 }: {
   answers: Answers
   setMode: (m: InputMode) => void
+  /** True when this Answers object was already transmitted in this session (re-mount via BACK). */
+  alreadySubmitted?: boolean
+  onSubmitted?: () => void
 }) {
-  const [stage, setStage] = useState<Stage>('tx')
+  // Re-mounting after a successful transmission skips straight to the World.
+  const [stage, setStage] = useState<Stage>(alreadySubmitted ? 'graph' : 'tx')
   const [offline, setOffline] = useState(false)
-  const started = useRef(false)
+  const started = useRef(alreadySubmitted)
   const { setEnterArmed } = useUi()
 
   useLayoutEffect(() => {
@@ -32,6 +38,7 @@ export function ThanksScreen({
   useEffect(() => {
     if (started.current) return
     started.current = true
+    onSubmitted?.()
     submitSignup(answers).then((res) => {
       // Transmitted (or cached locally) — the draft has served its purpose.
       clearDraft()
@@ -40,7 +47,7 @@ export function ThanksScreen({
       setStage('added')
       window.setTimeout(() => setStage('thanks'), 600)
     })
-  }, [answers])
+  }, [answers, onSubmitted])
 
   useEffect(() => {
     if (stage !== 'fade') return

@@ -291,6 +291,11 @@ body {
   color: var(--bg);
 }
 
+/* Shown only where the desktop icon dock is hidden (see mobile media query). */
+.mobile-only {
+  display: none;
+}
+
 .form-layer.is-hidden {
   display: none;
 }
@@ -1052,6 +1057,10 @@ body {
 
   .desktop-icons {
     display: none;
+  }
+
+  .mobile-only {
+    display: inline-block;
   }
 
   .chrome-frame {

@@ -294,6 +294,11 @@ export default function App() {
   const [editingFromReview, setEditingFromReview] = useState(false)
   // When set, the review/confirm flow updates this claimed signup instead of inserting.
   const [editingSignupId, setEditingSignupId] = useState<string | null>(null)
+  // The Answers object that has already been transmitted. Thanks can be
+  // unmounted (desktop icons / header badge) and re-mounted via BACK; this
+  // guard survives that so we never insert the same signup twice. A new
+  // signup replaces `answers`, which naturally resets the guard.
+  const submittedAnswersRef = useRef<Answers | null>(null)
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
   const [remoteLocations, setRemoteLocations] = useState<RemoteLocationOption[]>([])
   const [clustersFocus, setClustersFocus] = useState<ClustersTab>('directory')
@@ -730,7 +735,17 @@ export default function App() {
       )
       break
     case 'thanks':
-      content = <ThanksScreen key="thanks" answers={answers} setMode={setMode} />
+      content = (
+        <ThanksScreen
+          key="thanks"
+          answers={answers}
+          setMode={setMode}
+          alreadySubmitted={submittedAnswersRef.current === answers}
+          onSubmitted={() => {
+            submittedAnswersRef.current = answers
+          }}
+        />
+      )
       break
     case 'profile':
       content = (
