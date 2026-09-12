@@ -85,7 +85,7 @@ export function GlobalChatScreen({ onBack }: { onBack: () => void }) {
   )
 }
 
-export function DiscoverNotesScreen({ onBack }: { onBack: () => void }) {
+export function FindNodesScreen({ onBack }: { onBack: () => void }) {
   return (
     <StubPane
       title="Find Nodes"

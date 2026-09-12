@@ -20,7 +20,7 @@ const UPDATE_LOG = [
       'Network Graph is an ego-centric World explorer: pick an event twin, walk as your avatar (WASD / thrust), click a node for a person panel. One shared-event link layer. Dim/locked = out of reach or Chronicle-hidden.',
       'Open/community twins (Borderland, Burning Man, Hyperstition) plus private Worlds you can enter (Friends of participants default, or Participants). Looking for chips still out.',
       'Desktop icons (Sebastian locked map): LEFT A near window = Global Announcements / Global Chat / Network Graph; LEFT B outer = Find Nodes / Events / Horizons / Clusters. RIGHT C near window = My Notifications / My Chats; RIGHT D outer = MY NODE / My Chronicle / My Contacts / My Clusters / MY HORIZONS. Theme / Admin / SETTINGS last, bottom-right. LOG left icon removed — My Chronicle sits under MY NODE.',
-      'Find replaces Discover everywhere. Find Nodes is the correct name (never Find Notes / Discover Notes).',
+      'Find Nodes / Find Events / Find Horizons / Find Clusters — Find replaces the old Discover labels.',
     ],
   },
   {

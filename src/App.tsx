@@ -23,7 +23,7 @@ import { TerminalScreen } from './components/screens/TerminalScreen'
 import {
   AnnouncementsScreen,
   ChronicleScreen,
-  DiscoverNotesScreen,
+  FindNodesScreen,
   GlobalChatScreen,
   MyChatsScreen,
   NotificationsScreen,
@@ -604,7 +604,7 @@ export default function App() {
       content = <GlobalChatScreen key="globalChat" onBack={back} />
       break
     case 'notes':
-      content = <DiscoverNotesScreen key="notes" onBack={back} />
+      content = <FindNodesScreen key="notes" onBack={back} />
       break
     case 'notifications':
       content = <NotificationsScreen key="notifications" onBack={back} />
