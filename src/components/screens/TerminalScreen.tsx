@@ -4,26 +4,24 @@ import { useKeys } from '../../hooks'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
-type Tab = 'help' | 'chat' | 'updates' | 'log' | 'about'
+type Tab = 'help' | 'log' | 'about'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'help', label: 'Help' },
-  { id: 'chat', label: 'Global Chat' },
-  { id: 'updates', label: 'Global Updates' },
   { id: 'log', label: 'Update log' },
   { id: 'about', label: 'About' },
 ]
 
-const GLOBAL_UPDATES = [
-  { when: 'just now', text: 'New user joined the network — welcome, @signal.' },
-  { when: '12m ago', text: 'New event published: Deep Listening Lab · Stockholm.' },
-  { when: '1h ago', text: 'Horizon “Baltic Circuit” added three dates.' },
-  { when: 'yesterday', text: '@nova and @ember are now Friends.' },
-  { when: 'just now', text: 'Clusters unlocked — browse the directory or create a camp.' },
-  { when: '2d ago', text: 'New Cluster pending (locked) — camps unlock later.' },
-]
-
 const UPDATE_LOG = [
+  {
+    version: 'v0.1.7',
+    date: '2026-09',
+    notes: [
+      'Desktop reorg (Sebastian Preview 2026-09-12): left discovery is Global Announcements, Global Chat, Network Graph, Discover Notes / Events / Horizons / Clusters. LOG stays locked at the bottom. Terminal icon removed from the strip.',
+      'Right mine: My Notifications and My Chats stubs on top; Theme moved to bottom-right with Admin and SETTINGS.',
+      'Global Chat and Global Updates left the Terminal tab bar — they are left-strip screens now. Sign In still lands on Terminal / Help; reopen via the header section badge.',
+    ],
+  },
   {
     version: 'v0.1.6',
     date: '2026-09',
@@ -118,15 +116,19 @@ export function TerminalScreen({
         <>
           <h2 className="hz-heading">How to use Hypernet</h2>
           <p className="profile-view-text">
-            Sign Up builds your Node. Sign In opens Terminal. Desktop icons on the left are discovery
-            (CLUSTERS directory, events, horizons); icons on the right are yours (MY NODE, contacts,
-            My Clusters, calendars, Theme, settings). Theme cycles WHITE / BLACK / POLYCHROME. Locked
-            icons show a tip and stay closed until unlocked.
+            Sign Up builds your Node. Sign In opens this Terminal (Help). There is no Terminal icon
+            on the desktop — reopen Help from the header section badge, e.g. [ T :: TERMINAL ].
+            Left strip is discovery (top → bottom): Global Announcements, Global Chat, Network
+            Graph, Discover Notes, Discover Events, Discover Horizons, Discover Clusters. LOG stays
+            locked at the bottom. Right strip is yours: My Notifications, My Chats, MY NODE, My
+            Contacts, My Clusters, MY HORIZONS. Theme, Admin, and SETTINGS sit bottom-right. Theme
+            cycles WHITE / BLACK / POLYCHROME. Locked icons show a tip and stay closed until
+            unlocked.
           </p>
           <p className="profile-view-text">
-            Switch sections with the tabs in the bottom status bar: Help (this page), Global Chat,
-            Global Updates, the product Update log, and About. Esc or Backspace returns to the
-            previous screen. Expand the window with the chrome control when you want a larger pane.
+            Switch Terminal sections with the tabs in the bottom status bar: Help (this page), the
+            product Update log, and About. Esc or Backspace returns to the previous screen. Expand
+            the window with the chrome control when you want a larger pane.
           </p>
 
           <h3 className="profile-section-title">Terminology</h3>
@@ -136,7 +138,7 @@ export function TerminalScreen({
               <span className="dim">You in the network — avatar, bio, skills, contact.</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Horizon</span>
+              <span className="hz-list-title">Horizon / Discover Horizons / MY HORIZONS</span>
               <span className="dim">A shared calendar of events you can follow or publish.</span>
             </li>
             <li className="hz-list-static">
@@ -144,14 +146,26 @@ export function TerminalScreen({
               <span className="dim">Your personal event history and roles (coming soon).</span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Cluster</span>
+              <span className="hz-list-title">Cluster / Discover Clusters / My Clusters</span>
               <span className="dim">
                 A shared camp, crew, or collective — everyone in it can see they’re members together.
               </span>
             </li>
             <li className="hz-list-static">
-              <span className="hz-list-title">Events</span>
+              <span className="hz-list-title">Discover Events</span>
               <span className="dim">Gatherings you create or mark Interested / Going.</span>
+            </li>
+            <li className="hz-list-static">
+              <span className="hz-list-title">Discover Notes</span>
+              <span className="dim">Search the network for people and notes (placeholder).</span>
+            </li>
+            <li className="hz-list-static">
+              <span className="hz-list-title">Global Announcements / Global Chat</span>
+              <span className="dim">Network message board and network-wide chat (left strip).</span>
+            </li>
+            <li className="hz-list-static">
+              <span className="hz-list-title">My Notifications / My Chats</span>
+              <span className="dim">Your alerts and private threads (right strip stubs).</span>
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Contacts / Follow / Friend</span>
@@ -165,46 +179,10 @@ export function TerminalScreen({
             </li>
             <li className="hz-list-static">
               <span className="hz-list-title">Desktop icons</span>
-              <span className="dim">Left strip = discovery · right strip = mine.</span>
+              <span className="dim">
+                Left = discovery · right top = mine · bottom-right = Theme / Admin / SETTINGS.
+              </span>
             </li>
-          </ul>
-        </>
-      )}
-
-      {tab === 'chat' && (
-        <>
-          <h2 className="hz-heading">Global Chat</h2>
-          <p className="dim hz-lead">Network-wide chat is not live yet. Stub UI only.</p>
-          <section className="hz-panel">
-            <ul className="hz-list">
-              <li className="hz-list-static">
-                <span className="dim">No messages yet — coming soon.</span>
-              </li>
-            </ul>
-            <label className="hz-field" style={{ marginTop: 12 }}>
-              <span>Message</span>
-              <input className="profile-input" disabled placeholder="Global Chat coming soon" value="" readOnly />
-            </label>
-            <div className="btn-row">
-              <button type="button" className="btn dim" disabled>
-                Send (coming soon)
-              </button>
-            </div>
-          </section>
-        </>
-      )}
-
-      {tab === 'updates' && (
-        <>
-          <h2 className="hz-heading">Global Updates</h2>
-          <p className="dim hz-lead">Local demo feed — placeholder network pulse.</p>
-          <ul className="hz-list">
-            {GLOBAL_UPDATES.map((u) => (
-              <li key={u.text} className="hz-list-static">
-                <span className="hz-list-title">{u.text}</span>
-                <span className="dim">{u.when}</span>
-              </li>
-            ))}
           </ul>
         </>
       )}

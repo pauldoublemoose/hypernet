@@ -8,10 +8,12 @@ export type InputMode = 'NAV' | 'TXT'
 export function TerminalFrame({
   section,
   mode,
+  onOpenTerminal,
   children,
 }: {
   section: string
   mode: InputMode
+  onOpenTerminal?: () => void
   children: ReactNode
 }) {
   const {
@@ -59,7 +61,14 @@ export function TerminalFrame({
                 [GRAPH]
               </button>
             )}
-            <span className="dim">[ {graphOpen ? '6 :: NETWORK' : section} ]</span>
+            <button
+              type="button"
+              className="section-badge dim"
+              onClick={() => onOpenTerminal?.()}
+              title="Open Terminal / Help"
+            >
+              [ {graphOpen ? '6 :: NETWORK' : section} ]
+            </button>
           </span>
         </div>
         <div className="term-body">{children}</div>

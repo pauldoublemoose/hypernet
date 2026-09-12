@@ -20,6 +20,13 @@ import { MyHorizonsScreen } from './components/screens/MyHorizonsScreen'
 import { ContactsScreen } from './components/screens/ContactsScreen'
 import { ClustersScreen, type ClustersTab } from './components/screens/ClustersScreen'
 import { TerminalScreen } from './components/screens/TerminalScreen'
+import {
+  AnnouncementsScreen,
+  DiscoverNotesScreen,
+  GlobalChatScreen,
+  MyChatsScreen,
+  NotificationsScreen,
+} from './components/screens/StubScreens'
 import { ensureDefaultHorizon } from './lib/horizonStore'
 import { loadProfile } from './lib/profileStore'
 import { TextScreen } from './components/screens/TextScreen'
@@ -82,6 +89,11 @@ type ScreenId =
   | 'contacts'
   | 'clusters'
   | 'terminal'
+  | 'announcements'
+  | 'globalChat'
+  | 'notes'
+  | 'notifications'
+  | 'myChats'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -114,6 +126,11 @@ const SECTION: Record<ScreenId, string> = {
   contacts: 'C :: CONTACTS',
   clusters: 'CL :: CLUSTERS',
   terminal: 'T :: TERMINAL',
+  announcements: 'GA :: ANNOUNCEMENTS',
+  globalChat: 'GC :: GLOBAL CHAT',
+  notes: 'DN :: NOTES',
+  notifications: 'N :: NOTIFICATIONS',
+  myChats: 'MC :: MY CHATS',
 }
 
 const CHANNEL_ORDER: ContactChannel[] = ['email', 'phone', 'discord', 'facebook']
@@ -202,6 +219,11 @@ function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: Clust
   if (screen === 'contacts') return 'contacts'
   if (screen === 'clusters') return clustersFocus === 'mine' ? 'my-cluster' : 'clusters'
   if (screen === 'terminal') return 'terminal'
+  if (screen === 'announcements') return 'announcements'
+  if (screen === 'globalChat') return 'global-chat'
+  if (screen === 'notes') return 'notes'
+  if (screen === 'notifications') return 'notifications'
+  if (screen === 'myChats') return 'my-chats'
   return 'terminal'
 }
 
@@ -574,6 +596,21 @@ export default function App() {
         <TerminalScreen key="terminal" onBack={back} setMode={setMode} />
       )
       break
+    case 'announcements':
+      content = <AnnouncementsScreen key="announcements" onBack={back} />
+      break
+    case 'globalChat':
+      content = <GlobalChatScreen key="globalChat" onBack={back} />
+      break
+    case 'notes':
+      content = <DiscoverNotesScreen key="notes" onBack={back} />
+      break
+    case 'notifications':
+      content = <NotificationsScreen key="notifications" onBack={back} />
+      break
+    case 'myChats':
+      content = <MyChatsScreen key="myChats" onBack={back} />
+      break
   }
 
   const openTerminal = () => {
@@ -626,12 +663,39 @@ export default function App() {
     if (screen !== 'clusters') go('clusters')
   }
 
+  const openAnnouncements = () => {
+    setGraphOpen(false)
+    if (screen !== 'announcements') go('announcements')
+  }
+
+  const openGlobalChat = () => {
+    setGraphOpen(false)
+    if (screen !== 'globalChat') go('globalChat')
+  }
+
+  const openNotes = () => {
+    setGraphOpen(false)
+    if (screen !== 'notes') go('notes')
+  }
+
+  const openNotifications = () => {
+    setGraphOpen(false)
+    if (screen !== 'notifications') go('notifications')
+  }
+
+  const openMyChats = () => {
+    setGraphOpen(false)
+    if (screen !== 'myChats') go('myChats')
+  }
+
   return (
     <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
       <DesktopIcons
         active={shellFeature(screen, graphOpen, clustersFocus)}
-        onTerminal={openTerminal}
+        onAnnouncements={openAnnouncements}
+        onGlobalChat={openGlobalChat}
         onGraph={openGraph}
+        onNotes={openNotes}
         onAdmin={openAdmin}
         onProfile={openProfile}
         onSettings={openSettings}
@@ -641,6 +705,8 @@ export default function App() {
         onContacts={openContacts}
         onClusters={() => openClusters('directory')}
         onMyClusters={() => openClusters('mine')}
+        onNotifications={openNotifications}
+        onMyChats={openMyChats}
       />
       <TerminalFrame
         section={
@@ -651,6 +717,7 @@ export default function App() {
             : SECTION[screen]
         }
         mode={mode}
+        onOpenTerminal={openTerminal}
       >
         <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
           {content}
