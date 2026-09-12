@@ -83,7 +83,7 @@ export function TerminalFrame({
           ) : (
             <span className="hints">
               {graphOpen
-                ? 'DRAG NODES · SCROLL/PINCH ZOOM · HOLD +HEAT · TOGGLE LAYERS'
+                ? 'WASD WALK · HOLD TO THRUST · WHEEL REACH · ESC WORLDS'
                 : mode === 'NAV'
                   ? '↑↓ MOVE · SPACE SELECT · ENTER CONFIRM · BACKSPACE BACK'
                   : 'TYPE · ENTER CONFIRM · BACKSPACE ON EMPTY = BACK'}

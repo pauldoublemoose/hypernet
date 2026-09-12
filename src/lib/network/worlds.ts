@@ -355,14 +355,14 @@ function catalogPerson(id: string): { displayName: string; bio: string; skills: 
     return {
       displayName: contact.displayName,
       bio: contact.bio ?? '',
-      skills: contact.bio ? [contact.bio] : [],
+      skills: [],
     }
   }
   const seed = SEED_NODES.find((n) => n.id === id)
   if (seed) {
     return {
       displayName: seed.name,
-      bio: seed.skills.slice(0, 2).join(' · '),
+      bio: '',
       skills: seed.skills,
     }
   }
