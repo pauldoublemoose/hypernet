@@ -3,6 +3,8 @@
  * Shaped for a later Supabase migration (stable ids, list membership, relationship rows).
  */
 
+import { avatarUrlFor } from './defaultAvatars'
+
 export type RelationshipKind = 'follow' | 'friend'
 
 export type FriendRequestStatus = 'pending' | 'accepted' | 'declined'
@@ -13,7 +15,7 @@ export interface ContactPerson {
   displayName: string
   handle: string
   bio?: string
-  /** Optional avatar stub — URL or data URL. Placeholder if empty. */
+  /** Avatar URL — default pack (`/default-avatars/*.jpg`) unless the person has an upload. */
   imageUrl?: string
 }
 
@@ -80,12 +82,12 @@ function writeJson(key: string, value: unknown) {
 }
 
 const SEED_PEOPLE: ContactPerson[] = [
-  { id: 'p-anna', displayName: 'Anna Vale', handle: 'anna', bio: 'Sound + camp ops' },
-  { id: 'p-rio', displayName: 'Rio Moss', handle: 'rio', bio: 'Lighting / AV' },
-  { id: 'p-kai', displayName: 'Kai Okonkwo', handle: 'kai', bio: 'Kitchen lead' },
-  { id: 'p-mira', displayName: 'Mira Chen', handle: 'mira', bio: 'Art installs' },
-  { id: 'p-jon', displayName: 'Jon Hale', handle: 'jon', bio: 'Transport' },
-  { id: 'p-sasha', displayName: 'Sasha Reed', handle: 'sasha', bio: 'Safety / rangers' },
+  { id: 'p-anna', displayName: 'Anna Vale', handle: 'anna', bio: 'Sound + camp ops', imageUrl: avatarUrlFor('p-anna') },
+  { id: 'p-rio', displayName: 'Rio Moss', handle: 'rio', bio: 'Lighting / AV', imageUrl: avatarUrlFor('p-rio') },
+  { id: 'p-kai', displayName: 'Kai Okonkwo', handle: 'kai', bio: 'Kitchen lead', imageUrl: avatarUrlFor('p-kai') },
+  { id: 'p-mira', displayName: 'Mira Chen', handle: 'mira', bio: 'Art installs', imageUrl: avatarUrlFor('p-mira') },
+  { id: 'p-jon', displayName: 'Jon Hale', handle: 'jon', bio: 'Transport', imageUrl: avatarUrlFor('p-jon') },
+  { id: 'p-sasha', displayName: 'Sasha Reed', handle: 'sasha', bio: 'Safety / rangers', imageUrl: avatarUrlFor('p-sasha') },
 ]
 
 export function selfId() {
@@ -97,8 +99,21 @@ export function ensureSeedPeople(): ContactPerson[] {
   if (people.length === 0) {
     people = [...SEED_PEOPLE]
     writeJson(PEOPLE_KEY, people)
+    return people
   }
-  return people
+  let changed = false
+  const next = people.map((p) => {
+    if (p.imageUrl?.trim()) return p
+    changed = true
+    return { ...p, imageUrl: avatarUrlFor(p.id) }
+  })
+  for (const seed of SEED_PEOPLE) {
+    if (next.some((p) => p.id === seed.id)) continue
+    next.push(seed)
+    changed = true
+  }
+  if (changed) writeJson(PEOPLE_KEY, next)
+  return next
 }
 
 export function loadPeople(): ContactPerson[] {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { areFriendsBetween, selfId } from '../lib/contactsStore'
 import { initials } from '../lib/profileStore'
 import {
   inhabitantsForWorld,
@@ -9,19 +10,47 @@ import {
   type GraphWorld,
   type WorldInhabitant,
 } from '../lib/network/worlds'
+import { CardThumb } from './CardThumb'
 
-const WALK_ACCEL = 520
-const THRUST_ACCEL = 680
-const DAMP = 0.86
-const MAX_SPEED = 220
-const CAM_FOLLOW = 0.1
+const WALK_ACCEL = 1500
+const THRUST_ACCEL = 1900
+const DAMP = 0.88
+const MAX_SPEED = 580
+const CAM_FOLLOW = 0.14
 const MIN_K = 0.48
 const MAX_K = 2.35
 const BASE_REACH = 168
+const NEAR_REACH = 88
+const ALL_REACH = 8000
 const LINK_DIST = 210
 const LIGHT_DIST = 54
+const NODE_R = 8
+const HERO_R = 10.4
 
-/** Same stops as `.poly-edge` / polychrome titles — hero is always polychrome. */
+type GravityMode = 'none' | 'event' | 'friends'
+type VisibilityMode = 'reach' | 'all' | 'near'
+
+const GRAVITY_MODES: GravityMode[] = ['none', 'event', 'friends']
+const VISIBILITY_MODES: VisibilityMode[] = ['reach', 'all', 'near']
+
+const GRAVITY_LABEL: Record<GravityMode, string> = {
+  none: 'NONE',
+  event: 'EVENT',
+  friends: 'FRIENDS',
+}
+
+const VISIBILITY_LABEL: Record<VisibilityMode, string> = {
+  reach: 'REACH',
+  all: 'ALL',
+  near: 'NEAR',
+}
+
+function cycleMode<T>(list: readonly T[], cur: T): T {
+  const i = list.indexOf(cur)
+  return list[(i + 1) % list.length]
+}
+
+/** Same stops as `.poly-edge` / Theme polychrome shine — hero is always polychrome. */
 const POLY_STOPS = ['#ff0040', '#ffdd00', '#00ff80', '#00cfff', '#7b00ff', '#ff0040'] as const
 
 function prefersReduceMotion() {
@@ -42,36 +71,20 @@ function heroConic(ctx: CanvasRenderingContext2D, x: number, y: number, t: numbe
   return grad
 }
 
-function heroDiamondPath(ctx: CanvasRenderingContext2D, x: number, y: number, hy: number, hx: number) {
-  ctx.beginPath()
-  ctx.moveTo(x, y - hy)
-  ctx.lineTo(x + hx, y)
-  ctx.lineTo(x, y + hy)
-  ctx.lineTo(x - hx, y)
-  ctx.closePath()
-}
-
-function drawHeroNode(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  k: number,
-  t: number,
-) {
+/** Plain circle, slightly larger than others, with Theme-like polychrome glow + shine. */
+function drawHeroNode(ctx: CanvasRenderingContext2D, x: number, y: number, k: number, t: number) {
   const reduce = prefersReduceMotion()
-  const pulse = reduce ? 1 : 1 + 0.06 * Math.sin(t * 3.2)
-  const hy = 16 * pulse
-  const hx = 13 * pulse
-  const facet = ['#ff0040', '#ffdd00', '#00ff80', '#00cfff'] as const
-  const rot = reduce ? 0 : Math.floor(t * 2.4) % facet.length
+  const pulse = reduce ? 1 : 1 + 0.045 * Math.sin(t * 2.6)
+  const r = HERO_R * pulse
 
   ctx.save()
   ctx.globalAlpha = 1
 
-  const glowR = 28 * pulse
-  const glow = ctx.createRadialGradient(x, y, 3, x, y, glowR)
-  glow.addColorStop(0, 'rgba(255, 0, 180, 0.35)')
-  glow.addColorStop(0.45, 'rgba(0, 255, 213, 0.18)')
+  const glowR = r * 2.55
+  const glow = ctx.createRadialGradient(x, y, r * 0.15, x, y, glowR)
+  glow.addColorStop(0, 'rgba(255, 0, 180, 0.5)')
+  glow.addColorStop(0.32, 'rgba(0, 255, 213, 0.28)')
+  glow.addColorStop(0.62, 'rgba(123, 0, 255, 0.14)')
   glow.addColorStop(1, 'rgba(123, 0, 255, 0)')
   ctx.fillStyle = glow
   ctx.beginPath()
@@ -79,67 +92,29 @@ function drawHeroNode(
   ctx.fill()
 
   ctx.beginPath()
-  ctx.arc(x, y, 20 * pulse, 0, Math.PI * 2)
-  ctx.strokeStyle = heroConic(ctx, x, y, t)
-  ctx.lineWidth = 2.6 / k
-  ctx.stroke()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.fillStyle = heroConic(ctx, x, y, t)
+  ctx.fill()
 
-  const tris: [number, number][][] = [
-    [
-      [x, y],
-      [x, y - hy],
-      [x + hx, y],
-    ],
-    [
-      [x, y],
-      [x + hx, y],
-      [x, y + hy],
-    ],
-    [
-      [x, y],
-      [x, y + hy],
-      [x - hx, y],
-    ],
-    [
-      [x, y],
-      [x - hx, y],
-      [x, y - hy],
-    ],
-  ]
-  for (let i = 0; i < 4; i++) {
-    const pts = tris[i]
-    ctx.beginPath()
-    ctx.moveTo(pts[0][0], pts[0][1])
-    ctx.lineTo(pts[1][0], pts[1][1])
-    ctx.lineTo(pts[2][0], pts[2][1])
-    ctx.closePath()
-    ctx.fillStyle = facet[(i + rot) % facet.length]
-    ctx.fill()
-  }
+  const shineAng = reduce ? -0.7 : (t * 1.7) % (Math.PI * 2)
+  const sx = x + Math.cos(shineAng) * r * 0.32
+  const sy = y + Math.sin(shineAng) * r * 0.32
+  const shine = ctx.createRadialGradient(sx, sy, 0, x, y, r)
+  shine.addColorStop(0, 'rgba(255, 255, 255, 0.88)')
+  shine.addColorStop(0.28, 'rgba(180, 230, 255, 0.32)')
+  shine.addColorStop(0.62, 'rgba(255, 255, 255, 0.06)')
+  shine.addColorStop(1, 'rgba(255, 255, 255, 0)')
+  ctx.fillStyle = shine
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.fill()
 
-  heroDiamondPath(ctx, x, y, hy, hx)
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.72)'
   ctx.lineWidth = 1.15 / k
   ctx.stroke()
 
-  ctx.save()
-  heroDiamondPath(ctx, x, y, hy, hx)
-  ctx.clip()
-  const hatch = reduce ? 0 : (t * 16) % 3
-  ctx.globalAlpha = 0.16
-  ctx.fillStyle = '#ffffff'
-  for (let i = -hy; i <= hy; i += 2) {
-    ctx.fillRect(x - hx, y + i + hatch - hy, hx * 2, 1 / k)
-  }
-  ctx.restore()
-
-  const labelH = 15 / k
-  const labelGrad = ctx.createLinearGradient(x + 16, y - 18, x + 52, y - 18)
-  fillPolyStops(labelGrad)
-  ctx.font = `700 ${labelH}px ui-monospace, monospace`
-  ctx.fillStyle = labelGrad
-  ctx.globalAlpha = 1
-  ctx.fillText('YOU', x + 16, y - 12)
   ctx.restore()
 }
 
@@ -147,6 +122,50 @@ function readThemeColor(el: Element | null, name: string, fallback: string) {
   if (!el) return fallback
   const v = getComputedStyle(el).getPropertyValue(name).trim()
   return v || fallback
+}
+
+const avatarImgCache = new Map<string, HTMLImageElement | 'err'>()
+
+function avatarImage(url: string | undefined, onReady: () => void): HTMLImageElement | null {
+  if (!url) return null
+  const cached = avatarImgCache.get(url)
+  if (cached === 'err') return null
+  if (cached) return cached.complete && cached.naturalWidth > 0 ? cached : null
+  const img = new Image()
+  img.onload = () => onReady()
+  img.onerror = () => {
+    avatarImgCache.set(url, 'err')
+  }
+  img.src = url
+  avatarImgCache.set(url, img)
+  return null
+}
+
+function drawCirclePhoto(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  img: HTMLImageElement,
+  k: number,
+  stroke: string,
+) {
+  ctx.save()
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.clip()
+  const iw = img.naturalWidth
+  const ih = img.naturalHeight
+  const scale = Math.max((r * 2) / iw, (r * 2) / ih)
+  const dw = iw * scale
+  const dh = ih * scale
+  ctx.drawImage(img, x - dw / 2, y - dh / 2, dw, dh)
+  ctx.restore()
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.strokeStyle = stroke
+  ctx.lineWidth = 1.15 / k
+  ctx.stroke()
 }
 
 function distPointSeg(
@@ -166,26 +185,50 @@ function distPointSeg(
   return Math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 }
 
+function visibilityReach(mode: VisibilityMode, camK: number) {
+  if (mode === 'all') return ALL_REACH
+  if (mode === 'near') return NEAR_REACH / camK
+  return BASE_REACH / camK
+}
+
+function placedPos(
+  n: WorldInhabitant,
+  world: GraphWorld | null,
+  gravity: GravityMode,
+  friends: Set<string>,
+): { x: number; y: number } {
+  if (!world || n.isSelf || gravity === 'none') return { x: n.x, y: n.y }
+  const pull =
+    gravity === 'event' ? world.participantIds.includes(n.id) : friends.has(n.id)
+  if (!pull) return { x: n.x, y: n.y }
+  const k = gravity === 'event' ? 0.42 : 0.3
+  return { x: n.x * k, y: n.y * k }
+}
+
 export function NetworkGraph({
   selfName,
+  selfAvatarUrl = '',
   onOpenSelfProfile,
   initialWorldId = null,
 }: {
   selfName: string
+  selfAvatarUrl?: string
   onOpenSelfProfile?: () => void
   initialWorldId?: string | null
 }) {
   const worlds = listEnterableWorlds()
   const [worldId, setWorldId] = useState<string | null>(initialWorldId)
   const [linksOn, setLinksOn] = useState(true)
+  const [gravity, setGravity] = useState<GravityMode>('none')
+  const [visibility, setVisibility] = useState<VisibilityMode>('reach')
   const [panel, setPanel] = useState<WorldInhabitant | null>(null)
   const [lockedHint, setLockedHint] = useState<string | null>(null)
   const [reachUi, setReachUi] = useState(BASE_REACH)
 
   const world = worlds.find((w) => w.id === worldId) ?? null
   const people = useMemo(
-    () => (world ? inhabitantsForWorld(world, selfName) : []),
-    [world, selfName],
+    () => (world ? inhabitantsForWorld(world, selfName, selfId(), selfAvatarUrl) : []),
+    [world, selfName, selfAvatarUrl],
   )
 
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -193,6 +236,9 @@ export function NetworkGraph({
   const peopleRef = useRef<WorldInhabitant[]>([])
   const worldRef = useRef<GraphWorld | null>(null)
   const linksOnRef = useRef(true)
+  const gravityRef = useRef<GravityMode>('none')
+  const visibilityRef = useRef<VisibilityMode>('reach')
+  const friendsRef = useRef<Set<string>>(new Set())
   const avatarRef = useRef({ x: 0, y: 0, vx: 0, vy: 0 })
   const camRef = useRef({ x: 0, y: 0, k: 1 })
   const keysRef = useRef(new Set<string>())
@@ -213,6 +259,8 @@ export function NetworkGraph({
   peopleRef.current = people
   worldRef.current = world
   linksOnRef.current = linksOn
+  gravityRef.current = gravity
+  visibilityRef.current = visibility
   panelRef.current = panel
 
   const screenToWorld = (clientX: number, clientY: number) => {
@@ -224,33 +272,32 @@ export function NetworkGraph({
     }
   }
 
-  const reachNow = () => BASE_REACH / camRef.current.k
+  const reachNow = () => visibilityReach(visibilityRef.current, camRef.current.k)
+
+  const nodeState = (n: WorldInhabitant) => {
+    const you = avatarRef.current
+    const placed = placedPos(n, worldRef.current, gravityRef.current, friendsRef.current)
+    const nx = n.isSelf ? you.x : placed.x
+    const ny = n.isSelf ? you.y : placed.y
+    const dist = Math.hypot(nx - you.x, ny - you.y)
+    const inReach = n.isSelf || dist <= reachNow()
+    const full = n.allowed && inReach
+    return { nx, ny, dist, inReach, full }
+  }
 
   const findNode = (wx: number, wy: number, pad = 10) => {
-    const you = avatarRef.current
     let hit: WorldInhabitant | null = null
     let best = Infinity
     for (const n of peopleRef.current) {
-      const nx = n.isSelf ? you.x : n.x
-      const ny = n.isSelf ? you.y : n.y
-      const d = Math.hypot(nx - wx, ny - wy)
-      const r = (n.isSelf ? 18 : 7) + pad
+      const s = nodeState(n)
+      const d = Math.hypot(s.nx - wx, s.ny - wy)
+      const r = (n.isSelf ? HERO_R : NODE_R) + pad
       if (d <= r && d < best) {
         best = d
         hit = n
       }
     }
     return hit
-  }
-
-  const nodeState = (n: WorldInhabitant) => {
-    const you = avatarRef.current
-    const nx = n.isSelf ? you.x : n.x
-    const ny = n.isSelf ? you.y : n.y
-    const dist = Math.hypot(nx - you.x, ny - you.y)
-    const inReach = n.isSelf || dist <= reachNow()
-    const full = n.allowed && inReach
-    return { nx, ny, dist, inReach, full }
   }
 
   const draw = () => {
@@ -285,7 +332,7 @@ export function NetworkGraph({
     ctx.translate(-cx, -cy)
 
     ctx.beginPath()
-    ctx.arc(you.x, you.y, reach, 0, Math.PI * 2)
+    ctx.arc(you.x, you.y, reach > 2000 ? 0 : reach, 0, Math.PI * 2)
     ctx.strokeStyle = border
     ctx.globalAlpha = 0.28
     ctx.lineWidth = 1 / k
@@ -334,11 +381,16 @@ export function NetworkGraph({
         continue
       }
       ctx.beginPath()
-      ctx.arc(s.nx, s.ny, 6.5, 0, Math.PI * 2)
+      ctx.arc(s.nx, s.ny, NODE_R, 0, Math.PI * 2)
       if (s.full) {
-        ctx.fillStyle = fg
+        const pic = avatarImage(n.imageUrl, draw)
         ctx.globalAlpha = hot ? 1 : 0.92
-        ctx.fill()
+        if (pic) {
+          drawCirclePhoto(ctx, s.nx, s.ny, NODE_R, pic, k, fg)
+        } else {
+          ctx.fillStyle = fg
+          ctx.fill()
+        }
       } else {
         ctx.strokeStyle = fgDim
         ctx.globalAlpha = 0.28
@@ -360,9 +412,13 @@ export function NetworkGraph({
     if (!world) return
     avatarRef.current = { x: 0, y: 0, vx: 0, vy: 0 }
     camRef.current = { x: 0, y: 0, k: 1 }
+    const me = selfId()
+    friendsRef.current = new Set(
+      people.filter((p) => !p.isSelf && areFriendsBetween(me, p.id)).map((p) => p.id),
+    )
     setPanel(null)
     setLockedHint(null)
-    setReachUi(BASE_REACH)
+    setReachUi(visibilityReach(visibilityRef.current, 1))
     lastTsRef.current = 0
 
     const tick = (ts: number) => {
@@ -406,7 +462,7 @@ export function NetworkGraph({
       cam.x += (you.x - cam.x) * CAM_FOLLOW
       cam.y += (you.y - cam.y) * CAM_FOLLOW
 
-      const r = BASE_REACH / cam.k
+      const r = reachNow()
       setReachUi((prevR) => (Math.abs(prevR - r) > 1.5 ? r : prevR))
       draw()
       rafRef.current = requestAnimationFrame(tick)
@@ -454,8 +510,11 @@ export function NetworkGraph({
   }, [worldId])
 
   useEffect(() => {
+    for (const n of people) {
+      if (n.imageUrl) avatarImage(n.imageUrl, draw)
+    }
     draw()
-  }, [people, linksOn, panel])
+  }, [people, linksOn, panel, gravity, visibility])
 
   const onPointerDown = (e: React.PointerEvent) => {
     canvasRef.current?.setPointerCapture(e.pointerId)
@@ -526,14 +585,15 @@ export function NetworkGraph({
   const open = worlds.filter((w) => w.kind === 'open')
   const priv = worlds.filter((w) => w.kind === 'private')
 
-  const worldRow = (w: GraphWorld) => (
-    <button key={w.id} type="button" className="hz-list-item" onClick={() => setWorldId(w.id)}>
-      <span className="hz-list-copy">
-        <span className="hz-list-title">{w.title}</span>
-        <span className="dim">
-          {kindLabel(w.kind)}
-          {w.kind === 'private' ? ` · ${surfDialLabel(w.surfDial)}` : ' · surf without attending'}
-        </span>
+  const worldCard = (w: GraphWorld) => (
+    <button key={w.id} type="button" className="world-card" onClick={() => setWorldId(w.id)}>
+      <span className="world-card-kind">
+        {kindLabel(w.kind)}
+        {w.kind === 'private' ? ` · ${surfDialLabel(w.surfDial)}` : ''}
+      </span>
+      <span className="world-card-title">{w.title}</span>
+      <span className="world-card-meta">
+        {w.description || (w.kind === 'open' ? 'Surf without attending' : 'Private twin')}
       </span>
     </button>
   )
@@ -542,20 +602,26 @@ export function NetworkGraph({
     return (
       <div className="net-root world-root">
         <p className="dim hz-lead">
-          A World is a place you drop into — often an event twin. Privacy = reach. Not a global
-          helicopter map.
+          First pick a World to drop into. Gravity, Visibility, and Links appear after you enter.
+          Privacy = reach. Not a global helicopter map.
         </p>
         <h3 className="profile-section-title">Open / community</h3>
-        <ul className="hz-list">{open.map(worldRow)}</ul>
+        <div className="world-card-grid">{open.map(worldCard)}</div>
         <h3 className="profile-section-title">Private — you can enter</h3>
         <p className="dim hz-lead">
           Dial stub: Participants / Friends of participants (default) / Anyone. Dual privacy: event
           surf ≠ Chronicle “I attended.”
         </p>
-        <ul className="hz-list">{priv.length ? priv.map(worldRow) : <li className="dim">None</li>}</ul>
+        {priv.length ? (
+          <div className="world-card-grid">{priv.map(worldCard)}</div>
+        ) : (
+          <p className="dim">None</p>
+        )}
       </div>
     )
   }
+
+  const reachShown = visibility === 'all' ? 'ALL' : String(Math.round(reachUi))
 
   return (
     <div className="net-root world-root">
@@ -566,13 +632,27 @@ export function NetworkGraph({
           </button>
           <span className="net-world-name">{world.title}</span>
         </div>
-        <div className="net-toggles" role="group" aria-label="Link layer">
+        <div className="net-toggles" role="group" aria-label="In-world layers">
+          <button
+            type="button"
+            className="net-toggle on"
+            onClick={() => setGravity((g) => cycleMode(GRAVITY_MODES, g))}
+          >
+            [ GRAVITY: {GRAVITY_LABEL[gravity]} ]
+          </button>
+          <button
+            type="button"
+            className="net-toggle on"
+            onClick={() => setVisibility((v) => cycleMode(VISIBILITY_MODES, v))}
+          >
+            [ VISIBILITY: {VISIBILITY_LABEL[visibility]} ]
+          </button>
           <button
             type="button"
             className={`net-toggle ${linksOn ? 'on' : ''}`}
             onClick={() => setLinksOn((v) => !v)}
           >
-            [{linksOn ? '■' : '□'} SHARED EVENT]
+            [{linksOn ? '■' : '□'} LINKS ]
           </button>
         </div>
       </div>
@@ -593,9 +673,14 @@ export function NetworkGraph({
         />
         {panel && (
           <aside className="world-panel" aria-label="Person">
-            <div className="net-tip-name">{panel.displayName}</div>
-            <div className="net-tip-meta">
-              {panel.isSelf ? 'YOU · avatar' : panel.bio || 'Node in this World'}
+            <div className="world-panel-head">
+              <CardThumb src={panel.imageUrl} label={panel.displayName} shape="circle" />
+              <div>
+                <div className="net-tip-name">{panel.displayName}</div>
+                <div className="net-tip-meta">
+                  {panel.isSelf ? 'YOU · avatar' : panel.bio || 'Node in this World'}
+                </div>
+              </div>
             </div>
             {!panel.isSelf &&
               panel.skills.length > 0 &&
@@ -617,8 +702,8 @@ export function NetworkGraph({
         {lockedHint && !panel && <div className="world-locked-hint">{lockedHint}</div>}
       </div>
       <div className="net-legend dim">
-        WASD / ARROWS WALK · HOLD EMPTY GROUND TO THRUST · WHEEL ZOOM/REACH {Math.round(reachUi)} ·
-        ESC WORLDS
+        WASD / ARROWS WALK · HOLD EMPTY GROUND TO THRUST · WHEEL ZOOM/REACH {reachShown} · ESC
+        WORLDS
       </div>
     </div>
   )
