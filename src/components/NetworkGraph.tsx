@@ -42,6 +42,15 @@ function heroConic(ctx: CanvasRenderingContext2D, x: number, y: number, t: numbe
   return grad
 }
 
+function heroDiamondPath(ctx: CanvasRenderingContext2D, x: number, y: number, hy: number, hx: number) {
+  ctx.beginPath()
+  ctx.moveTo(x, y - hy)
+  ctx.lineTo(x + hx, y)
+  ctx.lineTo(x, y + hy)
+  ctx.lineTo(x - hx, y)
+  ctx.closePath()
+}
+
 function drawHeroNode(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -50,67 +59,87 @@ function drawHeroNode(
   t: number,
 ) {
   const reduce = prefersReduceMotion()
-  const pulse = reduce ? 1 : 1 + 0.08 * Math.sin(t * 3.2)
-  const glowR = 22 * pulse
+  const pulse = reduce ? 1 : 1 + 0.06 * Math.sin(t * 3.2)
+  const hy = 16 * pulse
+  const hx = 13 * pulse
+  const facet = ['#ff0040', '#ffdd00', '#00ff80', '#00cfff'] as const
+  const rot = reduce ? 0 : Math.floor(t * 2.4) % facet.length
 
   ctx.save()
   ctx.globalAlpha = 1
 
-  const glow = ctx.createRadialGradient(x, y, 4, x, y, glowR)
-  glow.addColorStop(0, 'rgba(0, 255, 213, 0.55)')
-  glow.addColorStop(0.35, 'rgba(255, 0, 180, 0.28)')
-  glow.addColorStop(0.7, 'rgba(123, 0, 255, 0.12)')
-  glow.addColorStop(1, 'rgba(255, 0, 64, 0)')
+  const glowR = 28 * pulse
+  const glow = ctx.createRadialGradient(x, y, 3, x, y, glowR)
+  glow.addColorStop(0, 'rgba(255, 0, 180, 0.35)')
+  glow.addColorStop(0.45, 'rgba(0, 255, 213, 0.18)')
+  glow.addColorStop(1, 'rgba(123, 0, 255, 0)')
   ctx.fillStyle = glow
   ctx.beginPath()
   ctx.arc(x, y, glowR, 0, Math.PI * 2)
   ctx.fill()
 
   ctx.beginPath()
-  ctx.arc(x, y, 15 * pulse, 0, Math.PI * 2)
+  ctx.arc(x, y, 20 * pulse, 0, Math.PI * 2)
   ctx.strokeStyle = heroConic(ctx, x, y, t)
-  ctx.globalAlpha = 0.85
-  ctx.lineWidth = 2.1 / k
+  ctx.lineWidth = 2.6 / k
   ctx.stroke()
-  ctx.globalAlpha = 1
 
-  ctx.beginPath()
-  ctx.moveTo(x, y - 11)
-  ctx.lineTo(x + 9, y)
-  ctx.lineTo(x, y + 11)
-  ctx.lineTo(x - 9, y)
-  ctx.closePath()
-  ctx.fillStyle = heroConic(ctx, x, y, t + 0.35)
-  ctx.fill()
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)'
-  ctx.lineWidth = 0.7 / k
+  const tris: [number, number][][] = [
+    [
+      [x, y],
+      [x, y - hy],
+      [x + hx, y],
+    ],
+    [
+      [x, y],
+      [x + hx, y],
+      [x, y + hy],
+    ],
+    [
+      [x, y],
+      [x, y + hy],
+      [x - hx, y],
+    ],
+    [
+      [x, y],
+      [x - hx, y],
+      [x, y - hy],
+    ],
+  ]
+  for (let i = 0; i < 4; i++) {
+    const pts = tris[i]
+    ctx.beginPath()
+    ctx.moveTo(pts[0][0], pts[0][1])
+    ctx.lineTo(pts[1][0], pts[1][1])
+    ctx.lineTo(pts[2][0], pts[2][1])
+    ctx.closePath()
+    ctx.fillStyle = facet[(i + rot) % facet.length]
+    ctx.fill()
+  }
+
+  heroDiamondPath(ctx, x, y, hy, hx)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'
+  ctx.lineWidth = 1.15 / k
   ctx.stroke()
 
   ctx.save()
+  heroDiamondPath(ctx, x, y, hy, hx)
   ctx.clip()
-  const hatch = reduce ? 0 : (t * 14) % 4
-  ctx.globalAlpha = 0.18
+  const hatch = reduce ? 0 : (t * 16) % 3
+  ctx.globalAlpha = 0.16
   ctx.fillStyle = '#ffffff'
-  for (let i = -12; i <= 12; i += 2) {
-    ctx.fillRect(x - 10, y + i + hatch - 12, 20, 1 / k)
-  }
-  if (!reduce) {
-    const shineX = x - 14 + ((t * 28) % 28)
-    const shine = ctx.createLinearGradient(shineX, y, shineX + 10, y)
-    shine.addColorStop(0, 'rgba(255,255,255,0)')
-    shine.addColorStop(0.5, 'rgba(255,255,255,0.7)')
-    shine.addColorStop(1, 'rgba(180,230,255,0)')
-    ctx.globalAlpha = 0.55
-    ctx.fillStyle = shine
-    ctx.fillRect(x - 10, y - 12, 20, 24)
+  for (let i = -hy; i <= hy; i += 2) {
+    ctx.fillRect(x - hx, y + i + hatch - hy, hx * 2, 1 / k)
   }
   ctx.restore()
 
-  ctx.globalAlpha = 0.95
-  ctx.fillStyle = heroConic(ctx, x + 10, y - 10, t)
-  ctx.font = `${12 / k}px ui-monospace, monospace`
-  ctx.fillText('YOU', x + 12, y - 10)
+  const labelH = 15 / k
+  const labelGrad = ctx.createLinearGradient(x + 16, y - 18, x + 52, y - 18)
+  fillPolyStops(labelGrad)
+  ctx.font = `700 ${labelH}px ui-monospace, monospace`
+  ctx.fillStyle = labelGrad
   ctx.globalAlpha = 1
+  ctx.fillText('YOU', x + 16, y - 12)
   ctx.restore()
 }
 
@@ -205,7 +234,7 @@ export function NetworkGraph({
       const nx = n.isSelf ? you.x : n.x
       const ny = n.isSelf ? you.y : n.y
       const d = Math.hypot(nx - wx, ny - wy)
-      const r = (n.isSelf ? 11 : 7) + pad
+      const r = (n.isSelf ? 18 : 7) + pad
       if (d <= r && d < best) {
         best = d
         hit = n
