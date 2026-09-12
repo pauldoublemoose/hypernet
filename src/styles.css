@@ -1536,7 +1536,8 @@ html[data-theme='polychrome'] body {
 
 .net-screen {
   gap: 10px;
-  min-height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .net-intro {
@@ -1697,6 +1698,61 @@ html[data-theme='polychrome'] body {
 .net-legend {
   font-size: 14px;
   letter-spacing: 1px;
+}
+
+.world-root {
+  min-height: 0;
+}
+
+.net-world-name {
+  letter-spacing: 1px;
+  font-size: 15px;
+}
+
+.world-canvas {
+  cursor: crosshair;
+}
+
+.world-canvas:active {
+  cursor: crosshair;
+}
+
+.world-panel {
+  position: absolute;
+  z-index: 3;
+  right: 10px;
+  top: 10px;
+  max-width: 240px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 15px;
+  line-height: 1.35;
+  letter-spacing: 0.5px;
+  pointer-events: auto;
+}
+
+.world-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.world-locked-hint {
+  position: absolute;
+  z-index: 2;
+  left: 10px;
+  bottom: 10px;
+  max-width: 280px;
+  padding: 6px 10px;
+  border: 1px dotted var(--border);
+  background: var(--bg);
+  color: var(--fg-dim);
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  pointer-events: none;
 }
 
 /* ---- profile page ----------------------------------------------------- */

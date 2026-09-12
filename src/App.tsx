@@ -54,7 +54,6 @@ import {
   type ContactChannel,
   type Status,
 } from './types'
-import { buildGraphData } from './lib/network/buildGraph'
 import { NetworkGraph } from './components/NetworkGraph'
 import { useUi } from './ui'
 
@@ -230,8 +229,6 @@ function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: Clust
 export default function App() {
   const { theme, graphOpen, setGraphOpen, expanded } = useUi()
   const [answers, setAnswers] = useState<Answers>(initialAnswers)
-  // Rebuild when the overlay opens so admin ghost changes apply immediately.
-  const graphData = useMemo(() => buildGraphData(answers), [answers, graphOpen])
   const [screen, setScreen] = useState<ScreenId>('welcome')
   const [history, setHistory] = useState<ScreenId[]>([])
   const [mode, setMode] = useState<InputMode>('NAV')
@@ -724,9 +721,12 @@ export default function App() {
         </div>
         {graphOpen && (
           <div className="screen net-screen graph-overlay">
-            <div className="title">6 :: NETWORK</div>
-            <div className="net-intro dim">PRE-ALPHA GRAPH · TOGGLE [GRAPH] TO RETURN</div>
-            <NetworkGraph data={graphData} newNodeId="you" preview />
+            <div className="title">N :: WORLD</div>
+            <div className="net-intro dim">DROP INTO A WORLD · WALK LOCALLY · [GRAPH] TO RETURN</div>
+            <NetworkGraph
+              selfName={loadProfile(answers).displayName || answers.fullName || 'You'}
+              onOpenSelfProfile={openProfile}
+            />
           </div>
         )}
       </TerminalFrame>

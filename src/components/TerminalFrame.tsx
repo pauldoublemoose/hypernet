@@ -56,7 +56,7 @@ export function TerminalFrame({
                 type="button"
                 className={`theme-btn${graphOpen ? ' on' : ''}`}
                 onClick={toggleGraph}
-                title={graphOpen ? 'Return to form' : 'Open network graph'}
+                title={graphOpen ? 'Return to form' : 'Drop into a World'}
               >
                 [GRAPH]
               </button>
@@ -67,7 +67,7 @@ export function TerminalFrame({
               onClick={() => onOpenTerminal?.()}
               title="Open Terminal / Help"
             >
-              [ {graphOpen ? '6 :: NETWORK' : section} ]
+              [ {graphOpen ? 'N :: WORLD' : section} ]
             </button>
           </span>
         </div>

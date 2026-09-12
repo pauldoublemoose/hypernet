@@ -66,7 +66,7 @@ const LEFT_TOP: DeskIcon[] = [
     glyph: '◈',
     label: 'Network Graph',
     locked: false,
-    tip: 'Network Graph — the community as nodes',
+    tip: 'Network Graph — drop into a World and walk. Privacy = reach.',
   },
   {
     id: 'notes',

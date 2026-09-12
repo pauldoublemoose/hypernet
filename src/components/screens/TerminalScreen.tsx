@@ -14,6 +14,14 @@ const TABS: { id: Tab; label: string }[] = [
 
 const UPDATE_LOG = [
   {
+    version: 'v0.1.8',
+    date: '2026-09',
+    notes: [
+      'Network Graph is an ego-centric World explorer: pick an event twin, walk as your avatar (WASD / thrust), click a node for a person panel. One shared-event link layer. Dim/locked = out of reach or Chronicle-hidden.',
+      'Open/community twins (Borderland, Burning Man, Hyperstition) plus private Worlds you can enter (Friends of participants default, or Participants). Looking for chips still out.',
+    ],
+  },
+  {
     version: 'v0.1.7',
     date: '2026-09',
     notes: [
@@ -120,10 +128,11 @@ export function TerminalScreen({
             on the desktop — reopen Help from the header section badge, e.g. [ T :: TERMINAL ].
             Left strip is discovery (top → bottom): Global Announcements, Global Chat, Network
             Graph, Discover Notes, Discover Events, Discover Horizons, Discover Clusters. LOG stays
-            locked at the bottom. Right strip is yours: My Notifications, My Chats, MY NODE, My
-            Contacts, My Clusters, MY HORIZONS. Theme, Admin, and SETTINGS sit bottom-right. Theme
-            cycles WHITE / BLACK / POLYCHROME. Locked icons show a tip and stay closed until
-            unlocked.
+            locked at the bottom. Network Graph opens a World picker — drop into an event twin and
+            walk; it is not a global helicopter map. Right strip is yours: My Notifications, My
+            Chats, MY NODE, My Contacts, My Clusters, MY HORIZONS. Theme, Admin, and SETTINGS sit
+            bottom-right. Theme cycles WHITE / BLACK / POLYCHROME. Locked icons show a tip and stay
+            closed until unlocked.
           </p>
           <p className="profile-view-text">
             Switch Terminal sections with the tabs in the bottom status bar: Help (this page), the
@@ -149,6 +158,12 @@ export function TerminalScreen({
               <span className="hz-list-title">Cluster / Discover Clusters / My Clusters</span>
               <span className="dim">
                 A shared camp, crew, or collective — everyone in it can see they’re members together.
+              </span>
+            </li>
+            <li className="hz-list-static">
+              <span className="hz-list-title">World / Network Graph</span>
+              <span className="dim">
+                A place you drop into — often an event twin. Walk locally. Privacy = reach.
               </span>
             </li>
             <li className="hz-list-static">
