@@ -12,6 +12,7 @@ export function TextScreen({
   multiline,
   initial,
   kind,
+  onDraftChange,
   onSubmit,
   onBack,
   setMode,
@@ -23,6 +24,8 @@ export function TextScreen({
   initial?: string
   /** When 'email', non-empty values must pass a light format check. */
   kind?: 'text' | 'email'
+  /** Live value updates while typing (uncommitted), e.g. for draft autosave. */
+  onDraftChange?: (value: string) => void
   onSubmit: (value: string) => void
   onBack: () => void
   setMode: (m: InputMode) => void
@@ -82,12 +85,10 @@ export function TextScreen({
 
   const onChange = (next: string) => {
     setNudge(null)
-    if (kind === 'email') {
-      // Friendly constraint: no spaces; keep typing case, normalize on submit.
-      setVal(next.replace(/\s/g, '').slice(0, 254))
-      return
-    }
-    setVal(next)
+    // Friendly email constraint: no spaces; keep typing case, normalize on submit.
+    const cleaned = kind === 'email' ? next.replace(/\s/g, '').slice(0, 254) : next
+    setVal(cleaned)
+    onDraftChange?.(cleaned)
   }
 
   return (

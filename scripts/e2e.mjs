@@ -13,6 +13,26 @@ const fail = (msg) => {
   process.exitCode = 1
 }
 
+/**
+ * Cut every write to Supabase.
+ *
+ * The run submits a full signup and would otherwise land a fake node — plus
+ * any custom skills it invented — in whatever database .env points at. Reads
+ * still go through; the failed insert is what puts the app on its offline
+ * path, which is what the assertions below expect.
+ */
+async function blockWrites(page) {
+  await page.route('**/rest/v1/**', (route) => {
+    const method = route.request().method()
+    if (method === 'GET' || method === 'HEAD') return route.continue()
+    return route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ message: 'writes blocked by e2e' }),
+    })
+  })
+}
+
 /** Mark first option then confirm (soft-lock ChoiceScreens). */
 async function markAndEnter(page, downs = 1) {
   for (let i = 0; i < downs; i++) await page.keyboard.press('ArrowDown')
@@ -24,6 +44,7 @@ const browser = await chromium.launch()
 // ---------- Desktop keyboard flow (KNOWN COCREATOR) ------------------------
 {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await blockWrites(page)
   await page.goto(BASE)
   await page.evaluate(() => localStorage.clear())
   await page.reload()
@@ -211,7 +232,7 @@ const browser = await chromium.launch()
   await page.waitForSelector('text=TRANSMITTING NODE')
   await page.waitForSelector('text=UPLINK OFFLINE', { timeout: 10000 })
   await page.waitForSelector('button:has-text("RESET TERMINAL")', { timeout: 45000 })
-  await page.waitForSelector('text=6 :: NETWORK')
+  await page.waitForSelector('text=N :: WORLD')
   await page.screenshot({ path: `${SHOTS}/desktop-6-network.png` })
 
   const stored = await page.evaluate(() =>
@@ -254,6 +275,7 @@ const browser = await chromium.launch()
     hasTouch: true,
     isMobile: true,
   })
+  await blockWrites(page)
   await page.goto(BASE)
   await page.evaluate(() => localStorage.clear())
   await page.reload()
@@ -305,7 +327,7 @@ const browser = await chromium.launch()
 
   await page.waitForSelector('text=TRANSMITTING NODE')
   await page.waitForSelector('button:has-text("RESET TERMINAL")', { timeout: 45000 })
-  await page.waitForSelector('text=6 :: NETWORK')
+  await page.waitForSelector('text=N :: WORLD')
   await page.screenshot({ path: `${SHOTS}/mobile-6-network.png` })
 
   const stored = await page.evaluate(() =>

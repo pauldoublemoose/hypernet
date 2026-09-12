@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { DesktopIcons, type ShellFeature } from './components/DesktopIcons'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
+import { AboutMeScreen } from './components/screens/AboutMeScreen'
 import { AboutScreen } from './components/screens/AboutScreen'
 import { AdminGateScreen } from './components/screens/AdminGateScreen'
 import { AdminTableScreen } from './components/screens/AdminTableScreen'
@@ -56,6 +57,13 @@ import {
   type Status,
 } from './types'
 import { NetworkGraph } from './components/NetworkGraph'
+import { AccountScreen } from './components/screens/AccountScreen'
+import { LoginScreen } from './components/screens/LoginScreen'
+import { clearDraft, loadDraft, saveDraft } from './lib/draft'
+import { signupToAnswers } from './lib/network/buildGraph'
+import { updateSignup } from './lib/supabase'
+import { track, trackScreen, trackVisit } from './lib/telemetry'
+import { TelemetryScreen } from './components/screens/TelemetryScreen'
 import { useUi } from './ui'
 
 type ScreenId =
@@ -81,6 +89,10 @@ type ScreenId =
   | 'thanks'
   | 'adminGate'
   | 'admin'
+  | 'login'
+  | 'account'
+  | 'aboutMe'
+  | 'telemetry'
   | 'profile'
   | 'settings'
   | 'events'
@@ -119,6 +131,10 @@ const SECTION: Record<ScreenId, string> = {
   thanks: '6 :: COMPLETE',
   adminGate: 'A :: ACCESS',
   admin: 'A :: LEDGER',
+  login: 'L :: ACCESS',
+  account: 'L :: YOUR NODE',
+  aboutMe: 'L :: ABOUT YOU',
+  telemetry: 'A :: TELEMETRY',
   profile: 'P :: NODE',
   settings: 'S :: SETTINGS',
   events: 'E :: EVENTS',
@@ -195,6 +211,44 @@ function getNext(id: ScreenId, a: Answers): ScreenId {
   }
 }
 
+/** Screens that are never part of an in-progress signup draft. */
+const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set([
+  'thanks',
+  'adminGate',
+  'admin',
+  'login',
+  'account',
+  'aboutMe',
+  'telemetry',
+  'profile',
+  'settings',
+  'events',
+  'horizons',
+  'myHorizons',
+  'contacts',
+  'clusters',
+  'terminal',
+  'announcements',
+  'globalChat',
+  'notes',
+  'notifications',
+  'myChats',
+  'chronicle',
+])
+
+/** Validated draft from a previous session, or null. */
+function restoredDraft() {
+  const d = loadDraft()
+  if (!d) return null
+  const screen = d.screen as ScreenId
+  if (!(screen in SECTION) || NO_DRAFT_SCREENS.has(screen)) return null
+  const history = (Array.isArray(d.history) ? d.history : []).filter(
+    (s): s is ScreenId => s in SECTION && !NO_DRAFT_SCREENS.has(s),
+  )
+  // Merge over initialAnswers so drafts survive future Answers schema additions.
+  return { answers: { ...initialAnswers, ...d.answers }, screen, history }
+}
+
 const CONTACT_FIELDS: Record<
   'name' | ContactChannel,
   { question: string; key: 'fullName' | ContactChannel }
@@ -232,11 +286,14 @@ function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: Clust
 
 export default function App() {
   const { theme, graphOpen, setGraphOpen, expanded } = useUi()
-  const [answers, setAnswers] = useState<Answers>(initialAnswers)
-  const [screen, setScreen] = useState<ScreenId>('welcome')
-  const [history, setHistory] = useState<ScreenId[]>([])
+  const [draft] = useState(restoredDraft)
+  const [answers, setAnswers] = useState<Answers>(() => draft?.answers ?? initialAnswers)
+  const [screen, setScreen] = useState<ScreenId>(() => draft?.screen ?? 'welcome')
+  const [history, setHistory] = useState<ScreenId[]>(() => draft?.history ?? [])
   const [mode, setMode] = useState<InputMode>('NAV')
   const [editingFromReview, setEditingFromReview] = useState(false)
+  // When set, the review/confirm flow updates this claimed signup instead of inserting.
+  const [editingSignupId, setEditingSignupId] = useState<string | null>(null)
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
   const [remoteLocations, setRemoteLocations] = useState<RemoteLocationOption[]>([])
   const [clustersFocus, setClustersFocus] = useState<ClustersTab>('directory')
@@ -244,6 +301,45 @@ export default function App() {
   useEffect(() => {
     fetchSkillOptions().then(setRemoteSkills)
     fetchLocationOptions().then(setRemoteLocations)
+  }, [])
+
+  useEffect(() => {
+    trackVisit()
+    if (draft) track('draft_restored', draft.screen)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    trackScreen(screen)
+  }, [screen])
+  useEffect(() => {
+    if (graphOpen) track('graph_opened', screen)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphOpen])
+
+  // Autosave the in-progress signup so a refresh or closed tab never loses
+  // answers. Welcome is excluded: saving the pristine entry state would only
+  // churn (and could clobber a real draft before it is restored).
+  const draftRef = useRef({ answers, screen, history })
+  draftRef.current = { answers, screen, history }
+  const editingRef = useRef(editingSignupId)
+  editingRef.current = editingSignupId
+  // Account edits are not drafted: a restored draft could not carry the
+  // signup id safely, and would turn an edit into a duplicate insert.
+  const skipDraftSave = (s: string) =>
+    s === 'welcome' || NO_DRAFT_SCREENS.has(s) || editingRef.current !== null
+  useEffect(() => {
+    if (skipDraftSave(screen)) return
+    const id = window.setTimeout(() => saveDraft(draftRef.current), 400)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, screen, history])
+  useEffect(() => {
+    const flush = () => {
+      if (!skipDraftSave(draftRef.current.screen)) saveDraft(draftRef.current)
+    }
+    window.addEventListener('pagehide', flush)
+    return () => window.removeEventListener('pagehide', flush)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const taxonomy = useMemo(() => {
@@ -327,6 +423,7 @@ export default function App() {
         hint="ENTER to confirm · SKIP to leave empty"
         kind={id === 'email' ? 'email' : 'text'}
         initial={answers[f.key]}
+        onDraftChange={(v) => setAnswers((a) => ({ ...a, [f.key]: v || undefined }))}
         onSubmit={(v) => advance({ [f.key]: v || undefined })}
         onBack={back}
         setMode={setMode}
@@ -344,6 +441,54 @@ export default function App() {
           onSignIn={() => go('terminal')}
           onAbout={() => go('about')}
           onAdmin={() => go('adminGate')}
+          onLogin={() => go('account')}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'login':
+      content = (
+        <LoginScreen
+          key="login"
+          onSuccess={() => {
+            setHistory(['welcome'])
+            setScreen('account')
+          }}
+          onBack={back}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'account':
+      content = (
+        <AccountScreen
+          key="account"
+          onEdit={(row) => {
+            setAnswers(signupToAnswers(row))
+            setEditingSignupId(row.id)
+            go('review')
+          }}
+          onEditAbout={() => go('aboutMe')}
+          onSignup={() => go('preStatus')}
+          onLogin={() => go('login')}
+          onExit={() => {
+            setEditingSignupId(null)
+            setAnswers(initialAnswers)
+            setHistory([])
+            setScreen('welcome')
+          }}
+          setMode={setMode}
+        />
+      )
+      break
+    case 'aboutMe':
+      content = (
+        <AboutMeScreen
+          key="aboutMe"
+          onDone={() => {
+            setHistory(['welcome'])
+            setScreen('account')
+          }}
           setMode={setMode}
         />
       )
@@ -353,6 +498,7 @@ export default function App() {
         <AdminGateScreen
           key="adminGate"
           onUnlock={() => go('admin')}
+          onLogin={() => go('login')}
           onBack={back}
           setMode={setMode}
         />
@@ -360,8 +506,16 @@ export default function App() {
       break
     case 'admin':
       content = (
-        <AdminTableScreen key="admin" onBack={() => setScreen('welcome')} setMode={setMode} />
+        <AdminTableScreen
+          key="admin"
+          onTelemetry={() => go('telemetry')}
+          onBack={() => setScreen('welcome')}
+          setMode={setMode}
+        />
       )
+      break
+    case 'telemetry':
+      content = <TelemetryScreen key="telemetry" onBack={back} setMode={setMode} />
       break
     case 'about':
       content = <AboutScreen key="about" onBack={back} setMode={setMode} />
@@ -471,6 +625,7 @@ export default function App() {
           hint="ENTER to confirm · SHIFT+ENTER for a new line"
           multiline
           initial={answers.contributionHistory}
+          onDraftChange={(v) => setAnswers((a) => ({ ...a, contributionHistory: v || undefined }))}
           onSubmit={(v) => advance({ contributionHistory: v || undefined })}
           onBack={back}
           setMode={setMode}
@@ -520,6 +675,7 @@ export default function App() {
           hint="ENTER to confirm · SHIFT+ENTER for a new line"
           multiline
           initial={answers.otherInfo}
+          onDraftChange={(v) => setAnswers((a) => ({ ...a, otherInfo: v || undefined }))}
           onSubmit={(v) => advance({ otherInfo: v || undefined })}
           onBack={back}
           setMode={setMode}
@@ -542,12 +698,31 @@ export default function App() {
       content = (
         <ConfirmSubmitScreen
           key="confirm"
-          onSubmit={() => go('thanks')}
+          onSubmit={() => {
+            if (!editingSignupId) {
+              go('thanks')
+              return
+            }
+            const id = editingSignupId
+            updateSignup(id, answers).then(() => {
+              setEditingSignupId(null)
+              setEditingFromReview(false)
+              setAnswers(initialAnswers)
+              setHistory(['welcome'])
+              setScreen('account')
+            })
+          }}
           onDiscard={() => {
+            clearDraft()
             setAnswers(initialAnswers)
             setHistory([])
             setEditingFromReview(false)
-            setScreen('welcome')
+            if (editingSignupId) {
+              setEditingSignupId(null)
+              setScreen('account')
+            } else {
+              setScreen('welcome')
+            }
           }}
           onBack={back}
           setMode={setMode}

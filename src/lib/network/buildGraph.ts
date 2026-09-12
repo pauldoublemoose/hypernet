@@ -4,6 +4,7 @@
  */
 import type { Answers, ContactChannel, Status } from '../../types'
 import { loadAdminSignups, type SignupRow } from '../adminStore'
+import type { GraphSignupRow } from '../supabase'
 import { SEED_NODES } from './seed'
 import type { EdgeType, GraphData, GraphEdge, GraphNode, NodeRole } from './types'
 
@@ -93,7 +94,7 @@ export function buildEdges(nodes: GraphNode[]): GraphEdge[] {
   return edges
 }
 
-function signupToAnswers(row: SignupRow): Answers {
+export function signupToAnswers(row: SignupRow): Answers {
   return {
     status: (row.status as Status | undefined) ?? undefined,
     fullName: row.full_name ?? undefined,
@@ -131,17 +132,41 @@ function isCurrentSignup(row: SignupRow, current: Answers): boolean {
   return false
 }
 
+/** Database rows carry initials in place of a name; reuse the same conversion. */
+function graphSignupToAnswers(row: GraphSignupRow): Answers {
+  return signupToAnswers({ ...row, full_name: row.initials })
+}
+
 /**
- * Merge seed + current signup + non-ghosted archived signups (+ optional extras).
- * Ghosted admin entries are excluded from every graph view.
+ * Merge seed + current signup + database signups + non-ghosted archived
+ * signups (+ optional extras). The local archive fills in rows the database
+ * doesn't have yet (offline-cached signups); rows present in both come from
+ * the database. Ghosted admin entries are excluded from every graph view.
  */
-export function buildGraphData(current: Answers, extras: Answers[] = []): GraphData {
+export function buildGraphData(
+  current: Answers,
+  remote: GraphSignupRow[] = [],
+  extras: Answers[] = [],
+): GraphData {
   const nodes: GraphNode[] = [...SEED_NODES]
   const you = answersToNode(current, 'you')
   nodes.push(you)
 
-  const archived = loadAdminSignups().filter((r) => !r.ghosted)
+  const archived = loadAdminSignups()
+  const ghostedIds = new Set(archived.filter((r) => r.ghosted && r.id).map((r) => r.id))
+  const yourIds = new Set(
+    archived.filter((r) => r.id && isCurrentSignup(r, current)).map((r) => r.id),
+  )
+  const remoteIds = new Set(remote.map((r) => r.id))
+
+  for (const row of remote) {
+    if (ghostedIds.has(row.id) || yourIds.has(row.id)) continue
+    nodes.push(answersToNode(graphSignupToAnswers(row), `db-${row.id}`))
+  }
+
   archived.forEach((row, i) => {
+    if (row.ghosted) return
+    if (row.id && remoteIds.has(row.id)) return
     if (isCurrentSignup(row, current)) return
     const id = row.id ? `arch-${row.id}` : `arch-${i}`
     nodes.push(answersToNode(signupToAnswers(row), id))
