@@ -1,21 +1,27 @@
 import { getPerson, selfId } from '../lib/contactsStore'
 
-/** Square image box for directory / list cards. Placeholder if no src. */
+/** Image box for directory / list cards. Placeholder if no src. People use circle. */
 export function CardThumb({
   src,
   label,
   glyph,
   size = 'md',
+  shape = 'square',
 }: {
   src?: string
   label: string
   /** Shown when there is no image (initials or a CRT glyph). */
   glyph?: string
   size?: 'sm' | 'md'
+  /** Circle for people; square for events / clusters. */
+  shape?: 'square' | 'circle'
 }) {
   const initials = cardInitials(label)
   return (
-    <span className={`card-thumb${size === 'sm' ? ' is-sm' : ''}`} aria-hidden>
+    <span
+      className={`card-thumb${size === 'sm' ? ' is-sm' : ''}${shape === 'circle' ? ' is-circle' : ''}`}
+      aria-hidden
+    >
       {src ? (
         <img src={src} alt="" />
       ) : (
@@ -34,7 +40,7 @@ export function MemberStack({ ids, max = 4 }: { ids: string[]; max?: number }) {
       {shown.map((id) => {
         const p = getPerson(id)
         const label = id === selfId() ? 'You' : (p?.displayName ?? id)
-        return <CardThumb key={id} src={p?.imageUrl} label={label} size="sm" />
+        return <CardThumb key={id} src={p?.imageUrl} label={label} size="sm" shape="circle" />
       })}
       {extra > 0 ? <span className="member-stack-more">+{extra}</span> : null}
     </span>

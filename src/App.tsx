@@ -738,6 +738,7 @@ export default function App() {
             <div className="net-intro dim">DROP INTO A WORLD · WALK LOCALLY · [GRAPH] TO RETURN</div>
             <NetworkGraph
               selfName={loadProfile(answers).displayName || answers.fullName || 'You'}
+              selfAvatarUrl={loadProfile(answers).avatarDataUrl}
               onOpenSelfProfile={openProfile}
             />
           </div>

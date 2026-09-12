@@ -428,6 +428,8 @@
 - [ ] Private dial (stub OK): Participants / Friends of participants (**default**) / Anyone — marketing visibility and who can surf
 - [ ] Dual privacy: event surf ≠ personal Chronicle / “I attended” privacy (stub OK)
 - [ ] Feels like picking a place to enter, not filtering a helicopter graph
+- [ ] Worlds present as **cards**, not rows/bars
+- [ ] Gravity / Visibility / Links stay **off** the pre-world picker — they appear only after you enter
 - [ ] Looking for chips stay **out**
 
 ---
@@ -448,6 +450,7 @@
 - [ ] Edges among visible nodes may show dimmed; proximity can light links
 - [ ] Theme-aware CRT/retro chrome
 - [ ] Self / hero node renders **polychrome** (rainbow/CRT multi-color, match `PolychromeFX`) so it is obviously the avatar; other nodes stay theme-normal
+- [ ] Hero is a **plain circle**, slightly larger than other nodes, with a glowy Theme-like shine — no diamond / facets / geometry
 - [ ] Not a global helicopter force graph as the primary experience
 
 ---
@@ -704,4 +707,4 @@ A user story is **done** when:
 
 ---
 
-*Last updated: 2026-09-12. 3D struck (not parked). Hero node polychrome. Looking for chips still out. User-facing “Group” is Cluster. Event detail UI and first-time tips parked.*
+*Last updated: 2026-09-12. 3D struck (not parked). Hero is a polychrome circle + shine. World cards first; Gravity/Visibility/Links in-world only. Looking for chips still out. User-facing “Group” is Cluster. Event detail UI and first-time tips parked.*

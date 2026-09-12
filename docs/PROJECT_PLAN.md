@@ -104,7 +104,7 @@ These apply from **Phase 1 onward**, not as a late polish pass.
 | **Event database**        | Events stored persistently; past events can be added to Chronicle (self-declared in early MVP; admin confirmation soon after).                                         |
 | **Event roles**           | Guest, Co-creator, Sponsor, Admin — color-coded (see §7.2).                                                                                                            |
 | **Network graph v1**      | Ego-centric 2D World explorer (not a global helicopter force graph). World picker + local avatar + click→profile + one shared-event link layer + simple visibility/dim. See §7.4. |
-| **Graph filters**         | MVP: one shared-event link layer (toggleable). Multi-layer dropdown farm and Gravity designer are parked.                                                              |
+| **Graph filters**         | MVP: World cards first; in-world Gravity + Visibility (simple cycle) + one shared-event Links toggle. Multi-layer dropdown farm and Gravity designer stay parked.     |
 | **Skill search**          | Find people by free-text match on profile skills. Essential for camp recruitment.                                                                                      |
 | **Horizons**              | Profiles and groups publish horizons. Multiple horizon admins. Contribution setting: admins only or open.                                                              |
 | **Horizon subscriptions** | Subscribe; **in-app** notify when a new event is added (email later).                                                                                                  |
@@ -354,15 +354,15 @@ Do **not** call the primary control “Cluster by” (noun collision with Cluste
 | Dim / locked nodes | No edges out of them |
 | Edges among visible nodes | May show dimmed; proximity can light links |
 | Click another node | Open / show that person’s profile |
-| Self / hero node | Always **polychrome** (rainbow/CRT, match `PolychromeFX`). Other nodes stay theme-normal. |
+| Self / hero node | Always **polychrome** (rainbow/CRT, match `PolychromeFX`). **Plain circle only** — slightly larger than other nodes, glowy shine like the Theme desktop control. No diamond / facets / geometry. Other nodes stay theme-normal. |
 
 #### MVP cut
 
-World picker (open events + private worlds the local user is allowed into) + local avatar move + click → profile + **one shared-event link layer** + simple visibility/dim.
+World picker as **cards** (open events + private worlds the local user is allowed into). Gravity, Visibility, and Links show **only after you enter a World**. Local avatar walk + click → profile + **one shared-event link layer** + simple Gravity / Visibility.
 
 Stubs are OK for the private-world dial and rich data. It must feel like **“drop into a world and walk”** more than “zoom a global map.”
 
-The **self / hero node** (your avatar) always renders **polychrome** — the same rainbow/CRT multi-color treatment as `PolychromeFX` / the polychrome theme. Other nodes stay theme-normal. Make it obviously the hero.
+The **self / hero node** (your avatar) always renders **polychrome** — a **plain circle** with Theme-like glow/shine (`PolychromeFX` stops). No diamond, facets, or geometry. Other nodes stay theme-normal. Make it obviously the hero.
 
 #### 3D — struck (LOCKED 2026-09-12)
 
@@ -492,7 +492,7 @@ This keeps you in the design loop without needing to write CSS.
 | Docs structure | Keep PROJECT_PLAN + USER_STORIES as two files. |
 | Network Graph north star | Ego-centric 2D World explorer; not one global helicopter graph. Privacy = reach. (LOCKED 2026-09-12) |
 | 3D | **Struck.** Permanently removed from this product line — not parked for later. Ego-centric 2D forever unless Sebastian reopens. (LOCKED 2026-09-12) |
-| Hero / ego node | Always polychrome (rainbow/CRT, match `PolychromeFX`). Other nodes stay normal. (LOCKED 2026-09-12) |
+| Hero / ego node | Always polychrome (rainbow/CRT, match `PolychromeFX`). **Plain circle + shine** — not diamond / faceted. Other nodes stay normal. (LOCKED 2026-09-12) |
 | Graph IA | World → Gravity → Links → Visibility. Gravity designer and multi-layer dropdown farm parked. |
 | Private event surf dial | Participants / Friends of participants (**default**) / Anyone. Controls marketing visibility and who can surf the twin. Post-event change notifies participants. |
 | Dual privacy | Event privacy ≠ personal Chronicle / “I attended” privacy. |
@@ -518,4 +518,4 @@ This keeps you in the design loop without needing to write CSS.
 
 ---
 
-*Last updated: 2026-09-12 — 3D struck (not parked). Hero node polychrome. Looking for chips still out. Event detail pages still need a UI upgrade (Sebastian, parked).*
+*Last updated: 2026-09-12 — 3D struck (not parked). Hero is a polychrome circle + shine (not faceted). World cards first; Gravity/Visibility/Links in-world only. Looking for chips still out. Event detail pages still need a UI upgrade (Sebastian, parked).*

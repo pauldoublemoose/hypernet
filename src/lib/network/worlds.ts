@@ -2,9 +2,10 @@
  * Event-worlds for the ego-centric Network Graph MVP (2D forever).
  * Helicopter / force-layout helpers in buildGraph.ts stay parked.
  *
- * Locked brief (2026-09-12): World picker + local walk. Stubs OK for the
- * private surf dial and rich data. Do not invent FoF × co-attendee matrices.
- * 3D is struck — not parked. Ego-centric 2D unless Sebastian reopens it.
+ * Locked brief (2026-09-12): World cards first, then local walk. Stubs OK
+ * for the private surf dial and rich data. Do not invent FoF × co-attendee
+ * matrices. 3D is struck — not parked. Ego-centric 2D unless Sebastian reopens
+ * it. Hero is a polychrome circle + shine (not faceted).
  */
 
 import {
@@ -58,6 +59,8 @@ export interface WorldInhabitant {
   isSelf: boolean
   /** Allowed to appear full when in reach. */
   allowed: boolean
+  /** Profile pic when the Archivist pack / upload lands; empty = placeholder circle. */
+  imageUrl?: string
 }
 
 export const WORLD_IDS = {
@@ -349,7 +352,9 @@ export function getWorld(id: string): GraphWorld | undefined {
   return listAllWorlds().find((w) => w.id === id)
 }
 
-function catalogPerson(id: string): { displayName: string; bio: string; skills: string[] } | undefined {
+function catalogPerson(
+  id: string,
+): { displayName: string; bio: string; skills: string[]; imageUrl?: string } | undefined {
   if (id === selfId()) return undefined
   const contact = getPerson(id) ?? loadPeople().find((p: ContactPerson) => p.id === id)
   if (contact) {
@@ -357,6 +362,7 @@ function catalogPerson(id: string): { displayName: string; bio: string; skills: 
       displayName: contact.displayName,
       bio: contact.bio ?? '',
       skills: [],
+      imageUrl: contact.imageUrl,
     }
   }
   const seed = SEED_NODES.find((n) => n.id === id)
@@ -374,6 +380,7 @@ export function inhabitantsForWorld(
   world: GraphWorld,
   selfName: string,
   viewerId: string = selfId(),
+  selfAvatarUrl = '',
 ): WorldInhabitant[] {
   const ids = new Set<string>([viewerId, ...world.participantIds, ...world.extraIds, ...world.attendanceHiddenIds])
   const out: WorldInhabitant[] = []
@@ -388,6 +395,7 @@ export function inhabitantsForWorld(
         y: 0,
         isSelf: true,
         allowed: true,
+        imageUrl: selfAvatarUrl || undefined,
       })
       continue
     }
@@ -403,6 +411,7 @@ export function inhabitantsForWorld(
       y: pos.y,
       isSelf: false,
       allowed: isNodeAllowed(world, id),
+      imageUrl: info.imageUrl,
     })
   }
   return out

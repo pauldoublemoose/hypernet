@@ -126,7 +126,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
       <div className="screen hz-screen">
         <div className="title">C :: CONTACT</div>
         <div className="hz-card-head">
-          <CardThumb src={selected.imageUrl} label={selected.displayName} />
+          <CardThumb src={selected.imageUrl} label={selected.displayName} shape="circle" />
           <div>
             <h2 className="hz-heading">{selected.displayName}</h2>
             <p className="hz-meta dim">@{selected.handle}</p>
@@ -263,7 +263,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
             {filtered.map((p: ContactPerson) => (
               <li key={p.id}>
                 <button type="button" className="hz-list-item has-thumb" onClick={() => openPerson(p.id)}>
-                  <CardThumb src={p.imageUrl} label={p.displayName} />
+                  <CardThumb src={p.imageUrl} label={p.displayName} shape="circle" />
                   <span className="hz-list-copy">
                     <span className="hz-list-title">{p.displayName}</span>
                     <span className="dim">{relationshipLabel(p.id) || `@${p.handle}`}</span>
@@ -403,7 +403,7 @@ export function ContactsScreen({ onBack }: { onBack: () => void }) {
                       disabled={onList}
                       onClick={() => addToListNow(activeList.id, p.id)}
                     >
-                      <CardThumb src={p.imageUrl} label={p.displayName} />
+                      <CardThumb src={p.imageUrl} label={p.displayName} shape="circle" />
                       <span className="hz-list-copy">
                         <span className="hz-list-title">{p.displayName}</span>
                         <span className="dim">{onList ? 'already on list' : `@${p.handle}`}</span>
@@ -466,7 +466,7 @@ function RequestCard({
   return (
     <li className="hz-list-static req-card">
       <div className="req-card-top">
-        <CardThumb src={from?.imageUrl} label={name} />
+        <CardThumb src={from?.imageUrl} label={name} shape="circle" />
         <span className="hz-list-copy">
           <span className="hz-list-title">{name}</span>
           <span className="dim">{status}</span>
