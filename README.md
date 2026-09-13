@@ -52,6 +52,8 @@ Deploy `dist/` to any static host (Vercel, Netlify, GitHub Pages).
 ## Structure
 
 - `src/App.tsx` — screen flow state machine (welcome -> status -> contact -> history -> skills -> transmission)
+- `src/components/NetworkGraph.tsx` — ego-centric World explorer (picker + walk). Helicopter force graph is parked.
+- `src/lib/network/worlds.ts` — event-twin Worlds + who can surf
 - `src/components/screens/` — the six screen types (info, single choice, multi choice, text, skills picker, thanks)
 - `src/data/skills.ts` — starting skill taxonomy; visitor-added skills are stored in `skill_options` and merged in for later visitors
 - `src/data/locations.ts` — 15 preset countries (Scandi + main Europe + Israel + USA) with top-5 cities; visitor-added locations go to `location_options`

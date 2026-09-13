@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { STAY_TUNED_TEXT, THANKS_TEXT } from '../../data/copy'
 import { clearDraft } from '../../lib/draft'
-import { useGraphData } from '../../lib/network/useGraphData'
+import { WORLD_IDS } from '../../lib/network/worlds'
 import { track } from '../../lib/telemetry'
 import { submitSignup } from '../../lib/supabase'
 import type { Answers } from '../../types'
@@ -15,16 +15,20 @@ type Stage = 'tx' | 'added' | 'thanks' | 'stay' | 'fade' | 'graph'
 export function ThanksScreen({
   answers,
   setMode,
+  alreadySubmitted = false,
+  onSubmitted,
 }: {
   answers: Answers
   setMode: (m: InputMode) => void
+  /** True when this Answers object was already transmitted in this session (re-mount via BACK). */
+  alreadySubmitted?: boolean
+  onSubmitted?: () => void
 }) {
-  const [stage, setStage] = useState<Stage>('tx')
+  // Re-mounting after a successful transmission skips straight to the World.
+  const [stage, setStage] = useState<Stage>(alreadySubmitted ? 'graph' : 'tx')
   const [offline, setOffline] = useState(false)
-  const started = useRef(false)
+  const started = useRef(alreadySubmitted)
   const { setEnterArmed } = useUi()
-
-  const graph = useGraphData(answers, stage === 'graph')
 
   useLayoutEffect(() => {
     setMode('NAV')
@@ -34,6 +38,7 @@ export function ThanksScreen({
   useEffect(() => {
     if (started.current) return
     started.current = true
+    onSubmitted?.()
     submitSignup(answers).then((res) => {
       // Transmitted (or cached locally) — the draft has served its purpose.
       clearDraft()
@@ -42,7 +47,7 @@ export function ThanksScreen({
       setStage('added')
       window.setTimeout(() => setStage('thanks'), 600)
     })
-  }, [answers])
+  }, [answers, onSubmitted])
 
   useEffect(() => {
     if (stage !== 'fade') return
@@ -53,9 +58,12 @@ export function ThanksScreen({
   if (stage === 'graph') {
     return (
       <div className="screen net-screen">
-        <div className="title">6 :: NETWORK</div>
-        <div className="net-intro dim">YOUR NODE IS LIVE. WATCH IT JOIN THE PRE-ALPHA GRAPH.</div>
-        <NetworkGraph data={graph} newNodeId="you" />
+        <div className="title">N :: WORLD</div>
+        <div className="net-intro dim">YOUR NODE IS LIVE. DROP INTO A WORLD AND WALK.</div>
+        <NetworkGraph
+          selfName={answers.fullName || 'You'}
+          initialWorldId={WORLD_IDS.borderland}
+        />
         <div className="btn-row">
           <button className="btn dim" onClick={() => window.location.reload()}>
             [ RESET TERMINAL ]

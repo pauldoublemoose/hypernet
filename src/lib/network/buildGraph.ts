@@ -1,3 +1,7 @@
+/**
+ * Parked helicopter / force-graph builder (pre-alpha).
+ * Primary Network Graph is the ego-centric World explorer — see worlds.ts.
+ */
 import type { Answers, ContactChannel, Status } from '../../types'
 import { loadAdminSignups, type SignupRow } from '../adminStore'
 import type { GraphSignupRow } from '../supabase'

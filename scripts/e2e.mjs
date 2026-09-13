@@ -50,11 +50,10 @@ const browser = await chromium.launch()
   await page.reload()
   await page.waitForSelector('text=HYPERNET v0.1')
 
-  // theme cycles WHITE -> BLACK -> POLYCHROME -> WHITE
-  // (the graph toggle shares the .theme-btn class, hence the title match)
-  const themeBtn = page.locator('button[title^="Switch color mode"]')
+  // theme cycles WHITE -> BLACK -> POLYCHROME -> WHITE via right-column Theme icon
+  const themeBtn = page.locator('[data-theme-cycle="true"]')
   const appTheme = () => page.locator('.app').getAttribute('data-theme')
-  if ((await themeBtn.count()) !== 1) fail('theme toggle missing')
+  if ((await themeBtn.count()) !== 1) fail('Theme desktop icon missing')
   if ((await appTheme()) !== 'white') fail('initial theme should be white')
   await themeBtn.click()
   if ((await appTheme()) !== 'black') fail('theme should cycle to black')
@@ -128,7 +127,7 @@ const browser = await chromium.launch()
   await page.locator('.back-btn').click()
   await page.waitForSelector('text=GO BACK TO PREVIOUS QUESTION?')
   await page.screenshot({ path: `${SHOTS}/desktop-2-dialog.png` })
-  await page.locator('button:has-text("NO")').click()
+  await page.locator('.dialog button:has-text("NO")').click()
   await page.waitForSelector('text=GO BACK TO PREVIOUS QUESTION?', { state: 'detached' })
   await page.locator('.prompt-row input').click()
   await page.keyboard.type('test@example.com')
@@ -233,7 +232,7 @@ const browser = await chromium.launch()
   await page.waitForSelector('text=TRANSMITTING NODE')
   await page.waitForSelector('text=UPLINK OFFLINE', { timeout: 10000 })
   await page.waitForSelector('button:has-text("RESET TERMINAL")', { timeout: 45000 })
-  await page.waitForSelector('text=6 :: NETWORK')
+  await page.waitForSelector('text=N :: WORLD')
   await page.screenshot({ path: `${SHOTS}/desktop-6-network.png` })
 
   const stored = await page.evaluate(() =>
@@ -328,7 +327,7 @@ const browser = await chromium.launch()
 
   await page.waitForSelector('text=TRANSMITTING NODE')
   await page.waitForSelector('button:has-text("RESET TERMINAL")', { timeout: 45000 })
-  await page.waitForSelector('text=6 :: NETWORK')
+  await page.waitForSelector('text=N :: WORLD')
   await page.screenshot({ path: `${SHOTS}/mobile-6-network.png` })
 
   const stored = await page.evaluate(() =>

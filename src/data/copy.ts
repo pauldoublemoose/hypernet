@@ -10,7 +10,7 @@ export const ABOUT_SECTIONS: { id: string; header: string; body: string }[] = [
   {
     id: 'origin',
     header: 'ORIGIN: HYPERSTITION',
-    body: `HYPERSTITION was a 4-year art project taking place at a Scandinavian regional burn. The project explored the concept of hyperstition as i) a process of creative manifestation and ii) an organizing principle of group intelligence.
+    body: `HYPERSTITION was a 4-year art project taking place at a Scandinavian regional burn. The project explored the concept of hyperstition as i) a process of creative manifestation and ii) an organizing principle of collective intelligence.
 
 HYPERSTITION produced multi-media art, including (but not limited to) experience design, roleplay & performances, sound stages, laser shows, intellectual conferences, live music, sculptures, digital art, tech installations, and printed magazines.
 

@@ -21,8 +21,13 @@ export function useKeys(handler: (e: KeyboardEvent) => void, active = true) {
 
 /** Reveal text a few characters at a time, retro teletype style. */
 export function useTypewriter(text: string, msPerTick = 16, charsPerTick = 2) {
+  const { reduceMotion } = useUi()
   const [n, setN] = useState(0)
   useEffect(() => {
+    if (reduceMotion) {
+      setN(text.length)
+      return
+    }
     setN(0)
     const id = window.setInterval(() => {
       setN((v) => {
@@ -34,7 +39,7 @@ export function useTypewriter(text: string, msPerTick = 16, charsPerTick = 2) {
       })
     }, msPerTick)
     return () => window.clearInterval(id)
-  }, [text, msPerTick, charsPerTick])
+  }, [text, msPerTick, charsPerTick, reduceMotion])
   return {
     shown: text.slice(0, Math.min(n, text.length)),
     done: n >= text.length,
