@@ -26,7 +26,7 @@ const FEED: FeedItem[] = [
     id: 'fn-01',
     when: '2026-09-19',
     kind: 'announce',
-    title: 'Sign In now opens the Hypernet feed',
+    title: 'Sign In now opens the home feed',
     body: 'Welcome back. The terminal home is a scrollable feed. Help, the Update log, and About stay in the status tabs. Desktop icons still sit left and right of the CRT.',
   },
   {
