@@ -52,8 +52,6 @@ export function TerminalFrame({
         <div className="term-header">
           <span>HYPERNET v0.1 // PRE-ALPHA TERMINAL</span>
           <span className="header-right">
-            {/* Desktop cycles theme via the Theme dock icon; that dock is hidden on
-                mobile / coarse pointers, so keep the classic header toggle there. */}
             <button
               type="button"
               className="theme-btn mobile-only"
@@ -76,7 +74,7 @@ export function TerminalFrame({
               type="button"
               className="section-badge dim"
               onClick={() => onOpenTerminal?.()}
-              title="Open Terminal / Help"
+              title="Open Terminal / Feed"
             >
               [ {graphOpen ? 'N :: WORLD' : section} ]
             </button>

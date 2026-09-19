@@ -4,12 +4,108 @@ import { useKeys } from '../../hooks'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
 
-type Tab = 'help' | 'log' | 'about'
+type Tab = 'feed' | 'help' | 'log' | 'about'
 
 const TABS: { id: Tab; label: string }[] = [
+  { id: 'feed', label: 'Feed' },
   { id: 'help', label: 'Help' },
   { id: 'log', label: 'Update log' },
   { id: 'about', label: 'About' },
+]
+
+type FeedItem = {
+  id: string
+  when: string
+  kind: 'announce' | 'community'
+  title: string
+  body: string
+}
+
+const FEED: FeedItem[] = [
+  {
+    id: 'fn-01',
+    when: '2026-09-19',
+    kind: 'announce',
+    title: 'Sign In now opens the home feed',
+    body: 'Welcome back. The terminal home is a scrollable feed. Help, the Update log, and About stay in the status tabs. Desktop icons still sit left and right of the CRT.',
+  },
+  {
+    id: 'fn-02',
+    when: '2026-09-18',
+    kind: 'announce',
+    title: 'World picker is the only graph door',
+    body: 'Network Graph opens a World first. Drop into an event twin and walk. There is no global helicopter map. Dim or locked nodes stay out of reach until Chronicle or privacy lets you in.',
+  },
+  {
+    id: 'fn-03',
+    when: '2026-09-17',
+    kind: 'community',
+    title: 'Baltic Circuit added three Horizon dates',
+    body: '@ember published Deep Listening Lab · Stockholm, a night walk in Tallinn, and a Sunday assembly in Helsinki. Follow the Horizon from Find Horizons or pin it under MY HORIZONS.',
+  },
+  {
+    id: 'fn-04',
+    when: '2026-09-16',
+    kind: 'announce',
+    title: 'Clusters are camps, not lists',
+    body: 'Find Clusters is the directory. My Clusters is yours. Everyone in a cluster can see they share it. Event owners can include a cluster you admin. Admins can publish a cluster Horizon.',
+  },
+  {
+    id: 'fn-05',
+    when: '2026-09-15',
+    kind: 'community',
+    title: '@signal and @nova are now Friends',
+    body: 'Follow stays one-way. Friend still needs a request and an accept. Private lists stay private to you. Contact + still opens the directory search popup.',
+  },
+  {
+    id: 'fn-06',
+    when: '2026-09-14',
+    kind: 'announce',
+    title: 'Theme lives on the right dock',
+    body: 'Click Theme to cycle WHITE / BLACK / POLYCHROME. The chrome header no longer toggles theme on desktop. Mobile and coarse pointers keep the header [WHITE] control because the dock hides.',
+  },
+  {
+    id: 'fn-07',
+    when: '2026-09-13',
+    kind: 'community',
+    title: 'Looking for a laser desk for EXIT leftovers',
+    body: '@lumen is collecting surplus fixtures from the last Hyperstition season. Skills listed: rigging, DMX, night builds. Reply in My Chats if you can spare a pair of scanners.',
+  },
+  {
+    id: 'fn-08',
+    when: '2026-09-12',
+    kind: 'announce',
+    title: 'Desktop map is locked: A/B left, C/D right',
+    body: 'Left A near the window is Global Announcements, Global Chat, Network Graph. Left B outer is Find Nodes, Find Events, Find Horizons, Find Clusters. Right C is My Notifications and My Chats. Right D is MY NODE, My Chronicle, My Contacts, My Clusters, MY HORIZONS. Theme, Admin, and SETTINGS stay last, bottom-right.',
+  },
+  {
+    id: 'fn-09',
+    when: '2026-09-11',
+    kind: 'community',
+    title: 'Open twins: Borderland, Burning Man, Hyperstition',
+    body: 'Those Worlds stay walkable without an attendance gate. Private Worlds still honor Friends of participants or Participants. Walk or thrust is faster than the first preview.',
+  },
+  {
+    id: 'fn-10',
+    when: '2026-09-10',
+    kind: 'announce',
+    title: '3D stays struck from the line',
+    body: 'The ego-centric 2D graph is the product. Polychrome hero node so you can spot yourself. Other nodes stay theme-normal. Person cards use circular pics from public/default-avatars.',
+  },
+  {
+    id: 'fn-11',
+    when: '2026-09-09',
+    kind: 'community',
+    title: 'Chronicle wants unconfirmed Interested rows',
+    body: '@ash marked Interested on two past Horizons and wants them on My Chronicle as unconfirmed. Going roles still land after the event date. This feed is stub copy, not the Global Announcements board.',
+  },
+  {
+    id: 'fn-12',
+    when: '2026-09-08',
+    kind: 'announce',
+    title: 'No Terminal icon on the desktop',
+    body: 'Reopen this home from the header section badge, for example [ T :: TERMINAL ]. Esc or Backspace leaves the pane. Expand still widens the chrome. The default card already fills the viewport height so the feed can scroll.',
+  },
 ]
 
 const UPDATE_LOG = [
@@ -101,7 +197,7 @@ export function TerminalScreen({
   onBack: () => void
   setMode: (m: InputMode) => void
 }) {
-  const [tab, setTab] = useState<Tab>('help')
+  const [tab, setTab] = useState<Tab>('feed')
   const { setEnterArmed, setStatusCenter } = useUi()
 
   useLayoutEffect(() => {
@@ -140,24 +236,44 @@ export function TerminalScreen({
 
   return (
     <div className="screen hz-screen">
+      {tab === 'feed' && (
+        <>
+          <h2 className="hz-heading">Hypernet feed</h2>
+          <p className="dim hz-lead">Announcements and community posts (stub).</p>
+          <div data-feed-scroll="true">
+            {FEED.map((item) => (
+              <article key={item.id} className="hz-panel" style={{ marginBottom: 12 }}>
+                <h3 className="profile-section-title">
+                  {item.title}{' '}
+                  <span className="dim">
+                    · {item.kind === 'announce' ? 'ANNOUNCE' : 'COMMUNITY'} · {item.when}
+                  </span>
+                </h3>
+                <p className="profile-view-text">{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+
       {tab === 'help' && (
         <>
           <h2 className="hz-heading">How to use Hypernet</h2>
           <p className="profile-view-text">
-            Sign Up builds your Node. Sign In opens this Terminal (Help). There is no Terminal icon
-            on the desktop — reopen Help from the header section badge, e.g. [ T :: TERMINAL ].
-            Left side is two columns: near the window — Global Announcements, Global Chat, Network
-            Graph; outer Find — Find Nodes, Find Events, Find Horizons, Find Clusters. Network Graph
-            opens a World picker — drop into an event twin and walk; it is not a global helicopter
-            map. Right side is two columns: near the window — My Notifications, My Chats; outer —
-            MY NODE, My Chronicle, My Contacts, My Clusters, MY HORIZONS.
-            Theme, Admin, and SETTINGS sit bottom-right (SETTINGS last). Theme cycles WHITE / BLACK
-            / POLYCHROME. Locked icons show a tip and stay closed until unlocked.
+            Sign Up builds your Node. Sign In opens this Terminal on the Feed. There is no Terminal
+            icon on the desktop — reopen the feed from the header section badge, e.g. [ T ::
+            TERMINAL ]. Left side is two columns: near the window — Global Announcements, Global
+            Chat, Network Graph; outer Find — Find Nodes, Find Events, Find Horizons, Find Clusters.
+            Network Graph opens a World picker — drop into an event twin and walk; it is not a
+            global helicopter map. Right side is two columns: near the window — My Notifications,
+            My Chats; outer — MY NODE, My Chronicle, My Contacts, My Clusters, MY HORIZONS. Theme,
+            Admin, and SETTINGS sit bottom-right (SETTINGS last). Theme cycles WHITE / BLACK /
+            POLYCHROME. Locked icons show a tip and stay closed until unlocked.
           </p>
           <p className="profile-view-text">
-            Switch Terminal sections with the tabs in the bottom status bar: Help (this page), the
-            product Update log, and About. Esc or Backspace returns to the previous screen. Expand
-            the window with the chrome control when you want a larger pane.
+            Switch Terminal sections with the tabs in the bottom status bar: Feed (the default),
+            Help (this page), the product Update log, and About. Esc or Backspace returns to the
+            previous screen. Expand the window with the chrome control when you want a wider pane.
           </p>
 
           <h3 className="profile-section-title">Terminology</h3>
