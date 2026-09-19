@@ -53,17 +53,28 @@ async function httpOk(url) {
 }
 
 async function cmdLaunch() {
+  const port = DEFAULT_PORT
   const existing = readState()
-  if (existing && pidAlive(existing.pid) && existing.port) {
-    const probe = await httpOk(baseUrl(existing.port))
+  if (existing && existing.port === port) {
+    const probe = await httpOk(baseUrl(port))
     if (probe.ok && probe.text.includes('HYPERNET')) {
-      console.log(`already running pid=${existing.pid} ${baseUrl(existing.port)}`)
+      if (existing.pid && !pidAlive(existing.pid)) {
+        writeState({ ...existing, pid: existing.pid, port, startedByUs: false })
+      }
+      console.log(`already running ${baseUrl(port)}`)
       return
     }
   }
 
-  const port = DEFAULT_PORT
-  const child = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
+  const probe = await httpOk(baseUrl(port))
+  if (probe.ok && probe.text.includes('HYPERNET')) {
+    writeState({ pid: null, port, startedByUs: false, startedAt: Date.now() })
+    console.log(`adopted existing server ${baseUrl(port)}`)
+    return
+  }
+
+  const vite = resolve(ROOT, 'node_modules/.bin/vite')
+  const child = spawn(vite, ['--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
     cwd: ROOT,
     detached: true,
     stdio: 'ignore',
@@ -72,8 +83,8 @@ async function cmdLaunch() {
   writeState({ pid: child.pid, port, startedByUs: true, startedAt: Date.now() })
 
   for (let i = 0; i < 40; i++) {
-    const probe = await httpOk(baseUrl(port))
-    if (probe.ok && probe.text.includes('HYPERNET')) {
+    const ready = await httpOk(baseUrl(port))
+    if (ready.ok && ready.text.includes('HYPERNET')) {
       console.log(`launched pid=${child.pid} ${baseUrl(port)}`)
       return
     }
@@ -88,7 +99,7 @@ async function cmdDoctor() {
     fail(`no state at ${STATE} — run launch first`)
     return
   }
-  if (state.startedByUs && !pidAlive(state.pid)) {
+  if (state.startedByUs && state.pid && !pidAlive(state.pid)) {
     fail(`recorded pid ${state.pid} is not running`)
     return
   }

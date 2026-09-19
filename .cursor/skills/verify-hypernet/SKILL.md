@@ -15,7 +15,7 @@ From the repo root:
 node .cursor/skills/verify-hypernet/helpers/verify.mjs launch
 ```
 
-This starts `npm run dev -- --host 127.0.0.1 --port <PORT> --strictPort` with `PORT` from `VERIFY_PORT` (default `5179`). Ready when `GET http://127.0.0.1:<PORT>/` returns 200 and the HTML includes `HYPERNET`. State is written to `/tmp/hypernet-verify-run.json` (`pid`, `port`, `startedByUs`).
+This starts `node_modules/.bin/vite --host 127.0.0.1 --port <PORT> --strictPort` with `PORT` from `VERIFY_PORT` (default `5179`). Ready when `GET http://127.0.0.1:<PORT>/` returns 200 and the HTML includes `HYPERNET`. State is written to `/tmp/hypernet-verify-run.json` (`pid`, `port`, `startedByUs`). Spawn Vite directly so cleanup can kill that pid. Do not record the `npm` wrapper.
 
 If that file already names a live pid on the same port, launch is a no-op.
 
