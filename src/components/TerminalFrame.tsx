@@ -76,7 +76,7 @@ export function TerminalFrame({
               type="button"
               className="section-badge dim"
               onClick={() => onOpenTerminal?.()}
-              title="Open Terminal / Help"
+              title="Open Terminal / Feed"
             >
               [ {graphOpen ? 'N :: WORLD' : section} ]
             </button>

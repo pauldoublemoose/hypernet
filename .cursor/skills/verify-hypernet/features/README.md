@@ -29,6 +29,6 @@ This directory is the maintained source for verifying user-facing Hypernet behav
 ## Features
 
 - [Welcome Sign In home](./welcome-signin.md) is the default post-welcome landing (Terminal).
-- [Terminal tabs](./terminal-tabs.md) is Help, Update log, and About in the status bar.
+- [Terminal tabs](./terminal-tabs.md) is Feed (default), then Help, Update log, and About in the status bar.
 - [Desktop chrome](./desktop-chrome.md) is the side icon docks around the CRT frame.
 - [Signup smoke](./signup-smoke.md) is the existing `scripts/e2e.mjs` keyboard/tap signup.

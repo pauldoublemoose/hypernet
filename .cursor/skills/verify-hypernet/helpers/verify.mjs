@@ -111,7 +111,7 @@ async function cmdDoctor() {
 }
 
 function parseDriveFlags(argv) {
-  const flags = { heading: 'How to use Hypernet', fillViewport: false, expectScroll: false }
+  const flags = { heading: 'Hypernet feed', fillViewport: false, expectScroll: false }
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--heading') flags.heading = argv[++i]
     else if (argv[i] === '--fill-viewport') flags.fillViewport = true
@@ -223,8 +223,8 @@ async function driveWelcomeSignin(page, flags) {
     fail(`missing heading ${JSON.stringify(flags.heading)}`)
     return
   }
-  const help = page.getByRole('tab', { name: 'Help' })
-  if ((await help.getAttribute('aria-selected')) !== 'true') fail('Help tab should be selected')
+  const feed = page.getByRole('tab', { name: 'Feed' })
+  if ((await feed.getAttribute('aria-selected')) !== 'true') fail('Feed tab should be selected')
   const layout = await measureLayout(page)
   writeEvidence('welcome-signin.layout.json', JSON.stringify(layout, null, 2))
   await page.screenshot({ path: `${EVIDENCE}/welcome-signin.png`, fullPage: false })
@@ -243,6 +243,10 @@ async function driveWelcomeSignin(page, flags) {
 
 async function driveTerminalTabs(page) {
   await seedAndSignIn(page)
+  const feed = page.getByRole('tab', { name: 'Feed' })
+  if ((await feed.getAttribute('aria-selected')) !== 'true') fail('Feed tab should be selected')
+  await page.waitForSelector('text=Hypernet feed')
+  await page.getByRole('tab', { name: 'Help' }).click()
   await page.waitForSelector('text=How to use Hypernet')
   await page.screenshot({ path: `${EVIDENCE}/terminal-tabs-help.png` })
   await page.getByRole('tab', { name: 'Update log' }).click()
