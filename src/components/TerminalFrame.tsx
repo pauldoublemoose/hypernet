@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { pressKey } from '../hooks'
 import { useUi } from '../ui'
 import { PolychromeFX } from './PolychromeFX'
 
@@ -7,7 +6,6 @@ export type InputMode = 'NAV' | 'TXT'
 
 export function TerminalFrame({
   section,
-  mode,
   onOpenTerminal,
   children,
 }: {
@@ -16,17 +14,8 @@ export function TerminalFrame({
   onOpenTerminal?: () => void
   children: ReactNode
 }) {
-  const {
-    enterArmed,
-    theme,
-    cycleTheme,
-    navUsed,
-    graphOpen,
-    toggleGraph,
-    expanded,
-    toggleExpanded,
-    statusCenter,
-  } = useUi()
+  const { theme, cycleTheme, graphOpen, toggleGraph, expanded, toggleExpanded, statusCenter } =
+    useUi()
   const poly = theme === 'polychrome'
 
   return (
@@ -52,8 +41,6 @@ export function TerminalFrame({
         <div className="term-header">
           <span>HYPERNET v0.1 // PRE-ALPHA TERMINAL</span>
           <span className="header-right">
-            {/* Desktop cycles theme via the Theme dock icon; that dock is hidden on
-                mobile / coarse pointers, so keep the classic header toggle there. */}
             <button
               type="button"
               className="theme-btn mobile-only"
@@ -82,45 +69,8 @@ export function TerminalFrame({
             </button>
           </span>
         </div>
+        {!graphOpen && statusCenter ? <div className="term-tabs">{statusCenter}</div> : null}
         <div className="term-body">{children}</div>
-        <div className={`term-status${navUsed || graphOpen ? '' : ' attn'}`}>
-          {(graphOpen || !statusCenter) && (
-            <span className={`mode-chip ${mode === 'TXT' && !graphOpen ? 'txt' : ''}`}>
-              {graphOpen ? '◆ NET' : mode === 'NAV' ? '◆ NAV' : '▮ TXT'}
-            </span>
-          )}
-          {!graphOpen && statusCenter ? (
-            statusCenter
-          ) : (
-            <span className="hints">
-              {graphOpen
-                ? 'WASD WALK · HOLD TO THRUST · WHEEL REACH · ESC WORLDS'
-                : mode === 'NAV'
-                  ? '↑↓ MOVE · SPACE SELECT · ENTER CONFIRM · BACKSPACE BACK'
-                  : 'TYPE · ENTER CONFIRM · BACKSPACE ON EMPTY = BACK'}
-            </span>
-          )}
-          <span className="status-actions">
-            <button
-              className="mbtn back-btn"
-              onClick={() => {
-                if (graphOpen) toggleGraph()
-                else pressKey('Backspace')
-              }}
-            >
-              ◄ BACK
-            </button>
-            <button
-              className={`mbtn enter-btn ${enterArmed && !graphOpen ? '' : 'disarmed'}`}
-              disabled={!enterArmed || graphOpen}
-              onClick={() => {
-                if (enterArmed && !graphOpen) pressKey('Enter')
-              }}
-            >
-              ENTER ▶
-            </button>
-          </span>
-        </div>
         <div className="crt" />
       </div>
     </div>

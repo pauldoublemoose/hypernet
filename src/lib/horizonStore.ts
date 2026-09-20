@@ -33,6 +33,13 @@ export interface HyperEvent {
   privacyListIds: string[]
   /** Optional image stub — URL only. Cards show a placeholder when empty. */
   imageUrl?: string
+  startTime?: string
+  timezone?: string
+  endDate?: string
+  endTime?: string
+  venueKind?: 'physical' | 'virtual'
+  venue?: string
+  recurrence?: string
 }
 
 export interface Horizon {
@@ -122,6 +129,13 @@ export function normalizeEvent(raw: Partial<HyperEvent> & Pick<HyperEvent, 'id' 
     privacy,
     privacyListIds: Array.isArray(raw.privacyListIds) ? [...raw.privacyListIds] : [],
     imageUrl: raw.imageUrl?.trim() || undefined,
+    startTime: raw.startTime ?? '',
+    timezone: raw.timezone ?? '',
+    endDate: raw.endDate ?? '',
+    endTime: raw.endTime ?? '',
+    venueKind: raw.venueKind === 'virtual' ? 'virtual' : raw.venueKind === 'physical' ? 'physical' : undefined,
+    venue: raw.venue ?? '',
+    recurrence: raw.recurrence ?? '',
   }
 }
 
@@ -224,6 +238,14 @@ export function createEvent(input: {
   ownerGroupIds?: string[]
   privacy?: EventPrivacy
   privacyListIds?: string[]
+  imageUrl?: string
+  startTime?: string
+  timezone?: string
+  endDate?: string
+  endTime?: string
+  venueKind?: 'physical' | 'virtual'
+  venue?: string
+  recurrence?: string
 }): HyperEvent {
   const privacy: EventPrivacy = migratePrivacy(input.privacy ?? 'everyone')
   const privacyListIds =
@@ -240,6 +262,14 @@ export function createEvent(input: {
     ownerGroupIds: cleanOwnerGroupIds(input.ownerGroupIds),
     privacy,
     privacyListIds,
+    imageUrl: input.imageUrl?.trim() || undefined,
+    startTime: input.startTime ?? '',
+    timezone: input.timezone ?? '',
+    endDate: input.endDate ?? '',
+    endTime: input.endTime ?? '',
+    venueKind: input.venueKind,
+    venue: input.venue ?? '',
+    recurrence: input.recurrence ?? '',
   }
   const events = loadEvents()
   events.unshift(event)
@@ -261,6 +291,14 @@ export function updateEvent(
       | 'ownerGroupIds'
       | 'privacy'
       | 'privacyListIds'
+      | 'imageUrl'
+      | 'startTime'
+      | 'timezone'
+      | 'endDate'
+      | 'endTime'
+      | 'venueKind'
+      | 'venue'
+      | 'recurrence'
     >
   >,
 ): HyperEvent | undefined {

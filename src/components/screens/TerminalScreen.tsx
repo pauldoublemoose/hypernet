@@ -146,18 +146,13 @@ export function TerminalScreen({
           <p className="profile-view-text">
             Sign Up builds your Node. Sign In opens this Terminal (Help). There is no Terminal icon
             on the desktop — reopen Help from the header section badge, e.g. [ T :: TERMINAL ].
-            Left side is two columns: near the window — Global Announcements, Global Chat, Network
-            Graph; outer Find — Find Nodes, Find Events, Find Horizons, Find Clusters. Network Graph
-            opens a World picker — drop into an event twin and walk; it is not a global helicopter
-            map. Right side is two columns: near the window — My Notifications, My Chats; outer —
-            MY NODE, My Chronicle, My Contacts, My Clusters, MY HORIZONS.
-            Theme, Admin, and SETTINGS sit bottom-right (SETTINGS last). Theme cycles WHITE / BLACK
-            / POLYCHROME. Locked icons show a tip and stay closed until unlocked.
+            Left nav is FEED, SEARCH, CREATE, MANAGE, GIMMICKS. CREATE event and group open create
+            sheets. Theme and Settings sit in the top bar. Admin and Chats sit under MANAGE.
           </p>
           <p className="profile-view-text">
-            Switch Terminal sections with the tabs in the bottom status bar: Help (this page), the
-            product Update log, and About. Esc or Backspace returns to the previous screen. Expand
-            the window with the chrome control when you want a larger pane.
+            Switch Terminal sections with the tabs under the header: Help (this page), the product
+            Update log, and About. Esc or Backspace returns to the previous screen. Expand the
+            window with the chrome control when you want a larger pane.
           </p>
 
           <h3 className="profile-section-title">Terminology</h3>

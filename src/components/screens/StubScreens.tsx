@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { useKeys } from '../../hooks'
+import { FEED_NEWS } from '../../lib/feed'
+import { Pane } from '../Pane'
 
 function StubPane({
   title,
@@ -22,22 +24,11 @@ function StubPane({
   })
 
   return (
-    <div className="screen hz-screen">
-      <h2 className="hz-heading">{title}</h2>
-      <p className="dim hz-lead">{lead}</p>
+    <Pane title={title} mast={<p className="dim hz-lead">{lead}</p>}>
       {children}
-    </div>
+    </Pane>
   )
 }
-
-const GLOBAL_UPDATES = [
-  { when: 'just now', text: 'New user joined the network — welcome, @signal.' },
-  { when: '12m ago', text: 'New event published: Deep Listening Lab · Stockholm.' },
-  { when: '1h ago', text: 'Horizon “Baltic Circuit” added three dates.' },
-  { when: 'yesterday', text: '@nova and @ember are now Friends.' },
-  { when: 'just now', text: 'Clusters unlocked — browse the directory or create a camp.' },
-  { when: '2d ago', text: 'New Cluster pending (locked) — camps unlock later.' },
-]
 
 export function AnnouncementsScreen({ onBack }: { onBack: () => void }) {
   return (
@@ -47,7 +38,7 @@ export function AnnouncementsScreen({ onBack }: { onBack: () => void }) {
       onBack={onBack}
     >
       <ul className="hz-list">
-        {GLOBAL_UPDATES.map((u) => (
+        {FEED_NEWS.map((u) => (
           <li key={u.text} className="hz-list-static">
             <span className="hz-list-title">{u.text}</span>
             <span className="dim">{u.when}</span>
@@ -61,8 +52,8 @@ export function AnnouncementsScreen({ onBack }: { onBack: () => void }) {
 export function GlobalChatScreen({ onBack }: { onBack: () => void }) {
   return (
     <StubPane
-      title="Global Chat"
-      lead="Network-wide chat is not live yet. Stub UI only (was a Terminal tab)."
+      title="Global Spam Hell"
+      lead="Network-wide chat is not live yet. Stub UI only. Welcome to the hellthread."
       onBack={onBack}
     >
       <section className="hz-panel">
@@ -80,34 +71,6 @@ export function GlobalChatScreen({ onBack }: { onBack: () => void }) {
             Send (coming soon)
           </button>
         </div>
-      </section>
-    </StubPane>
-  )
-}
-
-export function FindNodesScreen({ onBack }: { onBack: () => void }) {
-  return (
-    <StubPane
-      title="Find Nodes"
-      lead="Search the network for people and nodes. Placeholder — was Find the others."
-      onBack={onBack}
-    >
-      <section className="hz-panel">
-        <label className="hz-field">
-          <span>Search</span>
-          <input
-            className="profile-input"
-            disabled
-            placeholder="Find Nodes coming soon"
-            value=""
-            readOnly
-          />
-        </label>
-        <ul className="hz-list">
-          <li className="hz-list-static">
-            <span className="dim">No nodes yet — coming soon.</span>
-          </li>
-        </ul>
       </section>
     </StubPane>
   )

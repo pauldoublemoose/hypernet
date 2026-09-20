@@ -13,6 +13,9 @@ import {
 import type { Answers } from '../../types'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
+import { IdentityEdit } from '../IdentityEdit'
+import { emptyIdentity, loadIdentity, saveIdentity } from '../../lib/identity'
+import { selfId } from '../../lib/contactsStore'
 
 function PrivacyToggle({
   value,
@@ -121,6 +124,7 @@ export function ProfileScreen({
   const [draft, setDraft] = useState<ProfileData | null>(null)
   const [editing, setEditing] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [identity, setIdentity] = useState(emptyIdentity)
   const { setEnterArmed } = useUi()
   const shown = editing && draft ? draft : profile
 
@@ -163,18 +167,21 @@ export function ProfileScreen({
 
   const startEdit = () => {
     setDraft(cloneProfile(profile))
+    setIdentity(loadIdentity('person', selfId()))
     setEditing(true)
     setSaved(false)
   }
 
   const cancelEdit = () => {
     setDraft(null)
+    setIdentity(emptyIdentity())
     setEditing(false)
   }
 
   const saveEdit = () => {
     if (!draft) return
     persist(draft)
+    saveIdentity('person', selfId(), identity)
     setDraft(null)
     setEditing(false)
   }
@@ -443,6 +450,21 @@ export function ProfileScreen({
             )}
           </div>
         </Section>
+        {editing ? (
+          <IdentityEdit
+            kind="person"
+            base={{
+              kind: 'person',
+              id: selfId(),
+              title: shown.displayName,
+              subtitle: 'You',
+              body: shown.bio,
+              imageUrl: shown.avatarDataUrl,
+            }}
+            value={identity}
+            onChange={setIdentity}
+          />
+        ) : null}
       </div>
     </div>
   )
