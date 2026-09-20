@@ -85,34 +85,6 @@ export function GlobalChatScreen({ onBack }: { onBack: () => void }) {
   )
 }
 
-export function FindNodesScreen({ onBack }: { onBack: () => void }) {
-  return (
-    <StubPane
-      title="Find Nodes"
-      lead="Search the network for people and nodes. Placeholder — was Find the others."
-      onBack={onBack}
-    >
-      <section className="hz-panel">
-        <label className="hz-field">
-          <span>Search</span>
-          <input
-            className="profile-input"
-            disabled
-            placeholder="Find Nodes coming soon"
-            value=""
-            readOnly
-          />
-        </label>
-        <ul className="hz-list">
-          <li className="hz-list-static">
-            <span className="dim">Use FINDER from the top bar.</span>
-          </li>
-        </ul>
-      </section>
-    </StubPane>
-  )
-}
-
 export function NotificationsScreen({ onBack }: { onBack: () => void }) {
   return (
     <StubPane

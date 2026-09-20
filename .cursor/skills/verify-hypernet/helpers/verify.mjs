@@ -456,10 +456,11 @@ function cmdCleanup() {
   if (state?.startedByUs && pidAlive(state.pid)) {
     try {
       process.kill(state.pid, 'SIGTERM')
-    } catch {
-      /* already gone */
+      console.log(`killed pid=${state.pid}`)
+    } catch (err) {
+      if (!err || typeof err !== 'object' || !('code' in err) || err.code !== 'ESRCH') throw err
+      console.log(`pid=${state.pid} already gone`)
     }
-    console.log(`killed pid=${state.pid}`)
   } else {
     console.log('no launched pid to kill')
   }
