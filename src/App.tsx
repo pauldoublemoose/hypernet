@@ -25,6 +25,7 @@ import { ContactsScreen } from './components/screens/ContactsScreen'
 import { ClustersScreen, type ClustersTab } from './components/screens/ClustersScreen'
 import { TerminalScreen } from './components/screens/TerminalScreen'
 import { FinderScreen } from './components/screens/FinderScreen'
+import { BotRouletteScreen } from './components/screens/BotRouletteScreen'
 import {
   AnnouncementsScreen,
   ChronicleScreen,
@@ -113,6 +114,7 @@ type ScreenId =
   | 'notifications'
   | 'myChats'
   | 'chronicle'
+  | 'botRoulette'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -151,7 +153,8 @@ const SECTION: Record<ScreenId, string> = {
   terminal: 'T :: TERMINAL',
   announcements: 'GA :: ANNOUNCEMENTS',
   globalChat: 'GC :: GLOBAL CHAT',
-  notes: 'F :: FINDER',
+  notes: 'S :: SEARCH',
+  botRoulette: 'BR :: BOT ROULETTE',
   notifications: 'N :: NOTIFICATIONS',
   myChats: 'MC :: MY CHATS',
   chronicle: 'CH :: MY CHRONICLE',
@@ -240,6 +243,7 @@ const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set([
   'notifications',
   'myChats',
   'chronicle',
+  'botRoulette',
 ])
 
 /** Validated draft from a previous session, or null. */
@@ -287,6 +291,7 @@ function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: Clust
   if (screen === 'notifications') return 'notifications'
   if (screen === 'myChats') return 'my-chats'
   if (screen === 'chronicle') return 'chronicle'
+  if (screen === 'botRoulette') return 'bot-roulette'
   return 'terminal'
 }
 
@@ -823,6 +828,9 @@ export default function App() {
         <FinderScreen key="notes" onBack={back} hover={hover} onHover={onHover} onClearHover={clearHover} />
       )
       break
+    case 'botRoulette':
+      content = <BotRouletteScreen key="botRoulette" onBack={back} />
+      break
     case 'notifications':
       content = <NotificationsScreen key="notifications" onBack={back} />
       break
@@ -839,7 +847,15 @@ export default function App() {
     if (screen !== 'terminal') go('terminal')
   }
 
-  const openGraph = () => setGraphOpen(true)
+  const openGraph = () => {
+    if (screen === 'welcome') go('terminal')
+    setGraphOpen(true)
+  }
+
+  const openBotRoulette = () => {
+    setGraphOpen(false)
+    if (screen !== 'botRoulette') go('botRoulette')
+  }
 
   const openAdmin = () => {
     setGraphOpen(false)
@@ -916,29 +932,25 @@ export default function App() {
 
   return (
     <div
-      className={`app${expanded ? ' is-expanded' : ''}${kind === 'window' ? ' has-window' : ' is-desert'}`}
+      className={`app${expanded ? ' is-expanded' : ''}${kind === 'onboarding' ? ' is-onboarding' : kind === 'window' ? ' has-window' : ' is-desert'}`}
       data-theme={theme}
     >
       <PixelDust />
       {kind !== 'onboarding' && (
         <DesktopIcons
           active={shellFeature(screen, graphOpen, clustersFocus)}
-          onAnnouncements={openAnnouncements}
           onGlobalChat={openGlobalChat}
           onGraph={openGraph}
           onNotes={openNotes}
+          onBotRoulette={openBotRoulette}
           onAdmin={openAdmin}
           onProfile={openProfile}
           onSettings={openSettings}
-          onEvents={openEvents}
-          onHorizons={openHorizons}
           onMyHorizons={openMyHorizons}
           onContacts={openContacts}
-          onClusters={() => openClusters('directory')}
           onMyClusters={() => openClusters('mine')}
           onNotifications={openNotifications}
           onMyChats={openMyChats}
-          onChronicle={openChronicle}
           onTerminal={openTerminal}
           avatarSrc={resolveAvatarUrl('self', profile.avatarDataUrl)}
           avatarLabel={profile.displayName || 'My profile'}
@@ -966,7 +978,7 @@ export default function App() {
             </div>
             {graphOpen && (
               <div className="screen net-screen graph-overlay">
-                <div className="title">N :: WORLD</div>
+                <div className="title">MOONWALKER</div>
                 <div className="net-intro dim">DROP INTO A WORLD · WALK LOCALLY · [GRAPH] TO RETURN</div>
                 <NetworkGraph
                   selfName={profile.displayName || answers.fullName || 'You'}

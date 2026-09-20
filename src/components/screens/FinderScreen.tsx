@@ -50,7 +50,7 @@ export function FinderScreen({
   if (open) {
     return (
       <div className="screen finder-screen" data-shell="finder">
-        <h1 className="finder-title">FINDER</h1>
+        <h1 className="finder-title">SEARCH</h1>
         <div className="btn-row">
           <button type="button" className="btn dim" onClick={() => setOpen(null)}>
             [ BACK TO RESULTS ]
@@ -63,8 +63,8 @@ export function FinderScreen({
 
   return (
     <div className="screen finder-screen" data-shell="finder">
-      <h1 className="finder-title">FINDER</h1>
-      <div className="finder-filters" role="group" aria-label="Finder filters">
+      <h1 className="finder-title">SEARCH</h1>
+      <div className="finder-filters" role="group" aria-label="Search filters">
         <button
           type="button"
           className={`finder-chip${filter.mode === 'all' ? ' is-on' : ''}`}

@@ -61,8 +61,8 @@ export function AnnouncementsScreen({ onBack }: { onBack: () => void }) {
 export function GlobalChatScreen({ onBack }: { onBack: () => void }) {
   return (
     <StubPane
-      title="Global Chat"
-      lead="Network-wide chat is not live yet. Stub UI only (was a Terminal tab)."
+      title="Global Spam Hell"
+      lead="Network-wide chat is not live yet. Stub UI only. Welcome to the hellthread."
       onBack={onBack}
     >
       <section className="hz-panel">
