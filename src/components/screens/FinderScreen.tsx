@@ -40,6 +40,11 @@ export function FinderScreen({
     onBack()
   })
 
+  const openSpace = (space: SpaceRecord) => {
+    onHover(null)
+    setOpen(space)
+  }
+
   if (open) {
     return (
       <div className="screen finder-screen" data-shell="finder">
@@ -122,7 +127,7 @@ export function FinderScreen({
               expr="row"
               hot={hover ? spaceKey(hover) === spaceKey(space) : false}
               onHover={onHover}
-              onOpen={setOpen}
+              onOpen={openSpace}
             />
           ))}
         </div>
@@ -135,7 +140,7 @@ export function FinderScreen({
               expr="thumb"
               hot={hover ? spaceKey(hover) === spaceKey(space) : false}
               onHover={onHover}
-              onOpen={setOpen}
+              onOpen={openSpace}
             />
           ))}
         </div>

@@ -122,7 +122,7 @@ async function cmdDoctor() {
 }
 
 function parseDriveFlags(argv) {
-  const flags = { heading: 'Hypernet feed', fillViewport: false, expectScroll: false }
+  const flags = { heading: 'How to use Hypernet', fillViewport: false, expectScroll: false }
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--heading') flags.heading = argv[++i]
     else if (argv[i] === '--fill-viewport') flags.fillViewport = true
@@ -154,7 +154,7 @@ async function openPage(browser) {
   if (!state?.port) throw new Error('no launched instance')
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
   await page.goto(baseUrl(state.port))
-  await page.waitForSelector('text=Welcome to the digital desert, .finder-title, text=HYPERNET v0.1')
+  await page.waitForSelector('[data-shell="onboarding"], [data-shell="find"], [data-shell="finder"]')
   return page
 }
 
@@ -188,11 +188,11 @@ async function seedAndSignIn(page) {
   await page.evaluate((profile) => {
     localStorage.clear()
     localStorage.setItem('hypernet_profile', JSON.stringify(profile))
-    localStorage.setItem('hypernet_onboarded', '1')
   }, PROFILE)
   await page.reload()
-  await page.waitForSelector('[data-shell="find"]')
-  await openTerminal(page)
+  await page.waitForSelector('[data-shell="onboarding"], [data-shell="find"]')
+  await skipWelcome(page)
+  await page.getByRole('button', { name: /SIGN IN/ }).click()
 }
 
 async function measureLayout(page) {
@@ -272,8 +272,8 @@ async function driveWelcomeSignin(page, flags) {
     fail(`missing heading ${JSON.stringify(flags.heading)}`)
     return
   }
-  const feed = page.getByRole('tab', { name: 'Feed' })
-  if ((await feed.getAttribute('aria-selected')) !== 'true') fail('Feed tab should be selected')
+  const help = page.getByRole('tab', { name: 'Help' })
+  if ((await help.getAttribute('aria-selected')) !== 'true') fail('Help tab should be selected')
   const layout = await measureLayout(page)
   writeEvidence('welcome-signin.layout.json', JSON.stringify(layout, null, 2))
   await page.screenshot({ path: `${EVIDENCE}/welcome-signin.png`, fullPage: false })
@@ -292,9 +292,9 @@ async function driveWelcomeSignin(page, flags) {
 
 async function driveTerminalTabs(page) {
   await seedAndSignIn(page)
-  const feed = page.getByRole('tab', { name: 'Feed' })
-  if ((await feed.getAttribute('aria-selected')) !== 'true') fail('Feed tab should be selected')
-  await page.waitForSelector('text=Hypernet feed')
+  const help = page.getByRole('tab', { name: 'Help' })
+  if ((await help.getAttribute('aria-selected')) !== 'true') fail('Help tab should be selected')
+  await page.waitForSelector('text=How to use Hypernet')
   await page.getByRole('tab', { name: 'Help' }).click()
   await page.waitForSelector('text=How to use Hypernet')
   await page.screenshot({ path: `${EVIDENCE}/terminal-tabs-help.png` })
@@ -355,20 +355,40 @@ async function driveIdentityPreview(page) {
   console.log('identity-preview: hover in top-right then gone')
 }
 
+const FINDER_EXPR_KINDS = [
+  { filter: 'people', space: 'person' },
+  { filter: 'events', space: 'event' },
+  { filter: 'groups', space: 'group' },
+  { filter: 'calendars', space: 'calendar' },
+]
+
 async function driveFinder(page) {
   await enterDesert(page)
   await page.locator('[data-shell="find"]').click()
   await page.waitForSelector('h1.finder-title')
+  if ((await page.locator('h1.finder-title').innerText()) !== 'FINDER') fail('title must be FINDER')
   const all = page.locator('[data-filter="all"]')
   const people = page.locator('[data-filter="people"]')
   if ((await all.getAttribute('aria-pressed')) !== 'true') fail('ALL should start on')
   await people.click()
   if ((await all.getAttribute('aria-pressed')) !== 'false') fail('ALL should deselect when PEOPLE is on')
   if ((await people.getAttribute('aria-pressed')) !== 'true') fail('PEOPLE should be on')
+  await page.screenshot({ path: `${EVIDENCE}/finder-filter-people.png` })
   await all.click()
   if ((await all.getAttribute('aria-pressed')) !== 'true') fail('ALL should return on')
   if ((await people.getAttribute('aria-pressed')) !== 'false') fail('PEOPLE should drop when ALL is on')
-  if ((await page.locator('input[aria-label="Search"]').count()) < 1) fail('search bar missing')
+  const search = page.locator('input[aria-label="Search"]')
+  if ((await search.count()) < 1) fail('search bar missing')
+  await search.fill('Anna')
+  const searchRows = page.locator('[data-space-expr="row"]')
+  const searchCount = await searchRows.count()
+  if (searchCount < 1) fail('search Anna returned nothing')
+  for (let i = 0; i < searchCount; i++) {
+    const text = (await searchRows.nth(i).innerText()).toLowerCase()
+    if (!text.includes('anna')) fail(`search leak: ${text}`)
+  }
+  await page.screenshot({ path: `${EVIDENCE}/finder-search.png` })
+  await search.fill('')
   await page.locator('[data-view="list"]').click()
   const row = page.locator('[data-space-expr="row"]').first()
   await row.hover()
@@ -376,10 +396,33 @@ async function driveFinder(page) {
   await page.screenshot({ path: `${EVIDENCE}/finder-list-hover.png` })
   await page.locator('[data-view="thumbnail"]').click()
   if ((await page.locator('[data-space-expr="thumb"]').count()) < 1) fail('thumbnail view empty')
+  await page.screenshot({ path: `${EVIDENCE}/finder-thumbs.png` })
   await page.locator('[data-space-expr="thumb"]').first().click()
   await page.locator('[data-space-expr="page"]').waitFor({ state: 'visible' })
   await page.screenshot({ path: `${EVIDENCE}/finder-page.png` })
-  console.log('finder: ALL mutex, search, list/thumb, hover preview, page')
+  await page.locator('button:has-text("BACK TO RESULTS")').click()
+  await page.waitForSelector('[data-space-expr="thumb"], [data-space-expr="row"]')
+
+  for (const kind of FINDER_EXPR_KINDS) {
+    await page.locator(`[data-filter="${kind.filter}"]`).click()
+    if ((await all.getAttribute('aria-pressed')) !== 'false') fail(`ALL stayed on after ${kind.filter}`)
+    await page.locator('[data-view="list"]').click()
+    const kindRow = page.locator(`[data-space-expr="row"][data-space-kind="${kind.space}"]`).first()
+    if ((await kindRow.count()) < 1) fail(`no ${kind.space} row`)
+    await kindRow.hover()
+    await page.locator('[data-shell="preview"] [data-space-expr="thumb"]').waitFor({ state: 'visible' })
+    await page.screenshot({ path: `${EVIDENCE}/finder-${kind.filter}-row.png` })
+    await page.locator('[data-view="thumbnail"]').click()
+    const kindThumb = page.locator(`[data-space-expr="thumb"][data-space-kind="${kind.space}"]`).first()
+    if ((await kindThumb.count()) < 1) fail(`no ${kind.space} thumb`)
+    await page.screenshot({ path: `${EVIDENCE}/finder-${kind.filter}-thumb.png` })
+    await kindThumb.click()
+    await page.locator(`[data-space-expr="page"][data-space-kind="${kind.space}"]`).waitFor({ state: 'visible' })
+    await page.screenshot({ path: `${EVIDENCE}/finder-${kind.filter}-page.png` })
+    await page.locator('button:has-text("BACK TO RESULTS")').click()
+    await page.locator('[data-filter="all"]').click()
+  }
+  console.log('finder: ALL mutex, search, list/thumb, hover preview, shared expressions')
 }
 
 async function cmdDrive(feature, argv) {
