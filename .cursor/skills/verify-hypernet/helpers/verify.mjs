@@ -331,6 +331,14 @@ async function driveDesktopChrome(page) {
   if ((await app.getAttribute('data-theme')) !== 'polychrome') fail('theme should become polychrome')
   await theme.click()
   if ((await app.getAttribute('data-theme')) !== 'white') fail('theme should return to white')
+  if ((await page.locator('.crt [data-shell="dust"]').count()) > 0) fail('pixel dust lives inside .crt')
+  const dust = await page.locator('[data-shell="dust"]').evaluate((el) => {
+    const s = getComputedStyle(el)
+    return { z: s.zIndex, pos: s.position, parent: el.parentElement?.className ?? '' }
+  })
+  if (dust.z !== '0') fail(`pixel dust z-index ${dust.z} !== 0`)
+  if (dust.pos !== 'fixed') fail(`pixel dust position ${dust.pos} !== fixed`)
+  if (!/\bapp\b/.test(dust.parent)) fail(`pixel dust parent ${JSON.stringify(dust.parent)} is not .app`)
   await page.screenshot({ path: `${EVIDENCE}/desktop-chrome.png` })
   console.log('desktop-chrome: bars + collapse + theme')
 }

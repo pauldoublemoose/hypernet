@@ -10,3 +10,4 @@ After onboarding, the desert shell uses a top bar and a bottom bar. There is no 
 - Top bar has Find, collapsible Global / Mine, plus Chat, Notifications, and the avatar.
 - Bottom bar has Settings and Theme on the left, Chats on the right.
 - Theme cycles WHITE → BLACK → POLYCHROME from `[data-theme-cycle=true]`.
+- Pixel dust is a `position: fixed` child of `.app` at z-index 0. It is not inside `.crt`.

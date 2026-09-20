@@ -2630,8 +2630,8 @@ html[data-reduce-motion='on'] .terminal {
 }
 
 .pixel-dust {
-  grid-column: 1;
-  grid-row: 1 / -1;
+  position: fixed;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
   width: 100%;
