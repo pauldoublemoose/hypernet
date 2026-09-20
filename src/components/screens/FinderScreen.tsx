@@ -114,7 +114,7 @@ export function FinderScreen({
       }
     >
       {view === 'row' ? (
-        <div className="finder-list">
+        <div className="stream-rows finder-list">
           {results.map((space) => (
             <SpaceCard
               key={spaceKey(space)}
@@ -127,7 +127,7 @@ export function FinderScreen({
           ))}
         </div>
       ) : (
-        <div className="finder-thumbs">
+        <div className="stream-thumbs finder-thumbs">
           {results.map((space) => (
             <SpaceCard
               key={spaceKey(space)}

@@ -9,7 +9,8 @@ After onboarding, the desert shell uses a left nav pane and a top bar. There is 
 - Seed `hypernet_onboarded=1` or finish the journey.
 - Left pane order is FEED, SEARCH, CREATE, MANAGE, GIMMICKS.
 - Body and left pane use IBM Plex Mono (`document.fonts.check` plus computed `font-family`).
-- FEED opens `F :: FEED` with burns-seeded events. Header stays put; Mast scrolls away.
+- FEED opens `F :: FEED` with burns-seeded events. Header stays put; Mast scrolls away. Rows | Thumbnails.
+- SEARCH uses the same Header · Mast · Feed anatomy. Header stays put; Mast (filters + search + Rows/Thumbnails) scrolls away.
 - CREATE event opens the Create event sheet (`[data-shell=create-event]`): cover, host, name, start date/time/timezone, Find Me, Create event CTA.
 - CREATE event horizon still opens `H :: HORIZONS`.
 - CREATE group opens the Create group sheet (`[data-shell=create-group]`): cover, admin, name, about, privacy, optional location, Find Me, Create group CTA. Not datetime-first.

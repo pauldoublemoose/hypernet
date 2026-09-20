@@ -7,6 +7,8 @@ One SEARCH control opens SEARCH. Filters, search, list/thumbnail views, and shar
 `node .cursor/skills/verify-hypernet/helpers/verify.mjs drive finder`
 
 - SEARCH starts from `[data-shell=search]`. The window title is SEARCH.
+- Header stays put. Mast (filters, search, Rows/Thumbnails) scrolls away. Feed is bottomless slim rows or thumbnails.
+- No main-window bottom bar. Theme and Settings sit in the top bar.
 - The SEARCH title uses IBM Plex Mono.
 - ALL starts pressed. PEOPLE deselects ALL. ALL deselects PEOPLE.
 - A search field is present. Typing Anna keeps only matching rows.

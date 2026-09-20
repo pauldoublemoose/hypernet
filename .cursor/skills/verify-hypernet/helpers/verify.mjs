@@ -234,8 +234,58 @@ function checkFill(layout) {
   if (layout.viewport.height - layout.chrome.bottom > 24) {
     return `chrome bottom gap ${layout.viewport.height - layout.chrome.bottom} > 24`
   }
+  if (layout.chrome.bottom > layout.viewport.height + 12) {
+    return `chrome bottom ${layout.chrome.bottom} past viewport ${layout.viewport.height}`
+  }
   if (layout.status) return 'term-status chrome still present'
   return null
+}
+
+async function assertPaneAnatomy(page, label) {
+  if ((await page.locator('[data-shell="bottom"]').count()) > 0) fail(`${label} bottom shell bar still present`)
+  if ((await page.locator('.term-status').count()) > 0) fail(`${label} term-status chrome still present`)
+  if ((await page.getByRole('button', { name: 'Settings' }).count()) < 1) fail(`${label} Settings missing from top`)
+  if ((await page.locator('[data-theme-cycle="true"]').count()) < 1) fail(`${label} Theme missing from top`)
+  const header = page.locator('.pane-header').first()
+  const mast = page.locator('[data-shell="mast"]').first()
+  await header.waitFor({ state: 'visible' })
+  await mast.waitFor({ state: 'visible' })
+  const headerBox = await header.boundingBox()
+  const mastBox = await mast.boundingBox()
+  if (!headerBox || !mastBox) fail(`${label} header/mast boxes missing`)
+  const stream = page.locator('.pane-stream')
+  const overflow = await stream.evaluate((el) => el.scrollHeight - el.clientHeight)
+  if (overflow <= 8) fail(`${label} pane-stream does not overflow (${overflow})`)
+  await stream.evaluate((el) => {
+    el.scrollTop = Math.min(420, el.scrollHeight)
+  })
+  const headerAfter = await header.boundingBox()
+  const mastAfter = await mast.boundingBox()
+  if (!headerAfter || !mastAfter) fail(`${label} header/mast boxes missing after scroll`)
+  if (Math.abs(headerAfter.y - headerBox.y) > 1) fail(`${label} header moved on scroll`)
+  if (mastAfter.y >= mastBox.y - 8) fail(`${label} mast did not scroll away`)
+  await page.screenshot({ path: `${EVIDENCE}/${label}-scrolled.png` })
+  await page.locator('[data-view="thumbnail"]').click()
+  if ((await page.locator('[data-view="thumbnail"]').getAttribute('aria-pressed')) !== 'true') {
+    fail(`${label} Thumbnails chip not pressed`)
+  }
+  if ((await page.locator('.stream-thumb, [data-space-expr="thumb"]').count()) < 1) {
+    fail(`${label} thumbnails missing`)
+  }
+  await page.screenshot({ path: `${EVIDENCE}/${label}-thumbs.png` })
+  await page.locator('[data-view="row"]').click()
+  if ((await page.locator('[data-view="row"]').getAttribute('aria-pressed')) !== 'true') {
+    fail(`${label} Rows chip not pressed`)
+  }
+  const layout = await measureLayout(page)
+  writeEvidence(`${label}.layout.json`, JSON.stringify(layout, null, 2))
+  const fillErr = checkFill(layout)
+  if (fillErr) fail(`${label} ${fillErr}`)
+  await stream.evaluate((el) => {
+    el.scrollTop = 0
+  })
+  await page.screenshot({ path: `${EVIDENCE}/${label}.png` })
+  return layout
 }
 
 function writeEvidence(name, bytesOrText) {
@@ -374,34 +424,9 @@ async function driveDesktopChrome(page) {
   await page.locator('[data-shell="feed-page"]').waitFor({ state: 'visible' })
   await page.locator('.pane-header', { hasText: 'FEED' }).waitFor({ state: 'visible' })
   if ((await page.getByText('Borderland 2026').count()) < 1) fail('FEED missing Borderland seed')
-  if ((await page.locator('.term-status').count()) > 0) fail('term-status chrome still present')
   if ((await page.locator('.stream-row').count()) < 1) fail('FEED rows missing')
-  const headerBox = await page.locator('.pane-header').boundingBox()
-  const mastBox = await page.locator('[data-shell="mast"]').boundingBox()
-  if (!headerBox || !mastBox) fail('FEED header/mast boxes missing')
-  const stream = page.locator('.pane-stream')
-  await stream.evaluate((el) => {
-    el.scrollTop = Math.min(420, el.scrollHeight)
-  })
-  const headerAfter = await page.locator('.pane-header').boundingBox()
-  const mastAfter = await page.locator('[data-shell="mast"]').boundingBox()
-  if (!headerAfter || !mastAfter) fail('FEED header/mast boxes missing after scroll')
-  if (Math.abs(headerAfter.y - headerBox.y) > 1) fail('FEED header moved on scroll')
-  if (mastAfter.y >= mastBox.y - 8) fail('FEED mast did not scroll away')
-  await page.screenshot({ path: `${EVIDENCE}/nav-feed-scrolled.png` })
-  await page.locator('[data-view="thumbnail"]').click()
-  if ((await page.locator('.stream-thumb').count()) < 1) fail('FEED thumbnails missing')
-  await page.screenshot({ path: `${EVIDENCE}/nav-feed-thumbs.png` })
-  await page.locator('[data-view="row"]').click()
-  if ((await page.locator('.stream-row').count()) < 1) fail('FEED rows missing after toggle')
-  const layout = await measureLayout(page)
-  writeEvidence('desktop-chrome.layout.json', JSON.stringify(layout, null, 2))
-  const fillErr = checkFill(layout)
-  if (fillErr) fail(fillErr)
-  if (!layout.stream || layout.stream.scrollHeight <= layout.stream.clientHeight) {
-    fail('pane-stream does not overflow')
-  }
-  await page.screenshot({ path: `${EVIDENCE}/nav-feed.png` })
+  const feedLayout = await assertPaneAnatomy(page, 'nav-feed')
+  writeEvidence('desktop-chrome.layout.json', JSON.stringify(feedLayout, null, 2))
   await create.click()
   if ((await create.getAttribute('aria-expanded')) !== 'true') fail('CREATE did not expand')
   if ((await page.getByRole('button', { name: 'event', exact: true }).count()) < 1) fail('CREATE event missing')
@@ -563,6 +588,7 @@ async function driveFinder(page) {
   const searchFont = await assertPlexMono(page, 'h1.pane-header', 'SEARCH title')
   writeFileSync(`${EVIDENCE}/font-search.json`, JSON.stringify(searchFont, null, 2))
   await page.screenshot({ path: `${EVIDENCE}/font-search-title.png` })
+  await assertPaneAnatomy(page, 'finder-pane')
   const all = page.locator('[data-filter="all"]')
   const people = page.locator('[data-filter="people"]')
   if ((await all.getAttribute('aria-pressed')) !== 'true') fail('ALL should start on')

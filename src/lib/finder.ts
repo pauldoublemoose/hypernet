@@ -45,6 +45,21 @@ export function filterHasKind(filter: FinderFilter, kind: FinderKind): boolean {
   return filter.mode === 'all' || filter.kinds.includes(kind)
 }
 
+const FINDER_FILL_EVENTS = [
+  'Ridge dawn stretch',
+  'Night kitchen line',
+  'Portable shade build',
+  'LED forest walk',
+  'Dust patrol briefing',
+  'Temple volunteer shift',
+  'Camp radio hour',
+  'Sunrise tea service',
+  'Generator quiet hours',
+  'Art car docking',
+  'First aid refresh',
+  'Soundcheck west stage',
+]
+
 export function ensureFinderSeeds() {
   if (visibleEvents().length === 0) {
     createEvent({
@@ -58,6 +73,20 @@ export function ensureFinderSeeds() {
       privacy: 'everyone',
       privacyListIds: [],
     })
+  }
+  const have = new Set(visibleEvents().map((e) => e.title))
+  for (const title of FINDER_FILL_EVENTS) {
+    if (have.has(title)) continue
+    createEvent({
+      title,
+      date: '2026-07-21',
+      description: 'Camp / crew overflow for SEARCH feed.',
+      externalUrl: '',
+      hostName: 'You',
+      privacy: 'everyone',
+      privacyListIds: [],
+    })
+    have.add(title)
   }
   if (publishedHorizons().length === 0) {
     createHorizon({
