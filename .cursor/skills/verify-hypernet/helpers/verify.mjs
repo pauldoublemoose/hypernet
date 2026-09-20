@@ -15,6 +15,18 @@ function fail(msg) {
   process.exitCode = 1
 }
 
+async function assertPlexMono(page, sel, where) {
+  const loaded = await page.evaluate(async () => {
+    await document.fonts.ready
+    await document.fonts.load('600 24px "IBM Plex Mono"')
+    return document.fonts.check('600 24px "IBM Plex Mono"')
+  })
+  if (!loaded) fail(`IBM Plex Mono did not load (${where})`)
+  const family = await page.locator(sel).first().evaluate((el) => getComputedStyle(el).fontFamily)
+  if (!/IBM Plex Mono/i.test(family)) fail(`${where} font-family ${family}`)
+  return { where, family, loaded }
+}
+
 function readState() {
   if (!existsSync(STATE)) return null
   try {
@@ -237,6 +249,9 @@ async function driveWelcomeOnboarding(page) {
   await page.reload()
   await page.waitForSelector('text=Welcome to the digital desert')
   if ((await page.locator('.chrome-frame').count()) !== 0) fail('onboarding must not mount a CRT')
+  const welcomeFont = await assertPlexMono(page, '.display-headline', 'welcome headline')
+  writeFileSync(`${EVIDENCE}/font-welcome.json`, JSON.stringify(welcomeFont, null, 2))
+  await page.screenshot({ path: `${EVIDENCE}/font-welcome-headline.png` })
   await page.keyboard.press('Enter')
   await page.waitForSelector('text=HYPERNET: Find co-creators, share events, build community.')
   await page.keyboard.press('Enter')
@@ -325,6 +340,9 @@ async function driveDesktopChrome(page) {
   if (paneOrder.map((t) => t.trim()).join('|') !== 'FEED|SEARCH|CREATE|MANAGE|GIMMICKS') {
     fail(`left nav order ${JSON.stringify(paneOrder)}`)
   }
+  const paneFont = await assertPlexMono(page, '[data-shell="pane"]', 'left pane')
+  const bodyFont = await assertPlexMono(page, 'body', 'body')
+  writeFileSync(`${EVIDENCE}/font-shell.json`, JSON.stringify({ paneFont, bodyFont }, null, 2))
   await page.getByRole('button', { name: 'FEED', exact: true }).click()
   await page.locator('[data-shell="feed-page"]').waitFor({ state: 'visible' })
   await page.locator('.title', { hasText: 'F :: FEED' }).waitFor({ state: 'visible' })
@@ -429,6 +447,9 @@ async function driveFinder(page) {
   await page.waitForSelector('h1.finder-title')
   if ((await page.locator('h1.finder-title').innerText()) !== 'SEARCH') fail('title must be SEARCH')
   if ((await page.locator('[data-filter="callouts"]').count()) < 1) fail('CALLOUTS filter missing')
+  const searchFont = await assertPlexMono(page, 'h1.finder-title', 'SEARCH title')
+  writeFileSync(`${EVIDENCE}/font-search.json`, JSON.stringify(searchFont, null, 2))
+  await page.screenshot({ path: `${EVIDENCE}/font-search-title.png` })
   const all = page.locator('[data-filter="all"]')
   const people = page.locator('[data-filter="people"]')
   if ((await all.getAttribute('aria-pressed')) !== 'true') fail('ALL should start on')

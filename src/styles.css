@@ -21,9 +21,9 @@ body,
 body {
   background: #ffffff;
   color: #111;
-  font-family: 'VT323', 'Courier New', monospace;
-  font-size: 21px;
-  line-height: 1.35;
+  font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  font-size: 16px;
+  line-height: 1.4;
   overflow: hidden;
 }
 
@@ -33,8 +33,8 @@ body {
   --desk-lock-bg: #fff;
   --desk-cell-w: 90px;
   --desk-cell-h: 70px;
-  --label-font: 'IBM Plex Mono', 'VT323', 'Courier New', monospace;
-  --display-font: 'Fraunces', Georgia, serif;
+  --label-font: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  --display-font: var(--label-font);
   position: relative;
   height: 100%;
   display: grid;
@@ -2862,10 +2862,10 @@ html[data-reduce-motion='on'] .terminal {
 
 .display-headline {
   font-family: var(--display-font);
-  font-size: clamp(2rem, 4.4vw, 3.3rem);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
 }
 
 .display-headline-sm {
@@ -2931,7 +2931,7 @@ html[data-reduce-motion='on'] .terminal {
 
 .finder-title {
   font-family: var(--display-font);
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
   font-weight: 600;
   letter-spacing: 0.04em;
 }

@@ -8,6 +8,7 @@ After onboarding, the desert shell uses a left nav pane, a top bar, and a bottom
 
 - Seed `hypernet_onboarded=1` or finish the journey.
 - Left pane order is FEED, SEARCH, CREATE, MANAGE, GIMMICKS.
+- Body and left pane use IBM Plex Mono (`document.fonts.check` plus computed `font-family`).
 - FEED opens `F :: FEED` with burns-seeded events.
 - CREATE event, event horizon, group, and call out open `E :: EVENTS`, `H :: HORIZONS`, `CL :: CLUSTERS`, and `CO :: CALL OUT`.
 - MANAGE Contact lists, Event horizons, and Groups open `C :: CONTACTS`, `MH :: MY HORIZONS`, and `CL :: MY CLUSTERS`.
