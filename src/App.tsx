@@ -346,6 +346,10 @@ export default function App() {
   const [remoteSkills, setRemoteSkills] = useState<RemoteSkillOption[]>([])
   const [remoteLocations, setRemoteLocations] = useState<RemoteLocationOption[]>([])
   const [clustersFocus, setClustersFocus] = useState<ClustersTab>('directory')
+  const [eventsTick, setEventsTick] = useState(0)
+  const [clustersTick, setClustersTick] = useState(0)
+  const [eventsCreate, setEventsCreate] = useState(false)
+  const [clustersCreate, setClustersCreate] = useState(false)
 
   useEffect(() => {
     fetchSkillOptions().then(setRemoteSkills)
@@ -808,7 +812,12 @@ export default function App() {
       break
     case 'events':
       content = (
-        <EventsScreen key="events" answers={answers} onBack={back} />
+        <EventsScreen
+          key={`events-${eventsTick}`}
+          answers={answers}
+          onBack={back}
+          startCreate={eventsCreate}
+        />
       )
       break
     case 'horizons':
@@ -825,7 +834,15 @@ export default function App() {
       content = <ContactsScreen key="contacts" onBack={back} />
       break
     case 'clusters':
-      content = <ClustersScreen key={`clusters-${clustersFocus}`} onBack={back} initialTab={clustersFocus} />
+      content = (
+        <ClustersScreen
+          key={`clusters-${clustersFocus}-${clustersTick}`}
+          answers={answers}
+          onBack={back}
+          initialTab={clustersFocus}
+          startCreate={clustersCreate}
+        />
+      )
       break
     case 'terminal':
       content = (
@@ -911,8 +928,10 @@ export default function App() {
     if (screen !== 'settings') go('settings')
   }
 
-  const openEvents = () => {
+  const openEvents = (create = false) => {
     setGraphOpen(false)
+    setEventsCreate(create)
+    setEventsTick((n) => n + 1)
     if (screen !== 'events') go('events')
   }
 
@@ -933,9 +952,11 @@ export default function App() {
     if (screen !== 'contacts') go('contacts')
   }
 
-  const openClusters = (focus: ClustersTab) => {
+  const openClusters = (focus: ClustersTab, create = false) => {
     setGraphOpen(false)
     setClustersFocus(focus)
+    setClustersCreate(create)
+    setClustersTick((n) => n + 1)
     if (screen !== 'clusters') go('clusters')
   }
 
@@ -984,9 +1005,9 @@ export default function App() {
           onFeed={openFeed}
           onBotRoulette={openBotRoulette}
           onMysteryChat={openMysteryChat}
-          onEvents={openEvents}
+          onEvents={() => openEvents(true)}
           onHorizons={openHorizons}
-          onClusters={() => openClusters('directory')}
+          onClusters={() => openClusters('directory', true)}
           onAdmin={openAdmin}
           onProfile={openProfile}
           onSettings={openSettings}

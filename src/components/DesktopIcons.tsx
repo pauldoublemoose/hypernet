@@ -75,6 +75,16 @@ const MANAGE: NavLeaf[] = [
     label: 'Groups',
     tip: 'Groups — camps you join or admin.',
   },
+  {
+    id: 'admin',
+    label: 'Admin',
+    tip: 'Admin — gated node table.',
+  },
+  {
+    id: 'my-chats',
+    label: 'Chats',
+    tip: 'Chats — your threads.',
+  },
 ]
 
 const GIMMICKS: NavLeaf[] = [
@@ -211,6 +221,22 @@ export function DesktopIcons({
         <div className="shell-utils">
           <button
             type="button"
+            className={`shell-util${active === 'settings' ? ' is-on' : ''}`}
+            onClick={onSettings}
+          >
+            Settings
+          </button>
+          <button
+            type="button"
+            className="shell-util"
+            data-theme-cycle="true"
+            title={`Theme — now ${theme.toUpperCase()}. Click to cycle WHITE / BLACK / POLYCHROME.`}
+            onClick={() => activate('theme')}
+          >
+            Theme
+          </button>
+          <button
+            type="button"
             className={`shell-util${active === 'global-chat' ? ' is-on' : ''}`}
             onClick={onGlobalChat}
           >
@@ -307,42 +333,6 @@ export function DesktopIcons({
           ) : null}
         </div>
       </nav>
-      <footer className="shell-bottom" data-shell="bottom">
-        <div className="shell-bottom-left">
-          <button
-            type="button"
-            className={`shell-dock${active === 'settings' ? ' is-on' : ''}`}
-            onClick={onSettings}
-          >
-            Settings
-          </button>
-          <button
-            type="button"
-            className="shell-dock"
-            data-theme-cycle="true"
-            title={`Theme — now ${theme.toUpperCase()}. Click to cycle WHITE / BLACK / POLYCHROME.`}
-            onClick={() => activate('theme')}
-          >
-            Theme
-          </button>
-        </div>
-        <div className="shell-bottom-right">
-          <button
-            type="button"
-            className={`shell-dock${active === 'admin' ? ' is-on' : ''}`}
-            onClick={onAdmin}
-          >
-            Admin
-          </button>
-          <button
-            type="button"
-            className={`shell-dock${active === 'my-chats' ? ' is-on' : ''}`}
-            onClick={onMyChats}
-          >
-            Chats
-          </button>
-        </div>
-      </footer>
     </>
   )
 }

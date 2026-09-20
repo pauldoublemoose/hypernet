@@ -31,7 +31,7 @@ This directory is the maintained source for verifying user-facing Hypernet behav
 - [Welcome onboarding](./welcome-onboarding.md) is the desert journey, then an empty CRT-less stage.
 - [Welcome Sign In home](./welcome-signin.md) is the guest Terminal path after the journey.
 - [Terminal tabs](./terminal-tabs.md) is Feed (default), then Help, Update log, and About in the status bar.
-- [Desktop chrome](./desktop-chrome.md) is FEED → SEARCH → CREATE → MANAGE → GIMMICKS plus top/bottom bars.
+- [Desktop chrome](./desktop-chrome.md) is FEED → SEARCH → CREATE → MANAGE → GIMMICKS plus top bar. CREATE event and group open create sheets.
 - [Identity preview](./identity-preview.md) is hover → top-right thumbnail.
 - [Finder](./finder.md) is SEARCH, ALL mutex, search, and row/thumb/page cards including callouts.
 - [Signup smoke](./signup-smoke.md) is the existing `scripts/e2e.mjs` keyboard/tap signup.

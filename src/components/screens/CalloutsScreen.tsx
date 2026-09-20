@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import { createCallout, loadCallouts } from '../../lib/callouts'
 import { useKeys } from '../../hooks'
+import { Pane } from '../Pane'
+import { IdentityEdit } from '../IdentityEdit'
+import { emptyIdentity, saveIdentity } from '../../lib/identity'
 
 export function CalloutsScreen({ onBack }: { onBack: () => void }) {
   const [items, setItems] = useState(() => loadCallouts())
   const [ask, setAsk] = useState('')
   const [expiresAt, setExpiresAt] = useState('2026-10-20')
+  const [identity, setIdentity] = useState(emptyIdentity)
 
   useKeys((e) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -19,23 +23,28 @@ export function CalloutsScreen({ onBack }: { onBack: () => void }) {
   const post = () => {
     if (!ask.trim() || !expiresAt) return
     const title = ask.trim().split('\n')[0]?.slice(0, 48) || 'Call out'
-    createCallout({ title, body: ask.trim(), expiresAt, hostName: 'You' })
+    const row = createCallout({ title, body: ask.trim(), expiresAt, hostName: 'You' })
+    saveIdentity('callout', row.id, identity)
     setAsk('')
+    setIdentity(emptyIdentity())
     setItems(loadCallouts())
   }
 
   return (
-    <div className="screen hz-screen" data-shell="callouts">
-      <div className="title">CO :: CALL OUT</div>
-      <p className="dim hz-lead">
-        Recruitment asks tied to making things happen. Each call out expires. Stub data for now.
-      </p>
-      <ul className="hz-list">
+    <Pane
+      title="CALL OUT"
+      data-shell="callouts"
+      mast={
+        <p className="dim hz-lead">
+          Recruitment asks tied to making things happen. Each call out expires. Stub data for now.
+        </p>
+      }
+    >
+      <ul className="stream-rows">
         {items.map((row) => (
-          <li key={row.id} className="hz-list-static is-stack">
-            <span className="hz-list-title">{row.title}</span>
+          <li key={row.id} className="stream-row">
+            <span className="stream-row-title">{row.title}</span>
             <span className="dim">EXP {row.expiresAt}</span>
-            <span className="hz-lead">{row.body}</span>
           </li>
         ))}
       </ul>
@@ -65,6 +74,19 @@ export function CalloutsScreen({ onBack }: { onBack: () => void }) {
           </button>
         </div>
       </section>
-    </div>
+      <IdentityEdit
+        kind="callout"
+        base={{
+          kind: 'callout',
+          id: 'draft',
+          title: ask.trim().split('\n')[0]?.slice(0, 48) || 'Call out',
+          subtitle: 'You',
+          body: ask,
+          expiresAt,
+        }}
+        value={identity}
+        onChange={setIdentity}
+      />
+    </Pane>
   )
 }

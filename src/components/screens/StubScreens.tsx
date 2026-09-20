@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useKeys } from '../../hooks'
 import { FEED_NEWS } from '../../lib/feed'
+import { Pane } from '../Pane'
 
 function StubPane({
   title,
@@ -23,11 +24,9 @@ function StubPane({
   })
 
   return (
-    <div className="screen hz-screen">
-      <h2 className="hz-heading">{title}</h2>
-      <p className="dim hz-lead">{lead}</p>
+    <Pane title={title} mast={<p className="dim hz-lead">{lead}</p>}>
       {children}
-    </div>
+    </Pane>
   )
 }
 

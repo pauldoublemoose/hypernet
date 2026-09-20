@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useKeys } from '../../hooks'
 import {
-  createEvent,
   eventOwnerLabels,
   formatEventDate,
   getAttendance,
@@ -30,6 +29,9 @@ import { clustersIAdmin, type Cluster } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
 import { CardThumb } from '../CardThumb'
+import { CreateEventSheet } from '../CreateEventSheet'
+import { IdentityEdit } from '../IdentityEdit'
+import { emptyIdentity, loadIdentity, saveIdentity } from '../../lib/identity'
 
 const ROLES: EventRole[] = ['guest', 'co-creator', 'sponsor', 'admin']
 
@@ -53,10 +55,12 @@ export function EventsScreen({
   answers,
   onBack,
   initialEventId,
+  startCreate = false,
 }: {
   answers: Answers
   onBack: () => void
   initialEventId?: string
+  startCreate?: boolean
 }) {
   const hostName = loadProfile(answers).displayName || answers.fullName || 'You'
   const [tick, setTick] = useState(0)
@@ -78,7 +82,7 @@ export function EventsScreen({
   }, [tick])
 
   const [viewId, setViewId] = useState<string | null>(initialEventId ?? null)
-  const [creating, setCreating] = useState(false)
+  const [creating, setCreating] = useState(Boolean(startCreate))
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
@@ -90,6 +94,7 @@ export function EventsScreen({
   const [privacyListIds, setPrivacyListIds] = useState<string[]>([])
   const [role, setRole] = useState<EventRole>('guest')
   const [addHz, setAddHz] = useState('')
+  const [identity, setIdentity] = useState(emptyIdentity)
 
   useKeys((e: KeyboardEvent) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -97,7 +102,7 @@ export function EventsScreen({
     if ((tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') && e.isTrusted && e.key === 'Backspace')
       return
     e.preventDefault()
-    if (creating) setCreating(false)
+    if (creating) startCreate ? onBack() : setCreating(false)
     else if (editing) setEditing(false)
     else if (viewId) setViewId(null)
     else onBack()
@@ -118,6 +123,7 @@ export function EventsScreen({
     setOwnerGroupIds([])
     setPrivacy('everyone')
     setPrivacyListIds([])
+    setIdentity(emptyIdentity())
   }
 
   const openCreate = () => {
@@ -134,6 +140,7 @@ export function EventsScreen({
     setOwnerGroupIds([...(ev.ownerGroupIds ?? [])])
     setPrivacy(ev.privacy)
     setPrivacyListIds([...ev.privacyListIds])
+    setIdentity(loadIdentity('event', ev.id))
     setEditing(true)
   }
 
@@ -150,25 +157,6 @@ export function EventsScreen({
     setPrivacyListIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
 
-  const submitCreate = () => {
-    if (!title.trim()) return
-    const ev = createEvent({
-      title,
-      date,
-      description,
-      externalUrl,
-      hostName,
-      ownerIds,
-      ownerGroupIds,
-      privacy,
-      privacyListIds: privacy === 'contacts' ? privacyListIds : [],
-    })
-    setCreating(false)
-    resetForm()
-    refresh()
-    setViewId(ev.id)
-  }
-
   const submitEdit = () => {
     if (!viewing || !title.trim()) return
     const next = updateEvent(viewing.id, {
@@ -181,6 +169,7 @@ export function EventsScreen({
       privacy,
       privacyListIds: privacy === 'contacts' ? privacyListIds : [],
     })
+    saveIdentity('event', viewing.id, identity)
     setEditing(false)
     refresh()
     if (next) setViewId(next.id)
@@ -307,24 +296,32 @@ export function EventsScreen({
           </div>
         ) : null}
       </section>
+      <IdentityEdit
+        kind="event"
+        base={{
+          kind: 'event',
+          id: viewing?.id ?? 'draft',
+          title,
+          subtitle: date,
+          body: description,
+        }}
+        value={identity}
+        onChange={setIdentity}
+      />
     </>
   )
 
   if (creating) {
     return (
-      <div className="screen hz-screen">
-        <div className="title">E :: NEW EVENT</div>
-        <p className="dim hz-lead">Hosted by your profile · owners + privacy · external ticket link OK</p>
-        {formBody('create')}
-        <div className="profile-actions">
-          <button type="button" className="btn" onClick={submitCreate} disabled={!title.trim()}>
-            Create
-          </button>
-          <button type="button" className="btn dim" onClick={() => setCreating(false)}>
-            Cancel
-          </button>
-        </div>
-      </div>
+      <CreateEventSheet
+        answers={answers}
+        onCancel={() => (startCreate ? onBack() : setCreating(false))}
+        onCreated={(id) => {
+          setCreating(false)
+          refresh()
+          setViewId(id)
+        }}
+      />
     )
   }
 

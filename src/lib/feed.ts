@@ -58,6 +58,8 @@ export type FeedRow = {
   body: string
 }
 
+const FEED_PAGES = 8
+
 export function loadFeed(): FeedRow[] {
   const events: FeedRow[] = FEED_EVENTS.map((e) => ({
     id: e.id,
@@ -71,5 +73,12 @@ export function loadFeed(): FeedRow[] {
     meta: n.when,
     body: 'Network update',
   }))
-  return [...events, ...news]
+  const seed = [...events, ...news]
+  const rows: FeedRow[] = []
+  for (let page = 0; page < FEED_PAGES; page++) {
+    for (const row of seed) {
+      rows.push(page === 0 ? row : { ...row, id: `${row.id}-p${page}` })
+    }
+  }
+  return rows
 }

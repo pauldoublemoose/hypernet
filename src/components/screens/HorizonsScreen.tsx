@@ -12,6 +12,8 @@ import { clustersIAdmin } from '../../lib/groupsStore'
 import { loadProfile } from '../../lib/profileStore'
 import type { Answers } from '../../types'
 import { CardThumb } from '../CardThumb'
+import { IdentityEdit } from '../IdentityEdit'
+import { emptyIdentity, saveIdentity } from '../../lib/identity'
 
 export function HorizonsScreen({
   answers,
@@ -31,6 +33,7 @@ export function HorizonsScreen({
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [ownerGroupId, setOwnerGroupId] = useState('')
+  const [identity, setIdentity] = useState(emptyIdentity)
   const adminClusters = clustersIAdmin()
 
   useKeys((e) => {
@@ -71,6 +74,18 @@ export function HorizonsScreen({
             </select>
           </label>
         ) : null}
+        <IdentityEdit
+          kind="calendar"
+          base={{
+            kind: 'calendar',
+            id: 'draft',
+            title: name,
+            subtitle: ownerName,
+            body: description,
+          }}
+          value={identity}
+          onChange={setIdentity}
+        />
         <div className="profile-actions">
           <button
             type="button"
@@ -84,10 +99,12 @@ export function HorizonsScreen({
                 isPublished: true,
                 ownerGroupId: ownerGroupId || undefined,
               })
+              saveIdentity('calendar', h.id, identity)
               setCreating(false)
               setName('')
               setDescription('')
               setOwnerGroupId('')
+              setIdentity(emptyIdentity())
               setTick((n) => n + 1)
               setViewId(h.id)
             }}

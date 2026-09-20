@@ -221,19 +221,20 @@ async function measureLayout(page) {
       header: box('.term-header'),
       body: box('.term-body'),
       status: box('.term-status'),
+      paneHeader: box('.pane-header'),
+      mast: box('[data-shell="mast"]'),
+      stream: box('.pane-stream'),
     }
   })
 }
 
 function checkFill(layout) {
-  if (!layout.chrome || !layout.status || !layout.header) return 'missing chrome/header/status boxes'
+  if (!layout.chrome || !layout.header || !layout.body) return 'missing chrome/header/body boxes'
   if (layout.chrome.top > 90) return `chrome top ${layout.chrome.top} > 90`
-  if (layout.viewport.height - layout.chrome.bottom > 80) {
-    return `chrome bottom gap ${layout.viewport.height - layout.chrome.bottom} > 80`
+  if (layout.viewport.height - layout.chrome.bottom > 24) {
+    return `chrome bottom gap ${layout.viewport.height - layout.chrome.bottom} > 24`
   }
-  if (Math.abs(layout.status.bottom - layout.chrome.bottom) > 40) {
-    return 'status bar is not at the chrome footer'
-  }
+  if (layout.status) return 'term-status chrome still present'
   return null
 }
 
@@ -317,10 +318,33 @@ async function driveTerminalTabs(page) {
   console.log('terminal-tabs: Help / Update log / About')
 }
 
+async function assertCreateSheet(page, { shell, title, cta, extra }) {
+  const root = page.locator(`[data-shell="${shell}"]`)
+  await root.waitFor({ state: 'visible' })
+  await page.locator('.pane-header', { hasText: title }).waitFor({ state: 'visible' })
+  if ((await root.locator('[data-shell="create-cover"]').count()) < 1) fail(`${shell} cover missing`)
+  if ((await root.locator('[data-shell="create-host"]').count()) < 1) fail(`${shell} host missing`)
+  if ((await root.locator('[data-shell="create-name"]').count()) < 1) fail(`${shell} name missing`)
+  if ((await root.locator('[data-shell="find-me"]').count()) < 1) fail(`${shell} Find Me missing`)
+  const ctaBtn = root.locator('[data-shell="create-cta"]')
+  if ((await ctaBtn.count()) < 1) fail(`${shell} CTA missing`)
+  if ((await root.getByRole('button', { name: cta }).count()) < 1) fail(`${shell} CTA label missing`)
+  if (!(await ctaBtn.isDisabled())) fail(`${shell} CTA should start disabled`)
+  if ((await root.locator('[data-accord="more"]').count()) < 1) fail(`${shell} more settings missing`)
+  await root.locator('[data-accord="more"]').click()
+  if ((await root.locator('[data-shell="identity-edit"]').count()) < 1) fail(`${shell} look stubs missing`)
+  if ((await root.locator('[data-expr-edit="thumb"]').count()) < 1) fail(`${shell} thumbnail look missing`)
+  if ((await root.locator('[data-expr-edit="row"]').count()) < 1) fail(`${shell} bar look missing`)
+  if ((await root.locator('[data-expr-edit="page"]').count()) < 1) fail(`${shell} page look missing`)
+  if (extra) await extra(root)
+  await root.locator('[data-shell="create-name"]').fill(shell === 'create-event' ? 'Verify Gathering' : 'Verify Camp')
+  if (await ctaBtn.isDisabled()) fail(`${shell} CTA stayed disabled after name`)
+}
+
 async function driveDesktopChrome(page) {
   await enterDesert(page)
   if (!(await page.locator('[data-shell="top"]').isVisible())) fail('top bar hidden')
-  if (!(await page.locator('[data-shell="bottom"]').isVisible())) fail('bottom bar hidden')
+  if ((await page.locator('[data-shell="bottom"]').count()) > 0) fail('bottom shell bar still present')
   if (!(await page.locator('[data-shell="pane"]').isVisible())) fail('left nav pane hidden')
   if (!(await page.locator('[data-shell="feed"]').isVisible())) fail('FEED control missing')
   if ((await page.getByRole('button', { name: 'FEED', exact: true }).count()) < 1) fail('FEED label missing')
@@ -330,7 +354,7 @@ async function driveDesktopChrome(page) {
   if ((await page.getByRole('button', { name: 'Chat', exact: true }).count()) < 1) fail('Chat missing')
   if ((await page.getByRole('button', { name: 'Notifications' }).count()) < 1) fail('Notifications missing')
   if ((await page.getByRole('button', { name: 'Settings' }).count()) < 1) fail('Settings missing')
-  if ((await page.getByRole('button', { name: 'Chats', exact: true }).count()) < 1) fail('Chats missing')
+  if ((await page.locator('[data-theme-cycle="true"]').count()) < 1) fail('Theme missing')
   const create = page.locator('[data-pane="create"]')
   const manage = page.locator('[data-pane="manage"]')
   const gimmicks = page.locator('[data-pane="gimmicks"]')
@@ -345,8 +369,35 @@ async function driveDesktopChrome(page) {
   writeFileSync(`${EVIDENCE}/font-shell.json`, JSON.stringify({ paneFont, bodyFont }, null, 2))
   await page.getByRole('button', { name: 'FEED', exact: true }).click()
   await page.locator('[data-shell="feed-page"]').waitFor({ state: 'visible' })
-  await page.locator('.title', { hasText: 'F :: FEED' }).waitFor({ state: 'visible' })
+  await page.locator('.pane-header', { hasText: 'FEED' }).waitFor({ state: 'visible' })
   if ((await page.getByText('Borderland 2026').count()) < 1) fail('FEED missing Borderland seed')
+  if ((await page.locator('.term-status').count()) > 0) fail('term-status chrome still present')
+  if ((await page.locator('.stream-row').count()) < 1) fail('FEED rows missing')
+  const headerBox = await page.locator('.pane-header').boundingBox()
+  const mastBox = await page.locator('[data-shell="mast"]').boundingBox()
+  if (!headerBox || !mastBox) fail('FEED header/mast boxes missing')
+  const stream = page.locator('.pane-stream')
+  await stream.evaluate((el) => {
+    el.scrollTop = Math.min(420, el.scrollHeight)
+  })
+  const headerAfter = await page.locator('.pane-header').boundingBox()
+  const mastAfter = await page.locator('[data-shell="mast"]').boundingBox()
+  if (!headerAfter || !mastAfter) fail('FEED header/mast boxes missing after scroll')
+  if (Math.abs(headerAfter.y - headerBox.y) > 1) fail('FEED header moved on scroll')
+  if (mastAfter.y >= mastBox.y - 8) fail('FEED mast did not scroll away')
+  await page.screenshot({ path: `${EVIDENCE}/nav-feed-scrolled.png` })
+  await page.locator('[data-view="thumbnail"]').click()
+  if ((await page.locator('.stream-thumb').count()) < 1) fail('FEED thumbnails missing')
+  await page.screenshot({ path: `${EVIDENCE}/nav-feed-thumbs.png` })
+  await page.locator('[data-view="row"]').click()
+  if ((await page.locator('.stream-row').count()) < 1) fail('FEED rows missing after toggle')
+  const layout = await measureLayout(page)
+  writeEvidence('desktop-chrome.layout.json', JSON.stringify(layout, null, 2))
+  const fillErr = checkFill(layout)
+  if (fillErr) fail(fillErr)
+  if (!layout.stream || layout.stream.scrollHeight <= layout.stream.clientHeight) {
+    fail('pane-stream does not overflow')
+  }
   await page.screenshot({ path: `${EVIDENCE}/nav-feed.png` })
   await create.click()
   if ((await create.getAttribute('aria-expanded')) !== 'true') fail('CREATE did not expand')
@@ -355,11 +406,51 @@ async function driveDesktopChrome(page) {
   if ((await page.getByRole('button', { name: 'group', exact: true }).count()) < 1) fail('CREATE group missing')
   if ((await page.getByRole('button', { name: 'call out', exact: true }).count()) < 1) fail('CREATE call out missing')
   await page.screenshot({ path: `${EVIDENCE}/nav-create.png` })
+  await page.getByRole('button', { name: 'event', exact: true }).click()
+  await assertCreateSheet(page, {
+    shell: 'create-event',
+    title: 'Create event',
+    cta: 'Create event',
+    extra: async (root) => {
+      if ((await root.getByLabel('Start date').count()) < 1) fail('create-event start date missing')
+      if ((await root.getByLabel('Start time').count()) < 1) fail('create-event start time missing')
+      if ((await root.getByLabel('Timezone').count()) < 1) fail('create-event timezone missing')
+      if ((await root.getByRole('button', { name: '+ End date and time' }).count()) < 1) {
+        fail('create-event end date link missing')
+      }
+      if ((await root.getByLabel('Who can see this').count()) < 1) fail('create-event privacy missing')
+      if ((await root.locator('[data-accord="cohosts"]').count()) < 1) fail('create-event co-hosts missing')
+      if ((await root.locator('[data-accord="recurring"]').count()) < 1) fail('create-event recurring missing')
+    },
+  })
+  await page.screenshot({ path: `${EVIDENCE}/create-event.png` })
+  await page.getByRole('button', { name: 'event horizon', exact: true }).click()
+  await page.locator('.title', { hasText: 'H :: HORIZONS' }).waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'group', exact: true }).click()
+  await assertCreateSheet(page, {
+    shell: 'create-group',
+    title: 'Create group',
+    cta: 'Create group',
+    extra: async (root) => {
+      if ((await root.getByLabel('About').count()) < 1) fail('create-group about missing')
+      if ((await root.getByLabel('Location').count()) < 1) fail('create-group location missing')
+      if ((await root.getByLabel('Who can see this').count()) < 1) fail('create-group privacy missing')
+      if ((await root.locator('[data-accord="members"]').count()) < 1) fail('create-group members stub missing')
+      if ((await root.locator('[data-accord="admins"]').count()) < 1) fail('create-group admins stub missing')
+    },
+  })
+  await page.screenshot({ path: `${EVIDENCE}/create-group.png` })
+  await page.getByRole('button', { name: 'call out', exact: true }).click()
+  await page.locator('.pane-header', { hasText: 'CALL OUT' }).waitFor({ state: 'visible' })
+  await page.locator('[data-shell="callouts"]').waitFor({ state: 'visible' })
+  await page.screenshot({ path: `${EVIDENCE}/nav-callout.png` })
   await manage.click()
   if ((await manage.getAttribute('aria-expanded')) !== 'true') fail('MANAGE did not expand')
   if ((await page.getByRole('button', { name: 'Contact lists' }).count()) < 1) fail('Contact lists missing')
   if ((await page.getByRole('button', { name: 'Event horizons' }).count()) < 1) fail('Event horizons missing')
   if ((await page.getByRole('button', { name: 'Groups' }).count()) < 1) fail('Groups missing')
+  if ((await page.getByRole('button', { name: 'Admin', exact: true }).count()) < 1) fail('Admin missing')
+  if ((await page.getByRole('button', { name: 'Chats', exact: true }).count()) < 1) fail('Chats missing')
   await page.screenshot({ path: `${EVIDENCE}/nav-manage.png` })
   await gimmicks.click()
   if ((await gimmicks.getAttribute('aria-expanded')) !== 'true') fail('GIMMICKS did not expand')
@@ -368,16 +459,6 @@ async function driveDesktopChrome(page) {
   if ((await page.getByRole('button', { name: 'Bot Roulette' }).count()) < 1) fail('Bot Roulette missing')
   if ((await page.getByRole('button', { name: 'Mystery Chat', exact: true }).count()) < 1) fail('Mystery Chat missing')
   await page.screenshot({ path: `${EVIDENCE}/nav-left-pane.png` })
-  await page.getByRole('button', { name: 'event', exact: true }).click()
-  await page.locator('.title', { hasText: 'E :: EVENTS' }).waitFor({ state: 'visible' })
-  await page.getByRole('button', { name: 'event horizon', exact: true }).click()
-  await page.locator('.title', { hasText: 'H :: HORIZONS' }).waitFor({ state: 'visible' })
-  await page.getByRole('button', { name: 'group', exact: true }).click()
-  await page.locator('.title', { hasText: 'CL :: CLUSTERS' }).waitFor({ state: 'visible' })
-  await page.getByRole('button', { name: 'call out', exact: true }).click()
-  await page.locator('.title', { hasText: 'CO :: CALL OUT' }).waitFor({ state: 'visible' })
-  await page.locator('[data-shell="callouts"]').waitFor({ state: 'visible' })
-  await page.screenshot({ path: `${EVIDENCE}/nav-callout.png` })
   await page.getByRole('button', { name: 'Contact lists', exact: true }).click()
   await page.locator('.title', { hasText: 'C :: CONTACTS' }).waitFor({ state: 'visible' })
   await page.getByRole('button', { name: 'Event horizons', exact: true }).click()
@@ -465,10 +546,10 @@ const FINDER_EXPR_KINDS = [
 async function driveFinder(page) {
   await enterDesert(page)
   await page.locator('[data-shell="search"]').click()
-  await page.waitForSelector('h1.finder-title')
-  if ((await page.locator('h1.finder-title').innerText()) !== 'SEARCH') fail('title must be SEARCH')
+  await page.waitForSelector('h1.pane-header')
+  if ((await page.locator('h1.pane-header').innerText()) !== 'SEARCH') fail('title must be SEARCH')
   if ((await page.locator('[data-filter="callouts"]').count()) < 1) fail('CALLOUTS filter missing')
-  const searchFont = await assertPlexMono(page, 'h1.finder-title', 'SEARCH title')
+  const searchFont = await assertPlexMono(page, 'h1.pane-header', 'SEARCH title')
   writeFileSync(`${EVIDENCE}/font-search.json`, JSON.stringify(searchFont, null, 2))
   await page.screenshot({ path: `${EVIDENCE}/font-search-title.png` })
   const all = page.locator('[data-filter="all"]')
@@ -493,7 +574,7 @@ async function driveFinder(page) {
   }
   await page.screenshot({ path: `${EVIDENCE}/finder-search.png` })
   await search.fill('')
-  await page.locator('[data-view="list"]').click()
+  await page.locator('[data-view="row"]').click()
   const row = page.locator('[data-space-expr="row"]').first()
   await row.hover()
   await page.locator('[data-shell="preview"] [data-space-expr="thumb"]').waitFor({ state: 'visible' })
@@ -510,7 +591,7 @@ async function driveFinder(page) {
   for (const kind of FINDER_EXPR_KINDS) {
     await page.locator(`[data-filter="${kind.filter}"]`).click()
     if ((await all.getAttribute('aria-pressed')) !== 'false') fail(`ALL stayed on after ${kind.filter}`)
-    await page.locator('[data-view="list"]').click()
+    await page.locator('[data-view="row"]').click()
     const kindRow = page.locator(`[data-space-expr="row"][data-space-kind="${kind.space}"]`).first()
     if ((await kindRow.count()) < 1) fail(`no ${kind.space} row`)
     if (kind.space === 'callout' && (await kindRow.locator('[data-space-exp]').count()) < 1) {

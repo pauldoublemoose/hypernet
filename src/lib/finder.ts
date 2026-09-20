@@ -1,3 +1,4 @@
+import { attachIdentity } from './identity'
 import { loadCallouts } from './callouts'
 import { loadPeople } from './contactsStore'
 import { visibleGroups } from './groupsStore'
@@ -22,8 +23,6 @@ export const FINDER_KIND_LABEL: Record<FinderKind, string> = {
 }
 
 export type FinderFilter = { mode: 'all' } | { mode: 'kinds'; kinds: FinderKind[] }
-
-export type FinderView = 'thumbnail' | 'list'
 
 const KIND_TO_SPACE: Record<FinderKind, SpaceKind> = {
   people: 'person',
@@ -112,7 +111,13 @@ export function collectSpaces(): SpaceRecord[] {
     body: c.body,
     expiresAt: c.expiresAt,
   }))
-  return [...people, ...events, ...calendars, ...groups, ...callouts]
+  return [
+    ...people,
+    ...events,
+    ...calendars,
+    ...groups,
+    ...callouts,
+  ].map(attachIdentity)
 }
 
 export function querySpaces(filter: FinderFilter, q: string): SpaceRecord[] {
@@ -121,7 +126,7 @@ export function querySpaces(filter: FinderFilter, q: string): SpaceRecord[] {
     const kind = (Object.keys(KIND_TO_SPACE) as FinderKind[]).find((k) => KIND_TO_SPACE[k] === space.kind)
     if (!kind || !filterHasKind(filter, kind)) return false
     if (!needle) return true
-    return `${space.title} ${space.subtitle} ${space.body} ${space.expiresAt ?? ''}`
+    return `${space.title} ${space.subtitle} ${space.body} ${space.findMe ?? ''} ${space.expiresAt ?? ''}`
       .toLowerCase()
       .includes(needle)
   })

@@ -19,6 +19,7 @@ export interface HyperGroup {
   createdAt: string
   /** Optional image stub — URL only, no upload pipeline. */
   imageUrl?: string
+  location?: string
 }
 
 /** User-facing name for HyperGroup. Same persisted rows. */
@@ -82,6 +83,7 @@ export function normalizeGroup(raw: Partial<HyperGroup> & Pick<HyperGroup, 'id' 
     memberIds,
     createdAt: raw.createdAt ?? new Date().toISOString(),
     imageUrl: raw.imageUrl?.trim() || undefined,
+    location: raw.location?.trim() || undefined,
   }
 }
 
@@ -142,6 +144,7 @@ export function createGroup(input: {
   description: string
   visibility?: GroupVisibility
   imageUrl?: string
+  location?: string
 }): HyperGroup {
   const me = selfId()
   const group = normalizeGroup({
@@ -153,6 +156,7 @@ export function createGroup(input: {
     memberIds: [me],
     createdAt: new Date().toISOString(),
     imageUrl: input.imageUrl,
+    location: input.location,
   })
   const groups = loadGroups()
   groups.unshift(group)
@@ -162,7 +166,7 @@ export function createGroup(input: {
 
 export function updateGroup(
   id: string,
-  patch: Partial<Pick<HyperGroup, 'name' | 'description' | 'visibility' | 'imageUrl'>>,
+  patch: Partial<Pick<HyperGroup, 'name' | 'description' | 'visibility' | 'imageUrl' | 'location'>>,
   actorId: string = selfId(),
 ): HyperGroup | undefined {
   if (!isGroupAdmin(id, actorId)) return undefined

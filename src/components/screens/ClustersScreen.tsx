@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useKeys } from '../../hooks'
 import {
-  createCluster,
   getCluster,
   clustersIBelongTo,
   isClusterAdmin,
@@ -23,7 +22,11 @@ import {
   type Horizon,
   type HyperEvent,
 } from '../../lib/horizonStore'
+import type { Answers } from '../../types'
 import { CardThumb, MemberStack } from '../CardThumb'
+import { CreateGroupSheet } from '../CreateGroupSheet'
+import { IdentityEdit } from '../IdentityEdit'
+import { emptyIdentity, loadIdentity, saveIdentity } from '../../lib/identity'
 
 export type ClustersTab = 'directory' | 'mine'
 
@@ -31,16 +34,20 @@ const CLUSTER_HELPER =
   'A shared space. Everyone in the cluster can see they’re members together.'
 
 export function ClustersScreen({
+  answers,
   onBack,
   initialTab = 'directory',
+  startCreate = false,
 }: {
+  answers: Answers
   onBack: () => void
   initialTab?: ClustersTab
+  startCreate?: boolean
 }) {
   const [tick, setTick] = useState(0)
   const [tab, setTab] = useState<ClustersTab>(initialTab)
   const [viewId, setViewId] = useState<string | null>(null)
-  const [creating, setCreating] = useState(false)
+  const [creating, setCreating] = useState(Boolean(startCreate))
   const [editing, setEditing] = useState(false)
   const [creatingHorizon, setCreatingHorizon] = useState(false)
   const [name, setName] = useState('')
@@ -49,6 +56,7 @@ export function ClustersScreen({
   const [imageUrl, setImageUrl] = useState('')
   const [hzName, setHzName] = useState('')
   const [hzDescription, setHzDescription] = useState('')
+  const [identity, setIdentity] = useState(emptyIdentity)
 
   const refresh = () => setTick((n) => n + 1)
 
@@ -64,10 +72,10 @@ export function ClustersScreen({
   useEffect(() => {
     setTab(initialTab)
     setViewId(null)
-    setCreating(false)
+    setCreating(Boolean(startCreate))
     setEditing(false)
     setCreatingHorizon(false)
-  }, [initialTab])
+  }, [initialTab, startCreate])
 
   useKeys((e: KeyboardEvent) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -76,7 +84,7 @@ export function ClustersScreen({
       return
     e.preventDefault()
     if (creatingHorizon) setCreatingHorizon(false)
-    else if (creating) setCreating(false)
+    else if (creating) startCreate ? onBack() : setCreating(false)
     else if (editing) setEditing(false)
     else if (viewId) setViewId(null)
     else onBack()
@@ -94,6 +102,7 @@ export function ClustersScreen({
     setDescription('')
     setVisibility('public')
     setImageUrl('')
+    setIdentity(emptyIdentity())
   }
 
   const openCreate = () => {
@@ -106,22 +115,14 @@ export function ClustersScreen({
     setDescription(c.description)
     setVisibility(c.visibility)
     setImageUrl(c.imageUrl ?? '')
+    setIdentity(loadIdentity('group', c.id))
     setEditing(true)
-  }
-
-  const submitCreate = () => {
-    if (!name.trim()) return
-    const c = createCluster({ name, description, visibility, imageUrl })
-    setCreating(false)
-    resetForm()
-    refresh()
-    setTab('mine')
-    setViewId(c.id)
   }
 
   const submitEdit = () => {
     if (!viewing || !name.trim()) return
     const next = updateCluster(viewing.id, { name, description, visibility, imageUrl })
+    saveIdentity('group', viewing.id, identity)
     setEditing(false)
     refresh()
     if (next) setViewId(next.id)
@@ -204,6 +205,19 @@ export function ClustersScreen({
           onChange={(e) => setImageUrl(e.target.value)}
         />
       </label>
+      <IdentityEdit
+        kind="group"
+        base={{
+          kind: 'group',
+          id: viewing?.id ?? 'draft',
+          title: name,
+          subtitle: visibility,
+          body: description,
+          imageUrl,
+        }}
+        value={identity}
+        onChange={setIdentity}
+      />
     </>
   )
 
@@ -252,20 +266,16 @@ export function ClustersScreen({
 
   if (creating) {
     return (
-      <div className="screen hz-screen">
-        <div className="title">CL :: NEW CLUSTER</div>
-        <p className="dim hz-lead">{CLUSTER_HELPER}</p>
-        <p className="dim hz-lead">You become admin and member. Thin camp / crew page — not a private contact list.</p>
-        {formBody()}
-        <div className="profile-actions">
-          <button type="button" className="btn" onClick={submitCreate} disabled={!name.trim()}>
-            Create
-          </button>
-          <button type="button" className="btn dim" onClick={() => setCreating(false)}>
-            Cancel
-          </button>
-        </div>
-      </div>
+      <CreateGroupSheet
+        answers={answers}
+        onCancel={() => (startCreate ? onBack() : setCreating(false))}
+        onCreated={(id) => {
+          setCreating(false)
+          refresh()
+          setTab('mine')
+          setViewId(id)
+        }}
+      />
     )
   }
 
@@ -343,6 +353,7 @@ export function ClustersScreen({
             </a>
           </p>
         ) : null}
+        {viewing.location ? <p className="hz-meta dim">{viewing.location}</p> : null}
         {viewing.description ? (
           <p className="profile-view-text">{viewing.description}</p>
         ) : (
@@ -491,7 +502,7 @@ export function ClustersScreen({
         <>
           <div className="profile-actions">
             <button type="button" className="btn" onClick={openCreate}>
-              Create cluster
+              Create group
             </button>
           </div>
           {mine.length === 0 ? (
