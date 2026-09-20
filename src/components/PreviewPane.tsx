@@ -3,7 +3,7 @@ export function PreviewPane() {
     <aside className="chrome-frame chrome-preview" data-shell="preview" aria-label="Preview pane">
       <div className="terminal">
         <div className="term-header">
-          <span>HYPERNET // PREVIEW</span>
+          <span>PREVIEW</span>
           <span className="header-right">
             <span className="section-badge dim">[ EMPTY ]</span>
           </span>

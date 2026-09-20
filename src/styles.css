@@ -31,8 +31,6 @@ body {
   --desk-icon: #111;
   --desk-muted: #444;
   --desk-lock-bg: #fff;
-  --desk-cell-w: 90px;
-  --desk-cell-h: 70px;
   height: 100%;
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
@@ -116,15 +114,14 @@ body {
   padding: 8px 10px 10px 6px;
 }
 
-.chrome-preview {
-  flex: 0 0 240px;
-  width: 240px;
-  max-width: 240px;
-  padding: 14px;
-}
-
 .chrome-preview .terminal {
   height: min(420px, 62vh);
+}
+
+.chrome-preview .term-header {
+  flex-wrap: nowrap;
+  font-size: 16px;
+  letter-spacing: 1px;
 }
 
 .app.is-expanded .chrome-preview .terminal {
@@ -201,6 +198,19 @@ body {
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.65);
   outline: 1px solid rgba(20, 26, 32, 0.35);
+}
+
+.chrome-frame.chrome-preview {
+  flex: 0 0 280px;
+  width: 280px;
+  max-width: 280px;
+  padding: 14px;
+}
+
+.app.is-expanded .chrome-frame.chrome-preview {
+  flex: 0 1 32%;
+  width: auto;
+  max-width: 420px;
 }
 
 /* ---- window expand (desktop bezel) ------------------------------------ */

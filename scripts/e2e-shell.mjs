@@ -62,6 +62,8 @@ for (const label of destinations) {
 
 if ((await page.locator('.chrome-frame').count()) !== 2) fail('expected two chrome frames')
 
+await page.screenshot({ path: `${SHOTS}/shell-desktop.png` })
+
 const layout = await page.evaluate(() => {
   const box = (el) => {
     if (!el) return null
@@ -90,6 +92,8 @@ else {
 if (!layout.preview) fail('preview chrome missing')
 else if (layout.preview.left < (layout.primary?.right ?? 0) - 8) {
   fail('preview should sit to the right of the primary window')
+} else if (layout.preview.width >= (layout.primary?.width ?? 0)) {
+  fail(`preview width ${layout.preview.width} should be narrower than primary`)
 }
 
 const themeBtn = page.locator('[data-theme-cycle="true"]')
@@ -98,12 +102,11 @@ if ((await themeBtn.count()) !== 1) fail('Theme desktop icon missing')
 if ((await appTheme()) !== 'white') fail('initial theme should be white')
 await themeBtn.click()
 if ((await appTheme()) !== 'black') fail('theme should cycle to black')
+await page.screenshot({ path: `${SHOTS}/shell-theme-black.png` })
 await themeBtn.click()
 if ((await appTheme()) !== 'polychrome') fail('theme should cycle to polychrome')
 await themeBtn.click()
 if ((await appTheme()) !== 'white') fail('theme should cycle back to white')
-
-await page.screenshot({ path: `${SHOTS}/shell-desktop.png` })
 
 await page.getByRole('button', { name: 'Find Nodes — search the network for people and nodes. Placeholder.' }).click()
 await page.waitForSelector('text=FN :: NODES')
@@ -113,6 +116,22 @@ if (await preview.isVisible()) {
   const stub = page.locator('[data-shell="preview"]')
   if ((await stub.locator('text=PREVIEW').count()) < 1) fail('preview stub title missing')
 }
+
+const mobile = await browser.newPage({
+  viewport: { width: 390, height: 844 },
+  hasTouch: true,
+})
+await mobile.goto(BASE)
+await mobile.waitForSelector('text=HYPERNET v0.1')
+if (await mobile.locator('[data-shell="topnav"]').isVisible()) fail('top nav should hide on mobile')
+if (await mobile.locator('[data-shell="sidenav"]').isVisible()) fail('left nav should hide on mobile')
+if (await mobile.locator('[data-shell="preview"]').isVisible()) fail('preview should hide on mobile')
+const mobileFrames = await mobile.locator('.chrome-frame').evaluateAll((els) =>
+  els.filter((el) => getComputedStyle(el).display !== 'none').length,
+)
+if (mobileFrames !== 1) fail(`mobile should show one chrome frame, got ${mobileFrames}`)
+await mobile.screenshot({ path: `${SHOTS}/shell-mobile.png` })
+await mobile.close()
 
 await browser.close()
 if (process.exitCode) process.exit(process.exitCode)
