@@ -55,33 +55,7 @@ type NavCategory = {
   items: DeskIcon[]
 }
 
-/** Global — network-wide. */
-const LEFT_A: DeskIcon[] = [
-  {
-    id: 'announcements',
-    glyph: '⌁',
-    label: 'Global Announcements',
-    locked: false,
-    tip: 'Global Announcements — network message board / updates feed.',
-  },
-  {
-    id: 'global-chat',
-    glyph: '▮',
-    label: 'Global Chat',
-    locked: false,
-    tip: 'Global Chat — network-wide chat (stub).',
-  },
-  {
-    id: 'graph',
-    glyph: '◈',
-    label: 'Network Graph',
-    locked: false,
-    tip: 'Network Graph — drop into a World and walk. Privacy = reach.',
-  },
-]
-
-/** Find — search the network. */
-const LEFT_B: DeskIcon[] = [
+const FIND: DeskIcon[] = [
   {
     id: 'notes',
     glyph: '※',
@@ -112,8 +86,31 @@ const LEFT_B: DeskIcon[] = [
   },
 ]
 
-/** Mine — inbox. */
-const RIGHT_C: DeskIcon[] = [
+const GLOBAL: DeskIcon[] = [
+  {
+    id: 'announcements',
+    glyph: '⌁',
+    label: 'Global Announcements',
+    locked: false,
+    tip: 'Global Announcements — network message board / updates feed.',
+  },
+  {
+    id: 'global-chat',
+    glyph: '▮',
+    label: 'Global Chat',
+    locked: false,
+    tip: 'Global Chat — network-wide chat (stub).',
+  },
+  {
+    id: 'graph',
+    glyph: '◈',
+    label: 'Network Graph',
+    locked: false,
+    tip: 'Network Graph — drop into a World and walk. Privacy = reach.',
+  },
+]
+
+const MINE: DeskIcon[] = [
   {
     id: 'notifications',
     glyph: '◷',
@@ -128,10 +125,6 @@ const RIGHT_C: DeskIcon[] = [
     locked: false,
     tip: 'My Chats — your private threads (stub).',
   },
-]
-
-/** Mine — personal. */
-const RIGHT_D: DeskIcon[] = [
   {
     id: 'profile',
     glyph: '◉',
@@ -169,8 +162,7 @@ const RIGHT_D: DeskIcon[] = [
   },
 ]
 
-/** System — theme, admin, settings. */
-const RIGHT_BOTTOM: DeskIcon[] = [
+const SYSTEM: DeskIcon[] = [
   {
     id: 'theme',
     glyph: '◐',
@@ -195,10 +187,10 @@ const RIGHT_BOTTOM: DeskIcon[] = [
 ]
 
 const NAV_CATEGORIES: NavCategory[] = [
-  { id: 'find', label: 'Find', items: LEFT_B },
-  { id: 'global', label: 'Global', items: LEFT_A },
-  { id: 'mine', label: 'Mine', items: [...RIGHT_C, ...RIGHT_D] },
-  { id: 'system', label: 'System', items: RIGHT_BOTTOM },
+  { id: 'find', label: 'Find', items: FIND },
+  { id: 'global', label: 'Global', items: GLOBAL },
+  { id: 'mine', label: 'Mine', items: MINE },
+  { id: 'system', label: 'System', items: SYSTEM },
 ]
 
 function IconButton({

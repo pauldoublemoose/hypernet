@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-// Desktop shell layout check: top nav, categorized left nav, dual windows, left shift.
-// Requires the app on BASE (default http://127.0.0.1:5173/).
-// Run: node scripts/e2e-shell.mjs
 import { chromium } from 'playwright'
 import { mkdirSync, writeFileSync } from 'node:fs'
 
