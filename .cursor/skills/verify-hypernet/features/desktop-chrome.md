@@ -12,7 +12,7 @@ After onboarding, the desert shell uses a left nav pane, a top bar, and a bottom
 - FEED opens `F :: FEED` with burns-seeded events.
 - CREATE event, event horizon, group, and call out open `E :: EVENTS`, `H :: HORIZONS`, `CL :: CLUSTERS`, and `CO :: CALL OUT`.
 - MANAGE Contact lists, Event horizons, and Groups open `C :: CONTACTS`, `MH :: MY HORIZONS`, and `CL :: MY CLUSTERS`.
-- GIMMICKS opens Global Spam Hell, Moonwalker, and Bot Roulette. Global Spam Hell shows that heading. Moonwalker shows `MOONWALKER`. Bot Roulette spins.
+- GIMMICKS opens Global Spam Hell, Moonwalker, Bot Roulette, and Mystery Chat. Global Spam Hell shows that heading. Moonwalker shows `MOONWALKER`. Bot Roulette spins. Mystery Chat joins the pool, matches an alias, and never shows a directory name.
 - Top bar has Chat, Notifications, and the avatar.
 - Bottom bar has Settings and Theme on the left, Chats on the right.
 - Theme cycles WHITE → BLACK → POLYCHROME from `[data-theme-cycle=true]`.

@@ -26,6 +26,7 @@ import { ClustersScreen, type ClustersTab } from './components/screens/ClustersS
 import { TerminalScreen } from './components/screens/TerminalScreen'
 import { FinderScreen } from './components/screens/FinderScreen'
 import { BotRouletteScreen } from './components/screens/BotRouletteScreen'
+import { MysteryChatScreen } from './components/screens/MysteryChatScreen'
 import { CalloutsScreen } from './components/screens/CalloutsScreen'
 import { FeedScreen } from './components/screens/FeedScreen'
 import {
@@ -117,6 +118,7 @@ type ScreenId =
   | 'myChats'
   | 'chronicle'
   | 'botRoulette'
+  | 'mysteryChat'
   | 'callouts'
   | 'feed'
 
@@ -159,6 +161,7 @@ const SECTION: Record<ScreenId, string> = {
   globalChat: 'GC :: GLOBAL CHAT',
   notes: 'S :: SEARCH',
   botRoulette: 'BR :: BOT ROULETTE',
+  mysteryChat: 'MC :: MYSTERY CHAT',
   callouts: 'CO :: CALL OUT',
   feed: 'F :: FEED',
   notifications: 'N :: NOTIFICATIONS',
@@ -250,6 +253,7 @@ const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set([
   'myChats',
   'chronicle',
   'botRoulette',
+  'mysteryChat',
   'callouts',
   'feed',
 ])
@@ -300,6 +304,7 @@ function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: Clust
   if (screen === 'myChats') return 'my-chats'
   if (screen === 'chronicle') return 'chronicle'
   if (screen === 'botRoulette') return 'bot-roulette'
+  if (screen === 'mysteryChat') return 'mystery-chat'
   if (screen === 'callouts') return 'callouts'
   if (screen === 'feed') return 'feed'
   return 'terminal'
@@ -841,6 +846,9 @@ export default function App() {
     case 'botRoulette':
       content = <BotRouletteScreen key="botRoulette" onBack={back} />
       break
+    case 'mysteryChat':
+      content = <MysteryChatScreen key="mysteryChat" onBack={back} />
+      break
     case 'callouts':
       content = <CalloutsScreen key="callouts" onBack={back} />
       break
@@ -871,6 +879,11 @@ export default function App() {
   const openBotRoulette = () => {
     setGraphOpen(false)
     if (screen !== 'botRoulette') go('botRoulette')
+  }
+
+  const openMysteryChat = () => {
+    setGraphOpen(false)
+    if (screen !== 'mysteryChat') go('mysteryChat')
   }
 
   const openCallouts = () => {
@@ -970,6 +983,7 @@ export default function App() {
           onNotes={openNotes}
           onFeed={openFeed}
           onBotRoulette={openBotRoulette}
+          onMysteryChat={openMysteryChat}
           onEvents={openEvents}
           onHorizons={openHorizons}
           onClusters={() => openClusters('directory')}

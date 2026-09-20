@@ -24,6 +24,7 @@ export type ShellFeature =
   | 'theme'
   | 'chronicle'
   | 'bot-roulette'
+  | 'mystery-chat'
 
 type IconId =
   | 'global-chat'
@@ -31,6 +32,7 @@ type IconId =
   | 'notes'
   | 'feed'
   | 'bot-roulette'
+  | 'mystery-chat'
   | 'events'
   | 'horizons'
   | 'clusters'
@@ -91,6 +93,11 @@ const GIMMICKS: NavLeaf[] = [
     label: 'Bot Roulette',
     tip: 'Bot Roulette — robot-face slots.',
   },
+  {
+    id: 'mystery-chat',
+    label: 'Mystery Chat',
+    tip: 'Mystery Chat — anonymous 1:1 booth.',
+  },
 ]
 
 function Leaf({
@@ -123,6 +130,7 @@ export function DesktopIcons({
   onNotes,
   onFeed,
   onBotRoulette,
+  onMysteryChat,
   onEvents,
   onHorizons,
   onClusters,
@@ -145,6 +153,7 @@ export function DesktopIcons({
   onNotes: () => void
   onFeed: () => void
   onBotRoulette: () => void
+  onMysteryChat: () => void
   onEvents: () => void
   onHorizons: () => void
   onClusters: () => void
@@ -174,6 +183,7 @@ export function DesktopIcons({
     else if (id === 'notes') onNotes()
     else if (id === 'feed') onFeed()
     else if (id === 'bot-roulette') onBotRoulette()
+    else if (id === 'mystery-chat') onMysteryChat()
     else if (id === 'events') onEvents()
     else if (id === 'horizons') onHorizons()
     else if (id === 'clusters') onClusters()
