@@ -8,9 +8,9 @@ After onboarding, the desert shell uses a left nav pane, a top bar, and a bottom
 
 - Seed `hypernet_onboarded=1` or finish the journey.
 - Left pane order is SEARCH, CREATE, MANAGE, GIMMICKS.
-- CREATE opens event, event horizon, and group.
-- MANAGE opens Contact lists, Event horizons, and Groups.
-- GIMMICKS opens Global Spam Hell, Moonwalker, and Bot Roulette.
+- CREATE event, event horizon, and group open `E :: EVENTS`, `H :: HORIZONS`, and `CL :: CLUSTERS`.
+- MANAGE Contact lists, Event horizons, and Groups open `C :: CONTACTS`, `MH :: MY HORIZONS`, and `CL :: MY CLUSTERS`.
+- GIMMICKS opens Global Spam Hell, Moonwalker, and Bot Roulette. Global Spam Hell shows that heading. Moonwalker shows `MOONWALKER`. Bot Roulette spins.
 - Top bar has Chat, Notifications, and the avatar.
 - Bottom bar has Settings and Theme on the left, Chats on the right.
 - Theme cycles WHITE → BLACK → POLYCHROME from `[data-theme-cycle=true]`.

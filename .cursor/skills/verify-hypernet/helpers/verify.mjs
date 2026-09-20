@@ -178,12 +178,6 @@ async function enterDesert(page) {
   await page.waitForSelector('[data-shell="dust"]')
 }
 
-async function openTerminal(page) {
-  const toggle = page.locator('.shell-cat-toggle', { hasText: 'Global' })
-  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click()
-  await page.getByRole('button', { name: 'Terminal', exact: true }).click()
-}
-
 async function seedAndSignIn(page) {
   await page.evaluate((profile) => {
     localStorage.clear()
@@ -347,6 +341,22 @@ async function driveDesktopChrome(page) {
   if ((await page.getByRole('button', { name: 'Moonwalker' }).count()) < 1) fail('Moonwalker missing')
   if ((await page.getByRole('button', { name: 'Bot Roulette' }).count()) < 1) fail('Bot Roulette missing')
   await page.screenshot({ path: `${EVIDENCE}/nav-left-pane.png` })
+  await page.getByRole('button', { name: 'event', exact: true }).click()
+  await page.getByText('E :: EVENTS').waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'event horizon' }).click()
+  await page.getByText('H :: HORIZONS').waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'group', exact: true }).click()
+  await page.getByText('CL :: CLUSTERS').waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'Contact lists' }).click()
+  await page.getByText('C :: CONTACTS').waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'Event horizons' }).click()
+  await page.getByText('MH :: MY HORIZONS').waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'Groups' }).click()
+  await page.getByText('CL :: MY CLUSTERS').waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'Global Spam Hell' }).click()
+  await page.getByRole('heading', { name: 'Global Spam Hell' }).waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'Moonwalker' }).click()
+  await page.getByText('MOONWALKER').waitFor({ state: 'visible' })
   await page.getByRole('button', { name: 'Bot Roulette' }).click()
   await page.locator('[data-shell="roulette"]').waitFor({ state: 'visible' })
   await page.locator('[data-shell="roulette-spin"]').click()
