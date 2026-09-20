@@ -1,15 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { createCallout, loadCallouts } from '../../lib/callouts'
 import { useKeys } from '../../hooks'
 
 export function CalloutsScreen({ onBack }: { onBack: () => void }) {
-  const [tick, setTick] = useState(0)
+  const [items, setItems] = useState(() => loadCallouts())
   const [ask, setAsk] = useState('')
   const [expiresAt, setExpiresAt] = useState('2026-10-20')
-  const items = useMemo(() => {
-    void tick
-    return loadCallouts()
-  }, [tick])
 
   useKeys((e) => {
     if (e.key !== 'Backspace' && e.key !== 'Escape') return
@@ -25,7 +21,7 @@ export function CalloutsScreen({ onBack }: { onBack: () => void }) {
     const title = ask.trim().split('\n')[0]?.slice(0, 48) || 'Call out'
     createCallout({ title, body: ask.trim(), expiresAt, hostName: 'You' })
     setAsk('')
-    setTick((n) => n + 1)
+    setItems(loadCallouts())
   }
 
   return (
