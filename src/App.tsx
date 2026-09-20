@@ -311,6 +311,10 @@ export default function App() {
     }
     hoverTimer.current = window.setTimeout(() => setHover(null), 180)
   }
+  const clearHover = () => {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current)
+    setHover(null)
+  }
   const [editingFromReview, setEditingFromReview] = useState(false)
   // When set, the review/confirm flow updates this claimed signup instead of inserting.
   const [editingSignupId, setEditingSignupId] = useState<string | null>(null)
@@ -815,7 +819,9 @@ export default function App() {
       content = <GlobalChatScreen key="globalChat" onBack={back} />
       break
     case 'notes':
-      content = <FinderScreen key="notes" onBack={back} hover={hover} onHover={onHover} />
+      content = (
+        <FinderScreen key="notes" onBack={back} hover={hover} onHover={onHover} onClearHover={clearHover} />
+      )
       break
     case 'notifications':
       content = <NotificationsScreen key="notifications" onBack={back} />

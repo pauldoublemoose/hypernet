@@ -16,10 +16,12 @@ export function FinderScreen({
   onBack,
   hover,
   onHover,
+  onClearHover,
 }: {
   onBack: () => void
   hover: SpaceRecord | null
   onHover: (space: SpaceRecord | null) => void
+  onClearHover: () => void
 }) {
   const [filter, setFilter] = useState<FinderFilter>({ mode: 'all' })
   const [view, setView] = useState<FinderView>('list')
@@ -41,7 +43,7 @@ export function FinderScreen({
   })
 
   const openSpace = (space: SpaceRecord) => {
-    onHover(null)
+    onClearHover()
     setOpen(space)
   }
 
