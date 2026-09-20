@@ -1,3 +1,4 @@
+import { loadCallouts } from './callouts'
 import { loadPeople } from './contactsStore'
 import { visibleGroups } from './groupsStore'
 import {
@@ -8,15 +9,16 @@ import {
 } from './horizonStore'
 import { type SpaceKind, type SpaceRecord } from './space'
 
-export type FinderKind = 'people' | 'events' | 'calendars' | 'groups'
+export type FinderKind = 'people' | 'events' | 'calendars' | 'groups' | 'callouts'
 
-export const FINDER_KINDS: FinderKind[] = ['people', 'events', 'calendars', 'groups']
+export const FINDER_KINDS: FinderKind[] = ['people', 'events', 'calendars', 'groups', 'callouts']
 
 export const FINDER_KIND_LABEL: Record<FinderKind, string> = {
   people: 'PEOPLE',
   events: 'EVENTS',
   calendars: 'CALENDARS',
   groups: 'GROUPS',
+  callouts: 'CALLOUTS',
 }
 
 export type FinderFilter = { mode: 'all' } | { mode: 'kinds'; kinds: FinderKind[] }
@@ -28,6 +30,7 @@ const KIND_TO_SPACE: Record<FinderKind, SpaceKind> = {
   events: 'event',
   calendars: 'calendar',
   groups: 'group',
+  callouts: 'callout',
 }
 
 export function toggleFinderFilter(current: FinderFilter, next: 'all' | FinderKind): FinderFilter {
@@ -101,7 +104,15 @@ export function collectSpaces(): SpaceRecord[] {
     body: g.description,
     imageUrl: g.imageUrl,
   }))
-  return [...people, ...events, ...calendars, ...groups]
+  const callouts: SpaceRecord[] = loadCallouts().map((c) => ({
+    kind: 'callout',
+    id: c.id,
+    title: c.title,
+    subtitle: c.hostName,
+    body: c.body,
+    expiresAt: c.expiresAt,
+  }))
+  return [...people, ...events, ...calendars, ...groups, ...callouts]
 }
 
 export function querySpaces(filter: FinderFilter, q: string): SpaceRecord[] {
@@ -110,6 +121,8 @@ export function querySpaces(filter: FinderFilter, q: string): SpaceRecord[] {
     const kind = (Object.keys(KIND_TO_SPACE) as FinderKind[]).find((k) => KIND_TO_SPACE[k] === space.kind)
     if (!kind || !filterHasKind(filter, kind)) return false
     if (!needle) return true
-    return `${space.title} ${space.subtitle} ${space.body}`.toLowerCase().includes(needle)
+    return `${space.title} ${space.subtitle} ${space.body} ${space.expiresAt ?? ''}`
+      .toLowerCase()
+      .includes(needle)
   })
 }

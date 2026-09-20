@@ -1,6 +1,15 @@
 import { SPACE_KIND_LABEL, type SpaceExpr, type SpaceRecord } from '../lib/space'
 import { CardThumb } from './CardThumb'
 
+function Expiry({ at }: { at?: string }) {
+  if (!at) return null
+  return (
+    <span className="space-exp dim" data-space-exp={at}>
+      EXP {at}
+    </span>
+  )
+}
+
 export function SpaceCard({
   space,
   expr,
@@ -24,6 +33,7 @@ export function SpaceCard({
         <p className="space-kicker">{SPACE_KIND_LABEL[space.kind]}</p>
         <h2 className="space-title">{space.title}</h2>
         <p className="space-sub dim">{space.subtitle}</p>
+        <Expiry at={space.expiresAt} />
         {space.body ? <p className="space-body">{space.body}</p> : null}
       </article>
     )
@@ -45,6 +55,7 @@ export function SpaceCard({
         <CardThumb src={space.imageUrl} label={space.title} shape={shape} size={thumbSize} />
         <span className="space-title">{space.title}</span>
         <span className="space-sub dim">{space.subtitle}</span>
+        <Expiry at={space.expiresAt} />
       </button>
     )
   }
@@ -65,8 +76,10 @@ export function SpaceCard({
       <span className="space-row-copy">
         <span className="space-title">{space.title}</span>
         <span className="space-sub dim">{space.subtitle}</span>
+        <Expiry at={space.expiresAt} />
       </span>
       <span className="space-kicker dim">{SPACE_KIND_LABEL[space.kind]}</span>
     </button>
   )
 }
+

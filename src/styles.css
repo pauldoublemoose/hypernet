@@ -3031,6 +3031,11 @@ html[data-reduce-motion='on'] .terminal {
   text-transform: uppercase;
 }
 
+.space-exp {
+  font-size: 12px;
+  letter-spacing: 0.6px;
+}
+
 html[data-reduce-motion='on'] .pixel-dust {
   opacity: 0.55;
 }

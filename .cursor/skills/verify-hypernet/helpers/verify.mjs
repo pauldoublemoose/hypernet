@@ -307,6 +307,8 @@ async function driveDesktopChrome(page) {
   if (!(await page.locator('[data-shell="top"]').isVisible())) fail('top bar hidden')
   if (!(await page.locator('[data-shell="bottom"]').isVisible())) fail('bottom bar hidden')
   if (!(await page.locator('[data-shell="pane"]').isVisible())) fail('left nav pane hidden')
+  if (!(await page.locator('[data-shell="feed"]').isVisible())) fail('FEED control missing')
+  if ((await page.getByRole('button', { name: 'FEED', exact: true }).count()) < 1) fail('FEED label missing')
   if (!(await page.locator('[data-shell="search"]').isVisible())) fail('SEARCH control missing')
   if ((await page.getByRole('button', { name: 'SEARCH', exact: true }).count()) < 1) fail('SEARCH label missing')
   if (!(await page.locator('[data-shell="avatar"]').isVisible())) fail('avatar missing')
@@ -320,14 +322,20 @@ async function driveDesktopChrome(page) {
   const paneOrder = await page
     .locator('[data-shell="pane"] > .shell-find, [data-shell="pane"] > .shell-cat > .shell-cat-toggle')
     .allTextContents()
-  if (paneOrder.map((t) => t.trim()).join('|') !== 'SEARCH|CREATE|MANAGE|GIMMICKS') {
+  if (paneOrder.map((t) => t.trim()).join('|') !== 'FEED|SEARCH|CREATE|MANAGE|GIMMICKS') {
     fail(`left nav order ${JSON.stringify(paneOrder)}`)
   }
+  await page.getByRole('button', { name: 'FEED', exact: true }).click()
+  await page.getByText('F :: FEED').waitFor({ state: 'visible' })
+  await page.locator('[data-shell="feed-page"]').waitFor({ state: 'visible' })
+  if ((await page.getByText('Borderland 2026').count()) < 1) fail('FEED missing Borderland seed')
+  await page.screenshot({ path: `${EVIDENCE}/nav-feed.png` })
   await create.click()
   if ((await create.getAttribute('aria-expanded')) !== 'true') fail('CREATE did not expand')
   if ((await page.getByRole('button', { name: 'event', exact: true }).count()) < 1) fail('CREATE event missing')
   if ((await page.getByRole('button', { name: 'event horizon' }).count()) < 1) fail('CREATE event horizon missing')
   if ((await page.getByRole('button', { name: 'group', exact: true }).count()) < 1) fail('CREATE group missing')
+  if ((await page.getByRole('button', { name: 'call out', exact: true }).count()) < 1) fail('CREATE call out missing')
   await page.screenshot({ path: `${EVIDENCE}/nav-create.png` })
   await manage.click()
   if ((await manage.getAttribute('aria-expanded')) !== 'true') fail('MANAGE did not expand')
@@ -347,6 +355,9 @@ async function driveDesktopChrome(page) {
   await page.getByText('H :: HORIZONS').waitFor({ state: 'visible' })
   await page.getByRole('button', { name: 'group', exact: true }).click()
   await page.getByText('CL :: CLUSTERS').waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: 'call out', exact: true }).click()
+  await page.getByText('CO :: CALL OUT').waitFor({ state: 'visible' })
+  await page.locator('[data-shell="callouts"]').waitFor({ state: 'visible' })
   await page.getByRole('button', { name: 'Contact lists' }).click()
   await page.getByText('C :: CONTACTS').waitFor({ state: 'visible' })
   await page.getByRole('button', { name: 'Event horizons' }).click()
@@ -408,6 +419,7 @@ const FINDER_EXPR_KINDS = [
   { filter: 'events', space: 'event' },
   { filter: 'groups', space: 'group' },
   { filter: 'calendars', space: 'calendar' },
+  { filter: 'callouts', space: 'callout' },
 ]
 
 async function driveFinder(page) {
@@ -415,6 +427,7 @@ async function driveFinder(page) {
   await page.locator('[data-shell="search"]').click()
   await page.waitForSelector('h1.finder-title')
   if ((await page.locator('h1.finder-title').innerText()) !== 'SEARCH') fail('title must be SEARCH')
+  if ((await page.locator('[data-filter="callouts"]').count()) < 1) fail('CALLOUTS filter missing')
   const all = page.locator('[data-filter="all"]')
   const people = page.locator('[data-filter="people"]')
   if ((await all.getAttribute('aria-pressed')) !== 'true') fail('ALL should start on')
@@ -457,15 +470,32 @@ async function driveFinder(page) {
     await page.locator('[data-view="list"]').click()
     const kindRow = page.locator(`[data-space-expr="row"][data-space-kind="${kind.space}"]`).first()
     if ((await kindRow.count()) < 1) fail(`no ${kind.space} row`)
+    if (kind.space === 'callout' && (await kindRow.locator('[data-space-exp]').count()) < 1) {
+      fail('callout row missing expiry')
+    }
+    if (kind.filter === 'callouts') {
+      await search.fill('sound engineer')
+      const hit = page.locator('[data-space-expr="row"][data-space-kind="callout"]')
+      if ((await hit.count()) < 1) fail('callout search for sound engineer returned nothing')
+      await page.screenshot({ path: `${EVIDENCE}/finder-callouts-search.png` })
+      await search.fill('')
+    }
     await kindRow.hover()
     await page.locator('[data-shell="preview"] [data-space-expr="thumb"]').waitFor({ state: 'visible' })
     await page.screenshot({ path: `${EVIDENCE}/finder-${kind.filter}-row.png` })
     await page.locator('[data-view="thumbnail"]').click()
     const kindThumb = page.locator(`[data-space-expr="thumb"][data-space-kind="${kind.space}"]`).first()
     if ((await kindThumb.count()) < 1) fail(`no ${kind.space} thumb`)
+    if (kind.space === 'callout' && (await kindThumb.locator('[data-space-exp]').count()) < 1) {
+      fail('callout thumb missing expiry')
+    }
     await page.screenshot({ path: `${EVIDENCE}/finder-${kind.filter}-thumb.png` })
     await kindThumb.click()
     await page.locator(`[data-space-expr="page"][data-space-kind="${kind.space}"]`).waitFor({ state: 'visible' })
+    if (kind.space === 'callout') {
+      const exp = page.locator(`[data-space-expr="page"][data-space-kind="callout"] [data-space-exp]`)
+      if ((await exp.count()) < 1) fail('callout page missing expiry')
+    }
     await page.screenshot({ path: `${EVIDENCE}/finder-${kind.filter}-page.png` })
     await page.locator('button:has-text("BACK TO RESULTS")').click()
     await page.locator('[data-filter="all"]').click()

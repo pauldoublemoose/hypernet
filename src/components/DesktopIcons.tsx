@@ -8,6 +8,7 @@ export type ShellFeature =
   | 'global-chat'
   | 'graph'
   | 'notes'
+  | 'feed'
   | 'admin'
   | 'profile'
   | 'settings'
@@ -17,6 +18,7 @@ export type ShellFeature =
   | 'contacts'
   | 'clusters'
   | 'my-cluster'
+  | 'callouts'
   | 'notifications'
   | 'my-chats'
   | 'theme'
@@ -27,6 +29,7 @@ type IconId =
   | 'global-chat'
   | 'graph'
   | 'notes'
+  | 'feed'
   | 'bot-roulette'
   | 'events'
   | 'horizons'
@@ -34,6 +37,7 @@ type IconId =
   | 'contacts'
   | 'my-horizons'
   | 'my-cluster'
+  | 'callouts'
   | 'admin'
   | 'settings'
   | 'theme'
@@ -50,6 +54,7 @@ const CREATE: NavLeaf[] = [
   { id: 'events', label: 'event', tip: 'Create an event.' },
   { id: 'horizons', label: 'event horizon', tip: 'Create a shared calendar.' },
   { id: 'clusters', label: 'group', tip: 'Create a group or camp.' },
+  { id: 'callouts', label: 'call out', tip: 'Create a recruitment call out.' },
 ]
 
 const MANAGE: NavLeaf[] = [
@@ -116,6 +121,7 @@ export function DesktopIcons({
   onGlobalChat,
   onGraph,
   onNotes,
+  onFeed,
   onBotRoulette,
   onEvents,
   onHorizons,
@@ -126,6 +132,7 @@ export function DesktopIcons({
   onMyHorizons,
   onContacts,
   onMyClusters,
+  onCallouts,
   onNotifications,
   onMyChats,
   onTerminal,
@@ -136,6 +143,7 @@ export function DesktopIcons({
   onGlobalChat: () => void
   onGraph: () => void
   onNotes: () => void
+  onFeed: () => void
   onBotRoulette: () => void
   onEvents: () => void
   onHorizons: () => void
@@ -146,6 +154,7 @@ export function DesktopIcons({
   onMyHorizons: () => void
   onContacts: () => void
   onMyClusters: () => void
+  onCallouts: () => void
   onNotifications: () => void
   onMyChats: () => void
   onTerminal: () => void
@@ -163,6 +172,7 @@ export function DesktopIcons({
     if (id === 'global-chat') onGlobalChat()
     else if (id === 'graph') onGraph()
     else if (id === 'notes') onNotes()
+    else if (id === 'feed') onFeed()
     else if (id === 'bot-roulette') onBotRoulette()
     else if (id === 'events') onEvents()
     else if (id === 'horizons') onHorizons()
@@ -173,6 +183,7 @@ export function DesktopIcons({
     else if (id === 'my-horizons') onMyHorizons()
     else if (id === 'contacts') onContacts()
     else if (id === 'my-cluster') onMyClusters()
+    else if (id === 'callouts') onCallouts()
     else if (id === 'notifications') onNotifications()
     else if (id === 'my-chats') onMyChats()
     else if (id === 'terminal') onTerminal()
@@ -215,6 +226,14 @@ export function DesktopIcons({
         </div>
       </header>
       <nav className="shell-pane" data-shell="pane" aria-label="Main">
+        <button
+          type="button"
+          className={`shell-find${active === 'feed' ? ' is-on' : ''}`}
+          data-shell="feed"
+          onClick={onFeed}
+        >
+          FEED
+        </button>
         <button
           type="button"
           className={`shell-find${active === 'notes' ? ' is-on' : ''}`}

@@ -7,8 +7,9 @@ After onboarding, the desert shell uses a left nav pane, a top bar, and a bottom
 `node .cursor/skills/verify-hypernet/helpers/verify.mjs drive desktop-chrome`
 
 - Seed `hypernet_onboarded=1` or finish the journey.
-- Left pane order is SEARCH, CREATE, MANAGE, GIMMICKS.
-- CREATE event, event horizon, and group open `E :: EVENTS`, `H :: HORIZONS`, and `CL :: CLUSTERS`.
+- Left pane order is FEED, SEARCH, CREATE, MANAGE, GIMMICKS.
+- FEED opens `F :: FEED` with burns-seeded events.
+- CREATE event, event horizon, group, and call out open `E :: EVENTS`, `H :: HORIZONS`, `CL :: CLUSTERS`, and `CO :: CALL OUT`.
 - MANAGE Contact lists, Event horizons, and Groups open `C :: CONTACTS`, `MH :: MY HORIZONS`, and `CL :: MY CLUSTERS`.
 - GIMMICKS opens Global Spam Hell, Moonwalker, and Bot Roulette. Global Spam Hell shows that heading. Moonwalker shows `MOONWALKER`. Bot Roulette spins.
 - Top bar has Chat, Notifications, and the avatar.

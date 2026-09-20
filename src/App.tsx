@@ -26,6 +26,8 @@ import { ClustersScreen, type ClustersTab } from './components/screens/ClustersS
 import { TerminalScreen } from './components/screens/TerminalScreen'
 import { FinderScreen } from './components/screens/FinderScreen'
 import { BotRouletteScreen } from './components/screens/BotRouletteScreen'
+import { CalloutsScreen } from './components/screens/CalloutsScreen'
+import { FeedScreen } from './components/screens/FeedScreen'
 import {
   AnnouncementsScreen,
   ChronicleScreen,
@@ -115,6 +117,8 @@ type ScreenId =
   | 'myChats'
   | 'chronicle'
   | 'botRoulette'
+  | 'callouts'
+  | 'feed'
 
 const SECTION: Record<ScreenId, string> = {
   welcome: '0 :: WELCOME',
@@ -155,6 +159,8 @@ const SECTION: Record<ScreenId, string> = {
   globalChat: 'GC :: GLOBAL CHAT',
   notes: 'S :: SEARCH',
   botRoulette: 'BR :: BOT ROULETTE',
+  callouts: 'CO :: CALL OUT',
+  feed: 'F :: FEED',
   notifications: 'N :: NOTIFICATIONS',
   myChats: 'MC :: MY CHATS',
   chronicle: 'CH :: MY CHRONICLE',
@@ -244,6 +250,8 @@ const NO_DRAFT_SCREENS: ReadonlySet<string> = new Set([
   'myChats',
   'chronicle',
   'botRoulette',
+  'callouts',
+  'feed',
 ])
 
 /** Validated draft from a previous session, or null. */
@@ -292,6 +300,8 @@ function shellFeature(screen: ScreenId, graphOpen: boolean, clustersFocus: Clust
   if (screen === 'myChats') return 'my-chats'
   if (screen === 'chronicle') return 'chronicle'
   if (screen === 'botRoulette') return 'bot-roulette'
+  if (screen === 'callouts') return 'callouts'
+  if (screen === 'feed') return 'feed'
   return 'terminal'
 }
 
@@ -831,6 +841,12 @@ export default function App() {
     case 'botRoulette':
       content = <BotRouletteScreen key="botRoulette" onBack={back} />
       break
+    case 'callouts':
+      content = <CalloutsScreen key="callouts" onBack={back} />
+      break
+    case 'feed':
+      content = <FeedScreen key="feed" onBack={back} />
+      break
     case 'notifications':
       content = <NotificationsScreen key="notifications" onBack={back} />
       break
@@ -855,6 +871,16 @@ export default function App() {
   const openBotRoulette = () => {
     setGraphOpen(false)
     if (screen !== 'botRoulette') go('botRoulette')
+  }
+
+  const openCallouts = () => {
+    setGraphOpen(false)
+    if (screen !== 'callouts') go('callouts')
+  }
+
+  const openFeed = () => {
+    setGraphOpen(false)
+    if (screen !== 'feed') go('feed')
   }
 
   const openAdmin = () => {
@@ -942,6 +968,7 @@ export default function App() {
           onGlobalChat={openGlobalChat}
           onGraph={openGraph}
           onNotes={openNotes}
+          onFeed={openFeed}
           onBotRoulette={openBotRoulette}
           onEvents={openEvents}
           onHorizons={openHorizons}
@@ -952,6 +979,7 @@ export default function App() {
           onMyHorizons={openMyHorizons}
           onContacts={openContacts}
           onMyClusters={() => openClusters('mine')}
+          onCallouts={openCallouts}
           onNotifications={openNotifications}
           onMyChats={openMyChats}
           onTerminal={openTerminal}
