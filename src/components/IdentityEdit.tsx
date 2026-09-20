@@ -14,11 +14,13 @@ export function IdentityEdit({
   base,
   value,
   onChange,
+  hideFindMe = false,
 }: {
   kind: SpaceKind
   base: SpaceRecord
   value: IdentityExtras
   onChange: (next: IdentityExtras) => void
+  hideFindMe?: boolean
 }) {
   const [expr, setExpr] = useState<SpaceExpr>('thumb')
   const look = value.looks[expr]
@@ -33,20 +35,24 @@ export function IdentityEdit({
 
   return (
     <section className="identity-edit" data-shell="identity-edit">
-      <h2 className="profile-section-title">Find Me</h2>
-      <p className="dim hz-lead">{FIND_ME_HINT[kind]}</p>
-      <label className="hz-field">
-        <span>Find Me</span>
-        <textarea
-          className="profile-input profile-textarea"
-          rows={2}
-          value={value.findMe}
-          onChange={(e) => onChange({ ...value, findMe: e.target.value })}
-          placeholder="Freeform terms SEARCH should match"
-          aria-label="Find Me"
-          data-shell="find-me"
-        />
-      </label>
+      {hideFindMe ? null : (
+        <>
+          <h2 className="profile-section-title">Find Me</h2>
+          <p className="dim hz-lead">{FIND_ME_HINT[kind]}</p>
+          <label className="hz-field">
+            <span>Find Me</span>
+            <textarea
+              className="profile-input profile-textarea"
+              rows={2}
+              value={value.findMe}
+              onChange={(e) => onChange({ ...value, findMe: e.target.value })}
+              placeholder="Freeform terms SEARCH should match"
+              aria-label="Find Me"
+              data-shell="find-me"
+            />
+          </label>
+        </>
+      )}
       <h2 className="profile-section-title">Look</h2>
       <p className="dim hz-lead">Thumbnail, bar, and page are three expressions of the same identity.</p>
       <div className="pane-views" role="tablist" aria-label="Identity expression">

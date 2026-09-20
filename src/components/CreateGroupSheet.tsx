@@ -121,6 +121,7 @@ export function CreateGroupSheet({
       </CreateAccord>
       <CreateAccord id="more" label="More settings">
         <IdentityEdit
+          hideFindMe
           kind="group"
           base={{
             kind: 'group',

@@ -367,6 +367,7 @@ export function CreateEventSheet({
           />
         </label>
         <IdentityEdit
+          hideFindMe
           kind="event"
           base={{
             kind: 'event',

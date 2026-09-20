@@ -339,6 +339,9 @@ async function assertCreateSheet(page, { shell, title, cta, extra }) {
   if (extra) await extra(root)
   await root.locator('[data-shell="create-name"]').fill(shell === 'create-event' ? 'Verify Gathering' : 'Verify Camp')
   if (await ctaBtn.isDisabled()) fail(`${shell} CTA stayed disabled after name`)
+  await page.locator('.pane-stream').evaluate((el) => {
+    el.scrollTop = 0
+  })
 }
 
 async function driveDesktopChrome(page) {
@@ -424,6 +427,10 @@ async function driveDesktopChrome(page) {
     },
   })
   await page.screenshot({ path: `${EVIDENCE}/create-event.png` })
+  await page.locator('.pane-stream').evaluate((el) => {
+    el.scrollTop = el.scrollHeight
+  })
+  await page.screenshot({ path: `${EVIDENCE}/create-event-cta.png` })
   await page.getByRole('button', { name: 'event horizon', exact: true }).click()
   await page.locator('.title', { hasText: 'H :: HORIZONS' }).waitFor({ state: 'visible' })
   await page.getByRole('button', { name: 'group', exact: true }).click()
@@ -440,6 +447,10 @@ async function driveDesktopChrome(page) {
     },
   })
   await page.screenshot({ path: `${EVIDENCE}/create-group.png` })
+  await page.locator('.pane-stream').evaluate((el) => {
+    el.scrollTop = el.scrollHeight
+  })
+  await page.screenshot({ path: `${EVIDENCE}/create-group-cta.png` })
   await page.getByRole('button', { name: 'call out', exact: true }).click()
   await page.locator('.pane-header', { hasText: 'CALL OUT' }).waitFor({ state: 'visible' })
   await page.locator('[data-shell="callouts"]').waitFor({ state: 'visible' })
