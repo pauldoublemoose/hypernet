@@ -47,33 +47,15 @@ type DeskIcon = {
   tip: string
 }
 
-/** LEFT A — near the window: public / network-wide. */
-const LEFT_A: DeskIcon[] = [
-  {
-    id: 'announcements',
-    glyph: '⌁',
-    label: 'Global Announcements',
-    locked: false,
-    tip: 'Global Announcements — network message board / updates feed.',
-  },
-  {
-    id: 'global-chat',
-    glyph: '▮',
-    label: 'Global Chat',
-    locked: false,
-    tip: 'Global Chat — network-wide chat (stub).',
-  },
-  {
-    id: 'graph',
-    glyph: '◈',
-    label: 'Network Graph',
-    locked: false,
-    tip: 'Network Graph — drop into a World and walk. Privacy = reach.',
-  },
-]
+type NavCategoryId = 'find' | 'global' | 'mine' | 'system'
 
-/** LEFT B — outer Find strip. */
-const LEFT_B: DeskIcon[] = [
+type NavCategory = {
+  id: NavCategoryId
+  label: string
+  items: DeskIcon[]
+}
+
+const FIND: DeskIcon[] = [
   {
     id: 'notes',
     glyph: '※',
@@ -104,8 +86,31 @@ const LEFT_B: DeskIcon[] = [
   },
 ]
 
-/** RIGHT C — near the window: inbox. */
-const RIGHT_C: DeskIcon[] = [
+const GLOBAL: DeskIcon[] = [
+  {
+    id: 'announcements',
+    glyph: '⌁',
+    label: 'Global Announcements',
+    locked: false,
+    tip: 'Global Announcements — network message board / updates feed.',
+  },
+  {
+    id: 'global-chat',
+    glyph: '▮',
+    label: 'Global Chat',
+    locked: false,
+    tip: 'Global Chat — network-wide chat (stub).',
+  },
+  {
+    id: 'graph',
+    glyph: '◈',
+    label: 'Network Graph',
+    locked: false,
+    tip: 'Network Graph — drop into a World and walk. Privacy = reach.',
+  },
+]
+
+const MINE: DeskIcon[] = [
   {
     id: 'notifications',
     glyph: '◷',
@@ -120,10 +125,6 @@ const RIGHT_C: DeskIcon[] = [
     locked: false,
     tip: 'My Chats — your private threads (stub).',
   },
-]
-
-/** RIGHT D — outer mine strip. */
-const RIGHT_D: DeskIcon[] = [
   {
     id: 'profile',
     glyph: '◉',
@@ -161,7 +162,7 @@ const RIGHT_D: DeskIcon[] = [
   },
 ]
 
-const RIGHT_BOTTOM: DeskIcon[] = [
+const SYSTEM: DeskIcon[] = [
   {
     id: 'theme',
     glyph: '◐',
@@ -185,22 +186,27 @@ const RIGHT_BOTTOM: DeskIcon[] = [
   },
 ]
 
+const NAV_CATEGORIES: NavCategory[] = [
+  { id: 'find', label: 'Find', items: FIND },
+  { id: 'global', label: 'Global', items: GLOBAL },
+  { id: 'mine', label: 'Mine', items: MINE },
+  { id: 'system', label: 'System', items: SYSTEM },
+]
+
 function IconButton({
   item,
   active,
-  tipSide,
   onActivate,
 }: {
   item: DeskIcon
   active: ShellFeature
-  tipSide: 'left' | 'right'
   onActivate: (id: IconId, locked: boolean) => void
 }) {
   const on = !item.locked && item.id === active
   return (
     <button
       type="button"
-      className={`desk-icon tip-${tipSide}${item.locked ? ' is-locked' : ''}${on ? ' is-on' : ''}`}
+      className={`desk-icon${item.locked ? ' is-locked' : ''}${on ? ' is-on' : ''}`}
       aria-current={on ? 'page' : undefined}
       aria-disabled={item.locked || undefined}
       aria-label={item.tip}
@@ -215,38 +221,6 @@ function IconButton({
       </span>
       <span className="desk-label">{item.label}</span>
     </button>
-  )
-}
-
-function IconCol({
-  items,
-  dock,
-  active,
-  tipSide,
-  onActivate,
-  extraClass,
-}: {
-  items: DeskIcon[]
-  dock?: DeskIcon[]
-  active: ShellFeature
-  tipSide: 'left' | 'right'
-  onActivate: (id: IconId, locked: boolean) => void
-  extraClass?: string
-}) {
-  return (
-    <div className={`desk-col${extraClass ? ` ${extraClass}` : ''}`}>
-      {items.map((item) => (
-        <IconButton key={item.id} item={item} active={active} tipSide={tipSide} onActivate={onActivate} />
-      ))}
-      {dock && dock.length > 0 && (
-        <>
-          <div className="desk-stack-spacer" aria-hidden />
-          {dock.map((item) => (
-            <IconButton key={item.id} item={item} active={active} tipSide={tipSide} onActivate={onActivate} />
-          ))}
-        </>
-      )}
-    </div>
   )
 }
 
@@ -288,55 +262,84 @@ export function DesktopIcons({
   onChronicle: () => void
 }) {
   const { theme, cycleTheme } = useUi()
-  const rightBottom = RIGHT_BOTTOM.map((item) =>
-    item.id === 'theme'
-      ? {
-          ...item,
-          tip: `Theme — now ${theme.toUpperCase()}. Click to cycle WHITE / BLACK / POLYCHROME.`,
-        }
-      : item,
-  )
+  const categories = NAV_CATEGORIES.map((cat) => {
+    if (cat.id !== 'system') return cat
+    return {
+      ...cat,
+      items: cat.items.map((item) =>
+        item.id === 'theme'
+          ? {
+              ...item,
+              tip: `Theme — now ${theme.toUpperCase()}. Click to cycle WHITE / BLACK / POLYCHROME.`,
+            }
+          : item,
+      ),
+    }
+  })
+  const open: Record<Exclude<IconId, 'theme'>, () => void> = {
+    announcements: onAnnouncements,
+    'global-chat': onGlobalChat,
+    graph: onGraph,
+    notes: onNotes,
+    admin: onAdmin,
+    profile: onProfile,
+    settings: onSettings,
+    events: onEvents,
+    horizons: onHorizons,
+    'my-horizons': onMyHorizons,
+    contacts: onContacts,
+    clusters: onClusters,
+    'my-cluster': onMyClusters,
+    notifications: onNotifications,
+    'my-chats': onMyChats,
+    chronicle: onChronicle,
+  }
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
-    if (id === 'announcements') onAnnouncements()
-    else if (id === 'global-chat') onGlobalChat()
-    else if (id === 'graph') onGraph()
-    else if (id === 'notes') onNotes()
-    else if (id === 'admin') onAdmin()
-    else if (id === 'profile') onProfile()
-    else if (id === 'settings') onSettings()
-    else if (id === 'events') onEvents()
-    else if (id === 'horizons') onHorizons()
-    else if (id === 'my-horizons') onMyHorizons()
-    else if (id === 'contacts') onContacts()
-    else if (id === 'clusters') onClusters()
-    else if (id === 'my-cluster') onMyClusters()
-    else if (id === 'notifications') onNotifications()
-    else if (id === 'my-chats') onMyChats()
-    else if (id === 'chronicle') onChronicle()
-    else if (id === 'theme') cycleTheme()
+    if (id === 'theme') cycleTheme()
+    else open[id]()
+  }
+  const jumpTo = (id: NavCategoryId) => {
+    document.getElementById(`nav-${id}`)?.scrollIntoView({ block: 'nearest' })
   }
 
   return (
     <>
-      <nav className="desktop-icons desktop-icons-left" aria-label="Hypernet discovery">
-        <div className="desk-cols desk-cols-fill">
-          <IconCol items={LEFT_B} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-outer" />
-          <IconCol items={LEFT_A} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-inner" />
-        </div>
-      </nav>
-      <nav className="desktop-icons desktop-icons-right" aria-label="Hypernet mine">
-        <div className="desk-cols desk-cols-fill">
-          <IconCol items={RIGHT_C} active={active} tipSide="left" onActivate={activate} extraClass="desk-col-inner" />
-          <IconCol
-            items={RIGHT_D}
-            dock={rightBottom}
-            active={active}
-            tipSide="left"
-            onActivate={activate}
-            extraClass="desk-col-outer"
-          />
-        </div>
+      <header className="shell-topnav" data-shell="topnav" aria-label="Hypernet">
+        <span className="shell-brand">HYPERNET</span>
+        <nav className="shell-topnav-cats" aria-label="Sections">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              className="shell-topnav-link"
+              onClick={() => jumpTo(cat.id)}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </nav>
+      </header>
+      <nav
+        className="desktop-icons desktop-icons-left"
+        data-shell="sidenav"
+        aria-label="Hypernet navigation"
+      >
+        {categories.map((cat) => (
+          <section
+            key={cat.id}
+            id={`nav-${cat.id}`}
+            className="desk-cat"
+            data-nav-cat={cat.id}
+          >
+            <h2 className="desk-cat-label">{cat.label}</h2>
+            <div className="desk-cat-items">
+              {cat.items.map((item) => (
+                <IconButton key={item.id} item={item} active={active} onActivate={activate} />
+              ))}
+            </div>
+          </section>
+        ))}
       </nav>
     </>
   )

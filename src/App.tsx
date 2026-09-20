@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DesktopIcons, type ShellFeature } from './components/DesktopIcons'
+import { PreviewPane } from './components/PreviewPane'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
 import { AboutMeScreen } from './components/screens/AboutMeScreen'
 import { AboutScreen } from './components/screens/AboutScreen'
@@ -908,32 +909,35 @@ export default function App() {
         onMyChats={openMyChats}
         onChronicle={openChronicle}
       />
-      <TerminalFrame
-        section={
-          screen === 'clusters'
-            ? clustersFocus === 'mine'
-              ? 'CL :: MY CLUSTERS'
-              : 'CL :: CLUSTERS'
-            : SECTION[screen]
-        }
-        mode={mode}
-        onOpenTerminal={openTerminal}
-      >
-        <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
-          {content}
-        </div>
-        {graphOpen && (
-          <div className="screen net-screen graph-overlay">
-            <div className="title">N :: WORLD</div>
-            <div className="net-intro dim">DROP INTO A WORLD · WALK LOCALLY · [GRAPH] TO RETURN</div>
-            <NetworkGraph
-              selfName={loadProfile(answers).displayName || answers.fullName || 'You'}
-              selfAvatarUrl={loadProfile(answers).avatarDataUrl}
-              onOpenSelfProfile={openProfile}
-            />
+      <div className="shell-windows" data-shell="windows">
+        <TerminalFrame
+          section={
+            screen === 'clusters'
+              ? clustersFocus === 'mine'
+                ? 'CL :: MY CLUSTERS'
+                : 'CL :: CLUSTERS'
+              : SECTION[screen]
+          }
+          mode={mode}
+          onOpenTerminal={openTerminal}
+        >
+          <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
+            {content}
           </div>
-        )}
-      </TerminalFrame>
+          {graphOpen && (
+            <div className="screen net-screen graph-overlay">
+              <div className="title">N :: WORLD</div>
+              <div className="net-intro dim">DROP INTO A WORLD · WALK LOCALLY · [GRAPH] TO RETURN</div>
+              <NetworkGraph
+                selfName={loadProfile(answers).displayName || answers.fullName || 'You'}
+                selfAvatarUrl={loadProfile(answers).avatarDataUrl}
+                onOpenSelfProfile={openProfile}
+              />
+            </div>
+          )}
+        </TerminalFrame>
+        <PreviewPane />
+      </div>
     </div>
   )
 }
