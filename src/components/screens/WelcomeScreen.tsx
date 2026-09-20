@@ -1,12 +1,16 @@
 import { useLayoutEffect, useState } from 'react'
-import { WELCOME_INTRO, WELCOME_JOIN } from '../../data/copy'
-import { useKeys, useTypewriter } from '../../hooks'
+import {
+  DESERT_HEADLINE,
+  HYPERNET_HEADLINE,
+  ONBOARDING_STEPS,
+  type OnboardingStepId,
+  writeOnboarded,
+} from '../../lib/onboarding'
+import { useKeys } from '../../hooks'
 import { hasSavedProfile } from '../../lib/profileStore'
 import { useSession } from '../../lib/session'
 import { useUi } from '../../ui'
 import type { InputMode } from '../TerminalFrame'
-
-const FULL = `${WELCOME_INTRO}\n\n${WELCOME_JOIN}`
 
 type Highlight = 0 | 1 | 2 | 3
 
@@ -16,6 +20,7 @@ export function WelcomeScreen({
   onAbout,
   onAdmin,
   onLogin,
+  onEnterDesert,
   setMode,
 }: {
   onSignup: () => void
@@ -23,43 +28,67 @@ export function WelcomeScreen({
   onAbout: () => void
   onAdmin: () => void
   onLogin: () => void
+  onEnterDesert: () => void
   setMode: (m: InputMode) => void
 }) {
-  const { shown, done, finish } = useTypewriter(FULL)
   const { status, email } = useSession()
   const authed = status === 'authed'
-  const [hl, setHl] = useState<Highlight>(() => (hasSavedProfile() ? 2 : 1))
+  const hasProfile = hasSavedProfile()
+  const [step, setStep] = useState<OnboardingStepId>('desert')
+  const [hl, setHl] = useState<Highlight>(0)
   const [signInNote, setSignInNote] = useState('')
   const { setEnterArmed } = useUi()
+  const stepIndex = ONBOARDING_STEPS.indexOf(step)
+  const atStart = step === 'start'
 
   useLayoutEffect(() => {
     setMode('NAV')
     setEnterArmed(true)
   }, [setMode, setEnterArmed])
 
-  const introShown = shown.slice(0, Math.min(shown.length, WELCOME_INTRO.length))
-  const introDone = shown.length >= WELCOME_INTRO.length
-  const joinShown = shown.length > WELCOME_INTRO.length + 2 ? shown.slice(WELCOME_INTRO.length + 2) : ''
+  const finishOnboarding = () => {
+    writeOnboarded()
+    onEnterDesert()
+  }
 
   const activate = (n: Highlight) => {
-    if (n === 0) onAbout()
+    if (n === 0) finishOnboarding()
     else if (n === 1) {
-      setSignInNote('')
+      writeOnboarded()
+      onEnterDesert()
       onSignup()
     } else if (n === 2) {
-      if (hasSavedProfile()) {
-        setSignInNote('')
+      if (hasProfile) {
+        writeOnboarded()
+        onEnterDesert()
         onSignIn()
       } else {
         setSignInNote('No account on this device yet — use Sign Up')
       }
     } else {
-      setSignInNote('')
+      writeOnboarded()
+      onEnterDesert()
       onLogin()
     }
   }
 
   useKeys((e) => {
+    if (e.key === 'Backspace') {
+      e.preventDefault()
+      if (stepIndex > 0) setStep(ONBOARDING_STEPS[stepIndex - 1])
+      return
+    }
+    if (!atStart && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight')) {
+      e.preventDefault()
+      setStep(ONBOARDING_STEPS[stepIndex + 1])
+      return
+    }
+    if (e.key === 'ArrowLeft' && stepIndex > 0) {
+      e.preventDefault()
+      setStep(ONBOARDING_STEPS[stepIndex - 1])
+      return
+    }
+    if (!atStart) return
     if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
       e.preventDefault()
       setHl((h) => ((h + 3) % 4) as Highlight)
@@ -68,13 +97,12 @@ export function WelcomeScreen({
       setHl((h) => ((h + 1) % 4) as Highlight)
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
-      if (!done) finish()
-      else activate(hl)
+      activate(hl)
     }
   })
 
   return (
-    <div className="screen welcome-screen" onClick={() => !done && finish()}>
+    <div className="screen welcome-screen welcome-journey" data-shell="onboarding">
       <button
         type="button"
         className="admin-whisper"
@@ -87,55 +115,93 @@ export function WelcomeScreen({
       >
         ·
       </button>
-      <div className="tw">
-        {introShown}
-        {!introDone && <span className="caret">▮</span>}
-      </div>
-      {introDone && (
-        <div className="btn-row">
-          <button
-            className={`btn ${done && hl === 0 ? 'hl' : ''}`}
-            onMouseEnter={() => setHl(0)}
-            onClick={onAbout}
-          >
-            [ TELL ME MORE ABOUT HYPERNET ]
-          </button>
+
+      {step === 'desert' && (
+        <div className="journey-pane">
+          <h1 className="display-headline">{DESERT_HEADLINE}</h1>
+          <p className="journey-hint">ENTER to continue</p>
         </div>
       )}
-      {introDone && (
-        <div className="tw">
-          {joinShown}
-          {!done && <span className="caret">▮</span>}
+
+      {step === 'hypernet' && (
+        <div className="journey-pane">
+          <h1 className="display-headline">{HYPERNET_HEADLINE}</h1>
+          <p className="journey-hint">ENTER to continue</p>
         </div>
       )}
-      {done && (
-        <div className="btn-row">
-          <button
-            className={`btn ${hl === 1 ? 'hl' : ''}`}
-            onMouseEnter={() => setHl(1)}
-            onClick={() => activate(1)}
-          >
-            [ SIGN UP ]
-          </button>
-          <button
-            className={`btn ${hl === 2 ? 'hl' : ''}`}
-            onMouseEnter={() => setHl(2)}
-            onClick={() => activate(2)}
-          >
-            [ SIGN IN ]
-          </button>
-          <button
-            className={`btn dim ${hl === 3 ? 'hl' : ''}`}
-            onMouseEnter={() => setHl(3)}
-            onClick={() => activate(3)}
-          >
-            {authed ? '[ YOUR NODE ]' : '[ ACCESS YOUR NODE ]'}
-          </button>
+
+      {step === 'purpose' && (
+        <div className="journey-pane">
+          <h1 className="display-headline display-headline-sm">How this place works</h1>
+          <ul className="journey-beats">
+            <li>
+              <span className="journey-kicker">Find co-creators</span>
+              Search nodes — you in the network — by what they can make.
+            </li>
+            <li>
+              <span className="journey-kicker">Share events</span>
+              Publish gatherings and mark Interested or Going. A Horizon is a shared calendar.
+            </li>
+            <li>
+              <span className="journey-kicker">Build community</span>
+              Clusters are camps and crews. Worlds are places you drop into on the graph.
+            </li>
+          </ul>
+          <div className="btn-row">
+            <button type="button" className="btn hl" onClick={() => setStep('start')}>
+              [ HOW TO START ]
+            </button>
+            <button type="button" className="btn dim" onClick={onAbout}>
+              [ TELL ME MORE ABOUT HYPERNET ]
+            </button>
+          </div>
         </div>
       )}
-      {done && signInNote ? <p className="dim hz-lead">{signInNote}</p> : null}
-      {done && authed && (
-        <div className="screen-hint">SESSION ACTIVE — {email.toUpperCase()}</div>
+
+      {step === 'start' && (
+        <div className="journey-pane">
+          <h1 className="display-headline display-headline-sm">Start wherever you are</h1>
+          <p className="journey-lead">
+            The desert stays empty until you open something. Hover a person to peek. Click nav to
+            go in.
+          </p>
+          <div className="btn-row">
+            <button
+              type="button"
+              className={`btn ${hl === 0 ? 'hl' : ''}`}
+              onMouseEnter={() => setHl(0)}
+              onClick={() => activate(0)}
+            >
+              [ ENTER THE DESERT ]
+            </button>
+            <button
+              type="button"
+              className={`btn ${hl === 1 ? 'hl' : ''}`}
+              onMouseEnter={() => setHl(1)}
+              onClick={() => activate(1)}
+            >
+              [ SIGN UP ]
+            </button>
+            <button
+              type="button"
+              className={`btn ${hl === 2 ? 'hl' : ''}`}
+              onMouseEnter={() => setHl(2)}
+              onClick={() => activate(2)}
+            >
+              [ SIGN IN ]
+            </button>
+            <button
+              type="button"
+              className={`btn dim ${hl === 3 ? 'hl' : ''}`}
+              onMouseEnter={() => setHl(3)}
+              onClick={() => activate(3)}
+            >
+              {authed ? '[ YOUR NODE ]' : '[ ACCESS YOUR NODE ]'}
+            </button>
+          </div>
+          {signInNote ? <p className="dim hz-lead">{signInNote}</p> : null}
+          {authed ? <div className="screen-hint">SESSION ACTIVE — {email.toUpperCase()}</div> : null}
+        </div>
       )}
     </div>
   )

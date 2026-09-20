@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { DesertField } from './components/DesertField'
 import { DesktopIcons, type ShellFeature } from './components/DesktopIcons'
+import { IdentityPreview } from './components/IdentityPreview'
+import { PixelDust } from './components/PixelDust'
 import { TerminalFrame, type InputMode } from './components/TerminalFrame'
 import { AboutMeScreen } from './components/screens/AboutMeScreen'
 import { AboutScreen } from './components/screens/AboutScreen'
@@ -21,15 +24,18 @@ import { MyHorizonsScreen } from './components/screens/MyHorizonsScreen'
 import { ContactsScreen } from './components/screens/ContactsScreen'
 import { ClustersScreen, type ClustersTab } from './components/screens/ClustersScreen'
 import { TerminalScreen } from './components/screens/TerminalScreen'
+import { FinderScreen } from './components/screens/FinderScreen'
 import {
   AnnouncementsScreen,
   ChronicleScreen,
-  FindNodesScreen,
   GlobalChatScreen,
   MyChatsScreen,
   NotificationsScreen,
 } from './components/screens/StubScreens'
 import { ensureDefaultHorizon } from './lib/horizonStore'
+import { resolveAvatarUrl } from './lib/defaultAvatars'
+import { readOnboarded, shellKind } from './lib/onboarding'
+import type { SpaceRecord } from './lib/space'
 import { loadProfile } from './lib/profileStore'
 import { TextScreen } from './components/screens/TextScreen'
 import { ThanksScreen } from './components/screens/ThanksScreen'
@@ -145,7 +151,7 @@ const SECTION: Record<ScreenId, string> = {
   terminal: 'T :: TERMINAL',
   announcements: 'GA :: ANNOUNCEMENTS',
   globalChat: 'GC :: GLOBAL CHAT',
-  notes: 'FN :: NODES',
+  notes: 'F :: FINDER',
   notifications: 'N :: NOTIFICATIONS',
   myChats: 'MC :: MY CHATS',
   chronicle: 'CH :: MY CHRONICLE',
@@ -291,6 +297,20 @@ export default function App() {
   const [screen, setScreen] = useState<ScreenId>(() => draft?.screen ?? 'welcome')
   const [history, setHistory] = useState<ScreenId[]>(() => draft?.history ?? [])
   const [mode, setMode] = useState<InputMode>('NAV')
+  const [onboarded, setOnboarded] = useState(() => readOnboarded() || Boolean(draft))
+  const [hover, setHover] = useState<SpaceRecord | null>(null)
+  const hoverTimer = useRef<number | null>(null)
+  const profile = loadProfile(answers)
+  const kind = shellKind(screen, onboarded)
+
+  const onHover = (space: SpaceRecord | null) => {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current)
+    if (space) {
+      setHover(space)
+      return
+    }
+    hoverTimer.current = window.setTimeout(() => setHover(null), 180)
+  }
   const [editingFromReview, setEditingFromReview] = useState(false)
   // When set, the review/confirm flow updates this claimed signup instead of inserting.
   const [editingSignupId, setEditingSignupId] = useState<string | null>(null)
@@ -447,6 +467,7 @@ export default function App() {
           onAbout={() => go('about')}
           onAdmin={() => go('adminGate')}
           onLogin={() => go('account')}
+          onEnterDesert={() => setOnboarded(true)}
           setMode={setMode}
         />
       )
@@ -794,7 +815,7 @@ export default function App() {
       content = <GlobalChatScreen key="globalChat" onBack={back} />
       break
     case 'notes':
-      content = <FindNodesScreen key="notes" onBack={back} />
+      content = <FinderScreen key="notes" onBack={back} hover={hover} onHover={onHover} />
       break
     case 'notifications':
       content = <NotificationsScreen key="notifications" onBack={back} />
@@ -888,52 +909,76 @@ export default function App() {
   }
 
   return (
-    <div className={`app${expanded ? ' is-expanded' : ''}`} data-theme={theme}>
-      <DesktopIcons
-        active={shellFeature(screen, graphOpen, clustersFocus)}
-        onAnnouncements={openAnnouncements}
-        onGlobalChat={openGlobalChat}
-        onGraph={openGraph}
-        onNotes={openNotes}
-        onAdmin={openAdmin}
-        onProfile={openProfile}
-        onSettings={openSettings}
-        onEvents={openEvents}
-        onHorizons={openHorizons}
-        onMyHorizons={openMyHorizons}
-        onContacts={openContacts}
-        onClusters={() => openClusters('directory')}
-        onMyClusters={() => openClusters('mine')}
-        onNotifications={openNotifications}
-        onMyChats={openMyChats}
-        onChronicle={openChronicle}
-      />
-      <TerminalFrame
-        section={
-          screen === 'clusters'
-            ? clustersFocus === 'mine'
-              ? 'CL :: MY CLUSTERS'
-              : 'CL :: CLUSTERS'
-            : SECTION[screen]
-        }
-        mode={mode}
-        onOpenTerminal={openTerminal}
-      >
-        <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
-          {content}
-        </div>
-        {graphOpen && (
-          <div className="screen net-screen graph-overlay">
-            <div className="title">N :: WORLD</div>
-            <div className="net-intro dim">DROP INTO A WORLD · WALK LOCALLY · [GRAPH] TO RETURN</div>
-            <NetworkGraph
-              selfName={loadProfile(answers).displayName || answers.fullName || 'You'}
-              selfAvatarUrl={loadProfile(answers).avatarDataUrl}
-              onOpenSelfProfile={openProfile}
-            />
-          </div>
+    <div
+      className={`app${expanded ? ' is-expanded' : ''}${kind === 'window' ? ' has-window' : ' is-desert'}`}
+      data-theme={theme}
+    >
+      <PixelDust />
+      {kind !== 'onboarding' && (
+        <DesktopIcons
+          active={shellFeature(screen, graphOpen, clustersFocus)}
+          onAnnouncements={openAnnouncements}
+          onGlobalChat={openGlobalChat}
+          onGraph={openGraph}
+          onNotes={openNotes}
+          onAdmin={openAdmin}
+          onProfile={openProfile}
+          onSettings={openSettings}
+          onEvents={openEvents}
+          onHorizons={openHorizons}
+          onMyHorizons={openMyHorizons}
+          onContacts={openContacts}
+          onClusters={() => openClusters('directory')}
+          onMyClusters={() => openClusters('mine')}
+          onNotifications={openNotifications}
+          onMyChats={openMyChats}
+          onChronicle={openChronicle}
+          onTerminal={openTerminal}
+          avatarSrc={resolveAvatarUrl('self', profile.avatarDataUrl)}
+          avatarLabel={profile.displayName || 'My profile'}
+        />
+      )}
+      <div className="shell-stage" data-shell="stage">
+        {kind === 'onboarding' && content}
+        {kind === 'desert' && (
+          <DesertField hoverId={hover?.id ?? null} onHover={onHover} />
         )}
-      </TerminalFrame>
+        {kind === 'window' && (
+          <TerminalFrame
+            section={
+              screen === 'clusters'
+                ? clustersFocus === 'mine'
+                  ? 'CL :: MY CLUSTERS'
+                  : 'CL :: CLUSTERS'
+                : SECTION[screen]
+            }
+            mode={mode}
+            onOpenTerminal={openTerminal}
+          >
+            <div className={graphOpen ? 'form-layer is-hidden' : 'form-layer'} aria-hidden={graphOpen}>
+              {content}
+            </div>
+            {graphOpen && (
+              <div className="screen net-screen graph-overlay">
+                <div className="title">N :: WORLD</div>
+                <div className="net-intro dim">DROP INTO A WORLD · WALK LOCALLY · [GRAPH] TO RETURN</div>
+                <NetworkGraph
+                  selfName={profile.displayName || answers.fullName || 'You'}
+                  selfAvatarUrl={profile.avatarDataUrl}
+                  onOpenSelfProfile={openProfile}
+                />
+              </div>
+            )}
+          </TerminalFrame>
+        )}
+        {hover && kind !== 'onboarding' && (
+          <IdentityPreview
+            space={hover}
+            onEnter={() => onHover(hover)}
+            onLeave={() => onHover(null)}
+          />
+        )}
+      </div>
     </div>
   )
 }

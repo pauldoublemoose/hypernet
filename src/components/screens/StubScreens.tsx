@@ -105,7 +105,7 @@ export function FindNodesScreen({ onBack }: { onBack: () => void }) {
         </label>
         <ul className="hz-list">
           <li className="hz-list-static">
-            <span className="dim">No nodes yet — coming soon.</span>
+            <span className="dim">Use FINDER from the top bar.</span>
           </li>
         </ul>
       </section>

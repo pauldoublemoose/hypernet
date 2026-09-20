@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useUi } from '../ui'
+import { CardThumb } from './CardThumb'
 
 export type ShellFeature =
   | 'terminal'
@@ -38,215 +40,103 @@ type IconId =
   | 'theme'
   | 'notifications'
   | 'my-chats'
+  | 'terminal'
 
 type DeskIcon = {
   id: IconId
-  glyph: string
   label: string
   locked: boolean
   tip: string
 }
 
-/** LEFT A — near the window: public / network-wide. */
-const LEFT_A: DeskIcon[] = [
+type NavCategoryId = 'global' | 'mine'
+
+type NavCategory = {
+  id: NavCategoryId
+  label: string
+  items: DeskIcon[]
+}
+
+const GLOBAL: DeskIcon[] = [
   {
     id: 'announcements',
-    glyph: '⌁',
-    label: 'Global Announcements',
+    label: 'Announcements',
     locked: false,
     tip: 'Global Announcements — network message board / updates feed.',
   },
   {
     id: 'global-chat',
-    glyph: '▮',
     label: 'Global Chat',
     locked: false,
     tip: 'Global Chat — network-wide chat (stub).',
   },
   {
     id: 'graph',
-    glyph: '◈',
     label: 'Network Graph',
     locked: false,
     tip: 'Network Graph — drop into a World and walk. Privacy = reach.',
   },
-]
-
-/** LEFT B — outer Find strip. */
-const LEFT_B: DeskIcon[] = [
   {
-    id: 'notes',
-    glyph: '※',
-    label: 'Find Nodes',
+    id: 'terminal',
+    label: 'Terminal',
     locked: false,
-    tip: 'Find Nodes — search the network for people and nodes. Placeholder.',
-  },
-  {
-    id: 'events',
-    glyph: '▣',
-    label: 'Find Events',
-    locked: false,
-    tip: 'Find Events — create gatherings and mark Interested / Going.',
-  },
-  {
-    id: 'horizons',
-    glyph: '◎',
-    label: 'Find Horizons',
-    locked: false,
-    tip: 'Find Horizons — published shared calendars.',
-  },
-  {
-    id: 'clusters',
-    glyph: '▦',
-    label: 'Find Clusters',
-    locked: false,
-    tip: 'Find Clusters — public directory of shared camps and crews.',
+    tip: 'Terminal — feed, help, and about.',
   },
 ]
 
-/** RIGHT C — near the window: inbox. */
-const RIGHT_C: DeskIcon[] = [
-  {
-    id: 'notifications',
-    glyph: '◷',
-    label: 'My Notifications',
-    locked: false,
-    tip: 'My Notifications — personal alerts (stub).',
-  },
-  {
-    id: 'my-chats',
-    glyph: '◇',
-    label: 'My Chats',
-    locked: false,
-    tip: 'My Chats — your private threads (stub).',
-  },
-]
-
-/** RIGHT D — outer mine strip. */
-const RIGHT_D: DeskIcon[] = [
-  {
-    id: 'profile',
-    glyph: '◉',
-    label: 'MY NODE',
-    locked: false,
-    tip: 'My node — you in the network. Avatar, bio, skills, contact.',
-  },
+const MINE: DeskIcon[] = [
   {
     id: 'chronicle',
-    glyph: '☰',
     label: 'My Chronicle',
     locked: false,
-    tip: 'My Chronicle — personal event history, roles, and unconfirmed entries. Stub.',
+    tip: 'My Chronicle — personal event history, roles, and unconfirmed entries.',
   },
   {
     id: 'contacts',
-    glyph: '☷',
     label: 'My Contacts',
     locked: false,
     tip: 'My Contacts — contact lists, Follow, and Friend requests.',
   },
   {
     id: 'my-cluster',
-    glyph: '▤',
     label: 'My Clusters',
     locked: false,
-    tip: 'My Clusters — camps you join or admin. Create a cluster here.',
+    tip: 'My Clusters — camps you join or admin.',
   },
   {
     id: 'my-horizons',
-    glyph: '◌',
     label: 'MY HORIZONS',
     locked: false,
     tip: 'My horizons — your default list and calendars you create.',
   },
 ]
 
-const RIGHT_BOTTOM: DeskIcon[] = [
-  {
-    id: 'theme',
-    glyph: '◐',
-    label: 'Theme',
-    locked: false,
-    tip: 'Theme — cycle WHITE / BLACK / POLYCHROME.',
-  },
-  {
-    id: 'admin',
-    glyph: '◆',
-    label: 'ADMIN',
-    locked: false,
-    tip: 'Admin ledger — passphrase gate (already in the welcome screen)',
-  },
-  {
-    id: 'settings',
-    glyph: '⬡',
-    label: 'SETTINGS',
-    locked: false,
-    tip: 'Settings — theme, notifications, privacy, account.',
-  },
+const NAV_CATEGORIES: NavCategory[] = [
+  { id: 'global', label: 'Global', items: GLOBAL },
+  { id: 'mine', label: 'Mine', items: MINE },
 ]
 
-function IconButton({
+function NavItem({
   item,
   active,
-  tipSide,
   onActivate,
 }: {
   item: DeskIcon
   active: ShellFeature
-  tipSide: 'left' | 'right'
   onActivate: (id: IconId, locked: boolean) => void
 }) {
   const on = !item.locked && item.id === active
   return (
     <button
       type="button"
-      className={`desk-icon tip-${tipSide}${item.locked ? ' is-locked' : ''}${on ? ' is-on' : ''}`}
+      className={`shell-item${item.locked ? ' is-locked' : ''}${on ? ' is-on' : ''}`}
       aria-current={on ? 'page' : undefined}
       aria-disabled={item.locked || undefined}
-      aria-label={item.tip}
-      data-tip={item.tip}
-      data-theme-cycle={item.id === 'theme' ? 'true' : undefined}
       title={item.tip}
       onClick={() => onActivate(item.id, item.locked)}
     >
-      <span className="desk-glyph" aria-hidden>
-        {item.glyph}
-        {item.locked && <span className="desk-lock" />}
-      </span>
-      <span className="desk-label">{item.label}</span>
+      {item.label}
     </button>
-  )
-}
-
-function IconCol({
-  items,
-  dock,
-  active,
-  tipSide,
-  onActivate,
-  extraClass,
-}: {
-  items: DeskIcon[]
-  dock?: DeskIcon[]
-  active: ShellFeature
-  tipSide: 'left' | 'right'
-  onActivate: (id: IconId, locked: boolean) => void
-  extraClass?: string
-}) {
-  return (
-    <div className={`desk-col${extraClass ? ` ${extraClass}` : ''}`}>
-      {items.map((item) => (
-        <IconButton key={item.id} item={item} active={active} tipSide={tipSide} onActivate={onActivate} />
-      ))}
-      {dock && dock.length > 0 && (
-        <>
-          <div className="desk-stack-spacer" aria-hidden />
-          {dock.map((item) => (
-            <IconButton key={item.id} item={item} active={active} tipSide={tipSide} onActivate={onActivate} />
-          ))}
-        </>
-      )}
-    </div>
   )
 }
 
@@ -268,6 +158,9 @@ export function DesktopIcons({
   onNotifications,
   onMyChats,
   onChronicle,
+  onTerminal,
+  avatarSrc,
+  avatarLabel,
 }: {
   active: ShellFeature
   onAnnouncements: () => void
@@ -286,16 +179,16 @@ export function DesktopIcons({
   onNotifications: () => void
   onMyChats: () => void
   onChronicle: () => void
+  onTerminal: () => void
+  avatarSrc?: string
+  avatarLabel: string
 }) {
   const { theme, cycleTheme } = useUi()
-  const rightBottom = RIGHT_BOTTOM.map((item) =>
-    item.id === 'theme'
-      ? {
-          ...item,
-          tip: `Theme — now ${theme.toUpperCase()}. Click to cycle WHITE / BLACK / POLYCHROME.`,
-        }
-      : item,
-  )
+  const [open, setOpen] = useState<Record<NavCategoryId, boolean>>({
+    global: false,
+    mine: false,
+  })
+
   const activate = (id: IconId, locked: boolean) => {
     if (locked) return
     if (id === 'announcements') onAnnouncements()
@@ -314,30 +207,112 @@ export function DesktopIcons({
     else if (id === 'notifications') onNotifications()
     else if (id === 'my-chats') onMyChats()
     else if (id === 'chronicle') onChronicle()
+    else if (id === 'terminal') onTerminal()
     else if (id === 'theme') cycleTheme()
   }
 
   return (
     <>
-      <nav className="desktop-icons desktop-icons-left" aria-label="Hypernet discovery">
-        <div className="desk-cols desk-cols-fill">
-          <IconCol items={LEFT_B} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-outer" />
-          <IconCol items={LEFT_A} active={active} tipSide="right" onActivate={activate} extraClass="desk-col-inner" />
+      <header className="shell-top" data-shell="top">
+        <nav className="shell-nav" aria-label="Hypernet">
+          <button
+            type="button"
+            className={`shell-find${active === 'notes' ? ' is-on' : ''}`}
+            data-shell="find"
+            onClick={onNotes}
+          >
+            Find
+          </button>
+          {NAV_CATEGORIES.map((cat) => {
+            const expanded = open[cat.id]
+            return (
+              <div
+                key={cat.id}
+                className={`shell-cat${expanded ? ' is-open' : ''}`}
+                data-cat={cat.id}
+              >
+                <button
+                  type="button"
+                  className="shell-cat-toggle"
+                  aria-expanded={expanded}
+                  onClick={() => setOpen((o) => ({ ...o, [cat.id]: !o[cat.id] }))}
+                >
+                  {cat.label}
+                </button>
+                {expanded ? (
+                  <div className="shell-cat-items">
+                    {cat.items.map((item) => (
+                      <NavItem key={item.id} item={item} active={active} onActivate={activate} />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )
+          })}
+        </nav>
+        <div className="shell-utils">
+          <button
+            type="button"
+            className={`shell-util${active === 'global-chat' ? ' is-on' : ''}`}
+            onClick={onGlobalChat}
+          >
+            Chat
+          </button>
+          <button
+            type="button"
+            className={`shell-util${active === 'notifications' ? ' is-on' : ''}`}
+            onClick={onNotifications}
+          >
+            Notifications
+          </button>
+          <button
+            type="button"
+            className={`shell-avatar${active === 'profile' ? ' is-on' : ''}`}
+            data-shell="avatar"
+            aria-label="My profile"
+            title="My profile"
+            onClick={onProfile}
+          >
+            <CardThumb src={avatarSrc} label={avatarLabel} size="sm" shape="circle" />
+          </button>
         </div>
-      </nav>
-      <nav className="desktop-icons desktop-icons-right" aria-label="Hypernet mine">
-        <div className="desk-cols desk-cols-fill">
-          <IconCol items={RIGHT_C} active={active} tipSide="left" onActivate={activate} extraClass="desk-col-inner" />
-          <IconCol
-            items={RIGHT_D}
-            dock={rightBottom}
-            active={active}
-            tipSide="left"
-            onActivate={activate}
-            extraClass="desk-col-outer"
-          />
+      </header>
+      <footer className="shell-bottom" data-shell="bottom">
+        <div className="shell-bottom-left">
+          <button
+            type="button"
+            className={`shell-dock${active === 'settings' ? ' is-on' : ''}`}
+            onClick={onSettings}
+          >
+            Settings
+          </button>
+          <button
+            type="button"
+            className="shell-dock"
+            data-theme-cycle="true"
+            title={`Theme — now ${theme.toUpperCase()}. Click to cycle WHITE / BLACK / POLYCHROME.`}
+            onClick={() => activate('theme', false)}
+          >
+            Theme
+          </button>
         </div>
-      </nav>
+        <div className="shell-bottom-right">
+          <button
+            type="button"
+            className={`shell-dock${active === 'admin' ? ' is-on' : ''}`}
+            onClick={onAdmin}
+          >
+            Admin
+          </button>
+          <button
+            type="button"
+            className={`shell-dock${active === 'my-chats' ? ' is-on' : ''}`}
+            onClick={onMyChats}
+          >
+            Chats
+          </button>
+        </div>
+      </footer>
     </>
   )
 }
