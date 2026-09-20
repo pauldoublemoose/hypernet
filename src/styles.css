@@ -35,8 +35,8 @@ body {
   --desk-cell-h: 70px;
   height: 100%;
   display: grid;
-  grid-template-columns: 196px minmax(0, 1fr) 196px;
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-rows: 36px minmax(0, 1fr);
   align-items: stretch;
 }
 
@@ -56,6 +56,83 @@ body {
   --desk-lock-bg: #d8dde3;
 }
 
+.shell-topnav {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.shell-brand {
+  letter-spacing: 2px;
+  font-size: 18px;
+}
+
+.shell-topnav-cats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shell-topnav-link {
+  font: inherit;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: var(--fg-dim);
+  background: none;
+  border: 1px dotted transparent;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.shell-topnav-link:hover,
+.shell-topnav-link:focus-visible {
+  color: var(--fg);
+  border-color: var(--desk-icon);
+  outline: none;
+}
+
+.shell-windows {
+  grid-column: 2;
+  grid-row: 2;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px 16px 28px 6px;
+}
+
+.app.is-expanded .shell-windows {
+  align-items: stretch;
+  padding: 8px 10px 10px 6px;
+}
+
+.chrome-preview {
+  flex: 0 0 240px;
+  width: 240px;
+  max-width: 240px;
+  padding: 14px;
+}
+
+.chrome-preview .terminal {
+  height: min(420px, 62vh);
+}
+
+.app.is-expanded .chrome-preview .terminal {
+  height: auto;
+  flex: 1;
+  min-height: 0;
+}
+
 /* ---- chrome module ----------------------------------------------------- */
 
 .chrome-frame {
@@ -63,11 +140,10 @@ body {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  grid-column: 2;
-  grid-row: 1;
-  width: min(820px, 100%);
-  margin: 12px 8px 36px;
-  justify-self: center;
+  width: min(640px, 100%);
+  max-width: 680px;
+  flex: 1 1 560px;
+  margin: 0;
   align-self: end;
   padding: 22px;
   transition: width 0.28s ease, height 0.28s ease, margin 0.28s ease;
@@ -95,11 +171,12 @@ body {
 .app.is-expanded .chrome-frame,
 .chrome-frame.is-expanded {
   width: auto;
+  max-width: none;
   height: auto;
   min-width: 0;
   min-height: 0;
-  margin: 10px 0;
-  justify-self: stretch;
+  margin: 0;
+  flex: 1 1 auto;
   align-self: stretch;
 }
 
@@ -446,98 +523,64 @@ body {
 /* ---- desktop icons (on the backdrop, not inside the CRT) -------------- */
 
 .desktop-icons {
-  grid-row: 1;
+  grid-row: 2;
   z-index: 2;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
   align-content: flex-start;
-  gap: 2px;
-  padding: 16px 4px 12px 6px;
+  gap: 4px;
+  padding: 8px 6px 12px 8px;
   overflow: visible;
 }
 
-.desktop-icons-left,
-.desktop-icons-right {
+.desktop-icons-left {
+  grid-column: 1;
   height: 100%;
   min-height: 0;
   align-items: stretch;
   justify-content: flex-start;
 }
 
-.desktop-icons-left {
-  grid-column: 1;
-}
-
-.desktop-icons-right {
-  grid-column: 3;
-  padding: 16px 6px 12px 4px;
-}
-
-.desk-cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
-  justify-items: center;
-  column-gap: 2px;
-  width: 100%;
-}
-
-.desk-col {
+.desk-cat {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0;
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-}
-
-.desk-cols-fill {
-  flex: 1 1 auto;
-  min-height: 0;
-  align-items: stretch;
-}
-
-.desk-cols-bottom {
-  align-items: end;
-}
-
-.desk-col-dock {
-  grid-column: 2;
-}
-
-.desk-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 2px;
+  min-width: 0;
 }
 
-.desk-stack-spacer {
-  flex: 1 1 auto;
-  min-height: 24px;
-  width: 1px;
+.desk-cat[data-nav-cat='system'] {
+  margin-top: auto;
+  padding-top: 8px;
 }
 
-.desk-icon.tip-left[data-tip]:hover::after,
-.desk-icon.tip-left[data-tip]:focus-visible::after {
-  left: auto;
-  right: calc(100% + 8px);
+.desk-cat-label {
+  margin: 0;
+  padding: 4px 8px 2px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--desk-muted);
+}
+
+.desk-cat-items {
+  display: flex;
+  flex-direction: column;
 }
 
 .desk-icon {
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
-  width: var(--desk-cell-w);
-  height: var(--desk-cell-h);
-  flex: 0 0 var(--desk-cell-h);
+  gap: 8px;
+  width: 100%;
+  height: 32px;
+  flex: 0 0 32px;
   box-sizing: border-box;
-  padding: 6px 4px 4px;
+  padding: 2px 8px;
   font: inherit;
   color: var(--desk-icon);
   background: none;
@@ -575,17 +618,15 @@ body {
 
 .desk-label {
   max-width: 100%;
-  height: 2.3em;
-  padding: 0 2px;
-  font-size: 11px;
+  height: auto;
+  padding: 0;
+  font-size: 13px;
   letter-spacing: 0.4px;
   line-height: 1.15;
-  text-align: center;
+  text-align: left;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  white-space: normal;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .desk-lock {
@@ -632,12 +673,6 @@ body {
   white-space: normal;
   pointer-events: none;
   box-shadow: 0 8px 18px -10px rgba(15, 20, 25, 0.45);
-}
-
-.desktop-icons.is-right .desk-icon[data-tip]:hover::after,
-.desktop-icons.is-right .desk-icon[data-tip]:focus-visible::after {
-  left: auto;
-  right: calc(100% + 8px);
 }
 
 .term-status {
@@ -1048,6 +1083,7 @@ body {
 
   .app {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
     padding: 0;
   }
 
@@ -1055,8 +1091,17 @@ body {
     padding: 0;
   }
 
-  .desktop-icons {
+  .shell-topnav,
+  .desktop-icons,
+  .chrome-preview {
     display: none;
+  }
+
+  .shell-windows {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 0;
+    align-items: stretch;
   }
 
   .mobile-only {
@@ -1067,8 +1112,10 @@ body {
     grid-column: 1;
     grid-row: auto;
     width: 100vw;
+    max-width: none;
     height: 100dvh;
     margin: 0;
+    flex: 1 1 auto;
     justify-self: stretch;
     align-self: stretch;
     padding: 10px;

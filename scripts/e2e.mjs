@@ -50,7 +50,7 @@ const browser = await chromium.launch()
   await page.reload()
   await page.waitForSelector('text=HYPERNET v0.1')
 
-  // theme cycles WHITE -> BLACK -> POLYCHROME -> WHITE via right-column Theme icon
+  // theme cycles WHITE -> BLACK -> POLYCHROME -> WHITE via the Theme nav icon
   const themeBtn = page.locator('[data-theme-cycle="true"]')
   const appTheme = () => page.locator('.app').getAttribute('data-theme')
   if ((await themeBtn.count()) !== 1) fail('Theme desktop icon missing')
