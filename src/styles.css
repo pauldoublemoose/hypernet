@@ -2424,6 +2424,12 @@ html[data-reduce-motion='on'] .terminal {
   border: 1px dotted var(--border);
 }
 
+.hz-list-static.is-stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 .hz-list-item.has-thumb,
 .hz-list-static.has-thumb {
   justify-content: flex-start;

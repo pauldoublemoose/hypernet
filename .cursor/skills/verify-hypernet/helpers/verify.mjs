@@ -358,6 +358,7 @@ async function driveDesktopChrome(page) {
   await page.getByRole('button', { name: 'call out', exact: true }).click()
   await page.locator('.title', { hasText: 'CO :: CALL OUT' }).waitFor({ state: 'visible' })
   await page.locator('[data-shell="callouts"]').waitFor({ state: 'visible' })
+  await page.screenshot({ path: `${EVIDENCE}/nav-callout.png` })
   await page.getByRole('button', { name: 'Contact lists', exact: true }).click()
   await page.locator('.title', { hasText: 'C :: CONTACTS' }).waitFor({ state: 'visible' })
   await page.getByRole('button', { name: 'Event horizons', exact: true }).click()

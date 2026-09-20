@@ -36,7 +36,7 @@ export function CalloutsScreen({ onBack }: { onBack: () => void }) {
       </p>
       <ul className="hz-list">
         {items.map((row) => (
-          <li key={row.id} className="hz-list-static">
+          <li key={row.id} className="hz-list-static is-stack">
             <span className="hz-list-title">{row.title}</span>
             <span className="dim">EXP {row.expiresAt}</span>
             <span className="hz-lead">{row.body}</span>
