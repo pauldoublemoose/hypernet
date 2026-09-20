@@ -28,6 +28,9 @@ type IconId =
   | 'graph'
   | 'notes'
   | 'bot-roulette'
+  | 'events'
+  | 'horizons'
+  | 'clusters'
   | 'contacts'
   | 'my-horizons'
   | 'my-cluster'
@@ -41,24 +44,12 @@ type IconId =
 
 type NavLeaf = { id: IconId; label: string; tip: string }
 
-type PaneId = 'explore' | 'create' | 'manage'
+type PaneId = 'create' | 'manage' | 'gimmicks'
 
-const EXPLORE: NavLeaf[] = [
-  {
-    id: 'global-chat',
-    label: 'Global Spam Hell',
-    tip: 'Global Spam Hell — network-wide chat (stub).',
-  },
-  {
-    id: 'graph',
-    label: 'Moonwalker',
-    tip: 'Moonwalker — drop into a World and walk.',
-  },
-  {
-    id: 'bot-roulette',
-    label: 'Bot Roulette',
-    tip: 'Bot Roulette — robot-face slots.',
-  },
+const CREATE: NavLeaf[] = [
+  { id: 'events', label: 'event', tip: 'Create an event.' },
+  { id: 'horizons', label: 'event horizon', tip: 'Create a shared calendar.' },
+  { id: 'clusters', label: 'group', tip: 'Create a group or camp.' },
 ]
 
 const MANAGE: NavLeaf[] = [
@@ -76,6 +67,24 @@ const MANAGE: NavLeaf[] = [
     id: 'my-cluster',
     label: 'Groups',
     tip: 'Groups — camps you join or admin.',
+  },
+]
+
+const GIMMICKS: NavLeaf[] = [
+  {
+    id: 'global-chat',
+    label: 'Global Spam Hell',
+    tip: 'Global Spam Hell — network-wide chat (stub).',
+  },
+  {
+    id: 'graph',
+    label: 'Moonwalker',
+    tip: 'Moonwalker — drop into a World and walk.',
+  },
+  {
+    id: 'bot-roulette',
+    label: 'Bot Roulette',
+    tip: 'Bot Roulette — robot-face slots.',
   },
 ]
 
@@ -108,6 +117,9 @@ export function DesktopIcons({
   onGraph,
   onNotes,
   onBotRoulette,
+  onEvents,
+  onHorizons,
+  onClusters,
   onAdmin,
   onProfile,
   onSettings,
@@ -125,6 +137,9 @@ export function DesktopIcons({
   onGraph: () => void
   onNotes: () => void
   onBotRoulette: () => void
+  onEvents: () => void
+  onHorizons: () => void
+  onClusters: () => void
   onAdmin: () => void
   onProfile: () => void
   onSettings: () => void
@@ -139,9 +154,9 @@ export function DesktopIcons({
 }) {
   const { theme, cycleTheme } = useUi()
   const [open, setOpen] = useState<Record<PaneId, boolean>>({
-    explore: false,
     create: false,
     manage: false,
+    gimmicks: false,
   })
 
   const activate = (id: IconId) => {
@@ -149,6 +164,9 @@ export function DesktopIcons({
     else if (id === 'graph') onGraph()
     else if (id === 'notes') onNotes()
     else if (id === 'bot-roulette') onBotRoulette()
+    else if (id === 'events') onEvents()
+    else if (id === 'horizons') onHorizons()
+    else if (id === 'clusters') onClusters()
     else if (id === 'admin') onAdmin()
     else if (id === 'profile') onProfile()
     else if (id === 'settings') onSettings()
@@ -205,24 +223,6 @@ export function DesktopIcons({
         >
           SEARCH
         </button>
-        <div className={`shell-cat${open.explore ? ' is-open' : ''}`} data-cat="explore">
-          <button
-            type="button"
-            className="shell-cat-toggle"
-            aria-expanded={open.explore}
-            data-pane="explore"
-            onClick={() => toggle('explore')}
-          >
-            EXPLORE
-          </button>
-          {open.explore ? (
-            <div className="shell-cat-items">
-              {EXPLORE.map((item) => (
-                <Leaf key={item.id} item={item} active={active} onActivate={activate} />
-              ))}
-            </div>
-          ) : null}
-        </div>
         <div className={`shell-cat${open.create ? ' is-open' : ''}`} data-cat="create">
           <button
             type="button"
@@ -234,9 +234,11 @@ export function DesktopIcons({
             CREATE
           </button>
           {open.create ? (
-            <p className="shell-soon dim" data-shell="create-soon">
-              Coming soon
-            </p>
+            <div className="shell-cat-items">
+              {CREATE.map((item) => (
+                <Leaf key={item.id} item={item} active={active} onActivate={activate} />
+              ))}
+            </div>
           ) : null}
         </div>
         <div className={`shell-cat${open.manage ? ' is-open' : ''}`} data-cat="manage">
@@ -252,6 +254,24 @@ export function DesktopIcons({
           {open.manage ? (
             <div className="shell-cat-items">
               {MANAGE.map((item) => (
+                <Leaf key={item.id} item={item} active={active} onActivate={activate} />
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <div className={`shell-cat${open.gimmicks ? ' is-open' : ''}`} data-cat="gimmicks">
+          <button
+            type="button"
+            className="shell-cat-toggle"
+            aria-expanded={open.gimmicks}
+            data-pane="gimmicks"
+            onClick={() => toggle('gimmicks')}
+          >
+            GIMMICKS
+          </button>
+          {open.gimmicks ? (
+            <div className="shell-cat-items">
+              {GIMMICKS.map((item) => (
                 <Leaf key={item.id} item={item} active={active} onActivate={activate} />
               ))}
             </div>

@@ -943,6 +943,9 @@ export default function App() {
           onGraph={openGraph}
           onNotes={openNotes}
           onBotRoulette={openBotRoulette}
+          onEvents={openEvents}
+          onHorizons={openHorizons}
+          onClusters={() => openClusters('directory')}
           onAdmin={openAdmin}
           onProfile={openProfile}
           onSettings={openSettings}
