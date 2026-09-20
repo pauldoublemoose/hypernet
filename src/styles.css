@@ -299,7 +299,6 @@ body {
   color: var(--bg);
 }
 
-/* Shown only where the desktop icon dock is hidden (see mobile media query). */
 .mobile-only {
   display: none;
 }
@@ -450,8 +449,6 @@ body {
   scrollbar-color: var(--fg-dim) transparent;
   min-width: 0;
 }
-
-/* ---- desktop icons (on the backdrop, not inside the CRT) -------------- */
 
 .desktop-icons {
   grid-row: 1;

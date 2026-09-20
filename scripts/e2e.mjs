@@ -50,7 +50,6 @@ const browser = await chromium.launch()
   await page.reload()
   await page.waitForSelector('text=Welcome to the digital desert')
 
-  // 0 :: welcome journey — headlines, then about, then sign up
   await page.keyboard.press('Enter')
   await page.waitForSelector('text=HYPERNET: Find co-creators')
   await page.keyboard.press('Enter')
